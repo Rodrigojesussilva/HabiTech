@@ -2,6 +2,7 @@ import './App.css'
 import LoginPage from './app/login/page'
 import Header from './components/header'
 import Structure from './app/strucuture/structure'
+import FormularioContainer from './components/form-controller/form-controller'
 
 function App() {
 
@@ -12,7 +13,7 @@ function App() {
         {true && (
           <Header>
             <Structure>
-              <LoginPage />
+              <FormularioContainer/>
             </Structure>
           </Header>)}
       </div>
