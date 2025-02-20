@@ -35,7 +35,7 @@ export function LoginForm({
     },
   });
 
-  function teste (name:any){
+  function teste(name: any) {
     console.log(name);
   }
   async function onSubmit(data: z.infer<typeof FormSchema>) {
