@@ -4,17 +4,15 @@ import { LoginForm } from "@/components/login-form"
 
 export default function LoginPage() {
   return (
-    <div className="grid min-h-svh lg:grid-cols-2 bg-gray-200">
+    <div className="grid h-screen lg:grid-cols-2  bg-gray-200">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 ">
           <a href="#" className="flex items-center gap-2 font-medium">
-
             <img
               src="/psp.png"
               alt="Image"
               className="h-24 w-50"
             />
-            
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

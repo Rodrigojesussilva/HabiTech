@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 
-export default function Header() {
+interface HeaderProps {
+  children?: React.ReactNode;
+}
+
+export default function Header({ children }: HeaderProps) {
+
+
   return (
-    <header className="w-full border-b bg-white shadow-sm">
+    <>
+    <header className="fixed z-12 w-full border-b bg-white shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <div className="text-xl font-bold">MinhaLogo</div>
@@ -24,5 +31,7 @@ export default function Header() {
         </button>
       </div>
     </header>
+    {children}
+    </>
   );
 }
