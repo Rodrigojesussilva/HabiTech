@@ -4,8 +4,14 @@ import {
   BookOpen,
   Bot,
   Command,
+  Fingerprint,
+  Stamp,
+  ClipboardPen,
+  House,
+  Factory,
+  Building,
   Frame,
-  GalleryVerticalEnd,
+  Building2,
   Map,
   PieChart,
   Settings2,
@@ -33,46 +39,26 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      name: "HabitaSampa",
+      logo: Building2,
+      plan: "Secretaria da Habitação",
     },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Selagem",
       url: "#",
-      icon: SquareTerminal,
+      icon: Stamp,
       isActive: true,
       items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
+
       ],
     },
     {
-      title: "Models",
+      title: "Arrolamento",
       url: "#",
-      icon: Bot,
+      icon: Fingerprint ,
       items: [
         {
           title: "Genesis",
@@ -89,9 +75,9 @@ const data = {
       ],
     },
     {
-      title: "Documentation",
+      title: "Residencial",
       url: "#",
-      icon: BookOpen,
+      icon: House,
       items: [
         {
           title: "Introduction",
@@ -112,9 +98,32 @@ const data = {
       ],
     },
     {
-      title: "Settings",
+      title: "Não Residencial",
       url: "#",
-      icon: Settings2,
+      icon: Factory,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Ocupação Predial",
+      url: "#",
+      icon: Building,
       items: [
         {
           title: "General",
@@ -158,15 +167,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <div className="flex mt-4">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+            <Building2 className="size-4" />
+          </div>
+          <div className="grid flex-1 ml-2 text-left text-sm leading-tight">
+            <span className="truncate font-medium">HabitaSampa</span>
+            <span className="truncate text-xs">Secretaria da Habitação</span>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      
       <SidebarRail />
     </Sidebar>
   )

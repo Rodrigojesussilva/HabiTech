@@ -10,8 +10,8 @@ export default function Header({ children }: HeaderProps) {
 
   return (
     <>
-    <header className="fixed z-12 w-full border-b bg-white shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="fixed z-12 w-full border-b rounded-xl bg-white shadow-sm">
+      <div className="container mx-auto flex h-11  items-center justify-between px-4">
         {/* Logo */}
         <div className="text-xl font-bold">MinhaLogo</div>
 
@@ -27,7 +27,7 @@ export default function Header({ children }: HeaderProps) {
 
         {/* Menu Mobile */}
         <button className="md:hidden">
-          <Menu className="h-6 w-6 text-gray-700" />
+          <Menu className="h-6 w-6 text-gray-700 hover:text-yellow-300" />
         </button>
       </div>
     </header>

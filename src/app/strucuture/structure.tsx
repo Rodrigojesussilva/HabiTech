@@ -21,8 +21,8 @@ interface StructureProps {
   export default function Structure({ children }: StructureProps) {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="inset-y-17">
+      <AppSidebar className="inset-y-12" />
+      <SidebarInset className="inset-y-12">
             <SidebarTrigger className="fixed  ml-2 z-10 " />
             <Separator
               orientation="vertical"

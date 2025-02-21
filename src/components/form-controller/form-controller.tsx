@@ -2,8 +2,10 @@ import FormArrolamento from "@/app/forms/arrolamento";
 import { useState, useEffect, useRef } from "react";
 import { Card, } from "../ui/card";
 import { Button } from "../ui/button";
+import { SquareCheckBig, Square } from "lucide-react";
 
 // Componente principal
+
 export default function FormularioContainer() {
 	const [secoes, setSecoes] = useState<{ nomeForm: string; secoes: { id: string; label: string }[] }>({
 		nomeForm: "",
@@ -31,35 +33,45 @@ export default function FormularioContainer() {
 		}
 	}, []);
 
+	function sectIsChecked(secao: string) {
+		if (secao === "Documentação") return true
+	}
 	return (
 		<>
 			{/* Sidebar controlando as seções */}
 			{console.log(secoes.nomeForm)}
 			<div className="flex space-x-4 ">
-				<Card className="hidden lg:block md:block w-1/4 h-2/3 fixed pl-4 pr-4 m-4 overflow-y-auto">
-					<h1 className="text-blue-600 text-lg p-4 font-bold text-left">{secoes.nomeForm}</h1>
-					<br />
+				<Card className="hidden lg:block md:block w-1/4 h-4/5  fixed pl-4 pr-4 m-4 overflow-y-auto">
+					<h1 className="text-blue-800 text-lg p-4 mt-6 mb-2 font-bold text-left">Formulário: {secoes.nomeForm}</h1>
+					<p className="ml-7 mb-2 text-left text-gray-600 text-sm ">Descrição do formulário:</p>
+					<Card className=" ml-6 mb-8 p-4  w-auto  mr-4 bg-grey-600 h-auto">
+						<h4 className="text-sm text-left text-gray-600 line-clamp-4">
+							Este formulário tem como objetivo coletar informações dos moradores em situação precária
+						</h4>
+					</Card>
 					{secoes.secoes.length > 0 && (
-						<>
-							<div className="flex flex-col w-full space-x-4">
-								{secoes.secoes.map((el, index) => (
-									<Button className="flex flex-row w-full bg-grey-800 mb-4">
-										<span className="w-4/5 text-blue-500 text-xs text-left truncate ">{index + 1}. {el.id} </span>
-										<span className="w-1/5 text-blue-500 text-xs ">{index + 1}/{secoes.secoes.length} </span>
-									</Button>
-								))}
-							</div>
-						</>
+						<div className="flex flex-col w-[95%] space-x-4">
+							{secoes.secoes.map((el, index) => (
+								<Button className="flex flex-row group ml-4 w-full hover:bg-blue-900 text-black hover:text-white bg-gray-100 mb-4">
+									<div className="w-full  flex flex-row">
+										{sectIsChecked(el.id) ? (
+											<SquareCheckBig className="h-6 w-6 text-left text-green-700 group-hover:text-white"></SquareCheckBig>
+										)
+											:
+											<Square className="h-6 w-6 text-left text-gray-700 group-hover:text-white"></Square>
+										}
+										<span className="text-xs ml-2 text-left truncate ">{index + 1}. {el.id} </span>
+									</div>
+
+								</Button>
+							))}
+						</div>
 					)}
 				</Card>
 				<Card className="w-full md:w-3/4 lg:w-3/4 h-screen p-4 lg:ml-94 md:ml-70  m-4 ">
 					<FormArrolamento ref={formRef}	></FormArrolamento>
 				</Card>
-
 			</div>
-
-
-
 		</>
 	);
 }
