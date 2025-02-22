@@ -10,28 +10,25 @@ export default function Header({ children }: HeaderProps) {
 
   return (
     <>
-    <header className="fixed z-12 w-full border-b rounded-xl bg-white shadow-sm">
-      <div className="container mx-auto flex h-11  items-center justify-between px-4">
-        {/* Logo */}
-        <div className="text-xl font-bold">MinhaLogo</div>
+      <header className="fixed z-12 w-full border-b  bg-gray-100 shadow-sm">
+        <div className="flex  mx-auto h-12  items-center justify-between px-4">
+          {/* Logo */}
+          <div className="">
+            <img
+              src="/psp.png"
+              alt="Image"
+              className="h-12 w-28"
+            />
+          </div>
+          <div className="text-xl  font-bold text-purple-900 ">Sistema de Cadastro de Pesquisa</div>
 
-        {/* Menu Desktop */}
-        <nav className="hidden md:flex space-x-6">
-          <a href="#" className="text-gray-700 hover:text-black">Início</a>
-          <a href="#" className="text-gray-700 hover:text-black">Sobre</a>
-          <a href="#" className="text-gray-700 hover:text-black">Contato</a>
-        </nav>
-
-        {/* Botão de Ação */}
-        <Button>Entrar</Button>
-
-        {/* Menu Mobile */}
-        <button className="md:hidden">
-          <Menu className="h-6 w-6 text-gray-700 hover:text-yellow-300" />
-        </button>
-      </div>
-    </header>
-    {children}
+       
+       
+          <div></div>
+          
+        </div>
+      </header>
+      {children}
     </>
   );
 }

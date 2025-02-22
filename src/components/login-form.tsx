@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 
 import {
@@ -49,6 +50,7 @@ export function LoginForm({
       alert("Erro ao salvar");
     }
   }
+  const navigate = useNavigate();
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
@@ -89,7 +91,7 @@ export function LoginForm({
                 <FormItem >
                   <FormLabel className="block text-left">Senha</FormLabel>
                   <FormControl>
-                    <Input  {...field} />
+                    <Input  type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,7 +104,7 @@ export function LoginForm({
               Esqueceu sua senha?
             </a>
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="button" onClick={() => navigate("/home")} className="w-full">
             Login
           </Button>
         </div>

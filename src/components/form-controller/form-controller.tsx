@@ -40,7 +40,7 @@ export default function FormularioContainer() {
 		<>
 			{/* Sidebar controlando as seções */}
 			{console.log(secoes.nomeForm)}
-			<div className="flex space-x-4 ">
+			<div className="flex space-x-4   ">
 				<Card className="hidden lg:block md:block w-1/4 h-4/5  fixed pl-4 pr-4 m-4 overflow-y-auto">
 					<h1 className="text-blue-800 text-lg p-4 mt-6 mb-2 font-bold text-left">Formulário: {secoes.nomeForm}</h1>
 					<p className="ml-7 mb-2 text-left text-gray-600 text-sm ">Descrição do formulário:</p>

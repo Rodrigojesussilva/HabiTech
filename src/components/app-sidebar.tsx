@@ -168,12 +168,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex mt-4">
-          <div className="bg-purple-700 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
+          <div className="bg-purple-900 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
             <Building2 className="size-4" />
           </div>
           <div className="grid flex-1 ml-2 text-left text-sm leading-tight">
-            <span className="truncate font-medium text-purple-700">HabitaSampa</span>
-            <span className="truncate text-xs text-purple-700">Secretaria da Habitação</span>
+            <span className="truncate font-medium text-purple-900">HabitaSampa</span>
+            <span className="truncate text-xs text-purple-900">Secretaria da Habitação</span>
           </div>
         </div>
       </SidebarHeader>
