@@ -33,16 +33,18 @@ export function NavMain({
   }[]
 }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup className="-ml-2">
       <SidebarGroupLabel>Formulários</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarMenu >
         {items.map((item) => (
-            <SidebarMenuItem>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip={item.title}>
+              <div className="flex bg-blue-700 aspect-square size-8 text-white items-center justify-center rounded-lg">
+                {item.icon && <item.icon />}
+              </div>
+              <span className="text-blue-800">{item.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
