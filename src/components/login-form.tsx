@@ -23,10 +23,16 @@ const FormSchema = z.object({
   senha: z.string().min(3, "Senha incorreta"),
 });
 
+type LoginFormProps = {
+  setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
+} & React.ComponentPropsWithoutRef<"form">;
+
+
 export function LoginForm({
   className,
+  setIsLoginDone,
   ...props
-}: React.ComponentPropsWithoutRef<"form">) {
+}: LoginFormProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     mode: "onChange", // Validação acontece conforme o usuário digita
@@ -104,7 +110,7 @@ export function LoginForm({
               Esqueceu sua senha?
             </a>
           </div>
-          <Button type="button" onClick={() => navigate("/home")} className="w-full">
+          <Button type="button" onClick={() => {setIsLoginDone(true); navigate("/home")}} className="w-full">
             Login
           </Button>
         </div>

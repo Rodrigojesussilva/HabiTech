@@ -3,26 +3,33 @@ import LoginPage from './app/login/page'
 import Header from './components/header'
 import Structure from './app/strucuture/structure'
 import FormularioContainer from './components/form-controller/form-controller'
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+
+import { Routes, Route  } from "react-router-dom";
+import FormArrolamento from './app/forms/arrolamento'
+import { useState } from 'react'
 
 
 function App() {
 
+  const [isLoginDone, setIsLoginDone] = useState(false);
+  
+
   return (
     <>
       <div className="relative flex h-screen flex-col bg-background">
-
         <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/home" element={
-            <Header>
-              <Structure>
-                <FormularioContainer />
-              </Structure>
-            </Header>} />
+          <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone}/>} />
         </Routes>
-
-      </div>
+        {isLoginDone && (
+          <>
+            <Header />
+            <Structure>
+              <Routes>
+                <Route path="/home" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+              </Routes>
+            </Structure>
+          </>)}
+      </div >
     </>
 
   )

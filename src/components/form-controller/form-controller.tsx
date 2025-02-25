@@ -1,15 +1,20 @@
-import FormArrolamento from "@/app/forms/arrolamento";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, } from "../ui/card";
 import { Button } from "../ui/button";
 import { SquareCheckBig, Square } from "lucide-react";
 
 // Componente principal
 
-export default function FormularioContainer() {
-	const [secoes, setSecoes] = useState<{ nomeForm: string; secoes: { id: string; label: string }[] }>({
+interface FormContainerProps {
+	FormComponent: React.ComponentType<any>; // Um componente React sem props específicas
+}
+
+const FormContainer: React.FC<FormContainerProps> = ({FormComponent}) => {
+
+	const [secoes, setSecoes] = useState<{ nomeForm: string; descrForm: string; nomeSecao: { id: string; label: string }[] }>({
 		nomeForm: "",
-		secoes: [],
+		descrForm: "",
+		nomeSecao: [],
 	});
 	const [secaoAtiva, setSecaoAtiva] = useState<string | null>(null);
 	const formRef = useRef<HTMLDivElement | null>(null);
@@ -18,17 +23,15 @@ export default function FormularioContainer() {
 	useEffect(() => {
 		if (formRef.current) {
 			const nomeForm = formRef.current.getAttribute("nome-form");
+			const descrForm = formRef.current.getAttribute("descr-form");
 			const secoesDetectadas = Array.from(formRef.current?.querySelectorAll("[data-secao]") as NodeListOf<HTMLElement>)
 				.map((el: HTMLElement) => (
-
 					{
 						id: el.getAttribute("data-secao") || "",
 						label: el.dataset.label || ""
 					}
 				));
-
-
-			setSecoes({ nomeForm: nomeForm || "oi", secoes: secoesDetectadas });
+			setSecoes({ nomeForm: nomeForm || "", descrForm: descrForm || "", nomeSecao: secoesDetectadas });
 			if (secoesDetectadas.length > 0) setSecaoAtiva(secoesDetectadas[0].id);
 		}
 	}, []);
@@ -46,12 +49,12 @@ export default function FormularioContainer() {
 					<p className="ml-7 mb-2 text-left text-gray-600 text-sm ">Descrição do formulário:</p>
 					<Card className=" ml-6 mb-8 p-4  w-auto  mr-4 bg-grey-600 h-auto">
 						<h4 className="text-sm text-left text-gray-600 line-clamp-4">
-							Este formulário tem como objetivo coletar informações dos moradores em situação precária
+						{secoes.descrForm}
 						</h4>
 					</Card>
-					{secoes.secoes.length > 0 && (
+					{secoes.nomeSecao.length > 0 && (
 						<div className="flex flex-col w-[95%] space-x-4">
-							{secoes.secoes.map((el, index) => (
+							{secoes.nomeSecao.map((el, index) => (
 								<Button className="flex flex-row group ml-4 w-full hover:bg-blue-900 text-black hover:text-white bg-gray-100 mb-4">
 									<div className="w-full  flex flex-row">
 										{sectIsChecked(el.id) ? (
@@ -69,9 +72,10 @@ export default function FormularioContainer() {
 					)}
 				</Card>
 				<Card className="w-full md:w-3/4 lg:w-3/4 h-screen p-4 lg:ml-94 md:ml-70  m-4 ">
-					<FormArrolamento ref={formRef}	></FormArrolamento>
+					<FormComponent ref={formRef}	></FormComponent>
 				</Card>
 			</div>
 		</>
 	);
 }
+export default FormContainer;
