@@ -5,7 +5,7 @@ import Structure from './app/strucuture/structure'
 import FormularioContainer from './components/form-controller/form-controller'
 
 import { Routes, Route } from "react-router-dom";
-import FormArrolamento from './app/forms/arrolamento'
+import FormArrolamento from './app/forms/FormArrolamento'
 import { useState } from 'react'
 
 
