@@ -25,7 +25,6 @@ interface FormSectionRendererProps {
 const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, formControl, getFieldNumber, sectionIndex }) => {
     return (
         <div key={section.id}>
-            <h4 className="text-xl font-semibold mb-4">{sectionIndex + 1} - {section.title}</h4>
             <div className="grid grid-cols-1 gap-6">
                 {section.fields.map((field, fieldIndex) => (
                     <FormField

@@ -24,7 +24,15 @@ const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
-	documentField: z.string().min(1, { message: "Documento é obrigatório" }),
+	interviewDate: z.string(),
+	startTime: z.string(),
+	endTime: z.string(),
+	timeElapsed: z.string(),
+	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }),
+	numberFamilies: z.number().min(0),
+	firstVisit: z.string(),
+	secondVisit: z.string(),
+	thirdVisit: z.string(),
 });
 
 // Define the form data type from the schema
@@ -152,7 +160,15 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 			questionario: "SEHAB-<123>",
 			seiNumber: "",
 			interviewerName: "",
-			documentField: "",
+			interviewDate: "",
+			startTime: "",
+			endTime: "",
+			timeElapsed: "",
+			sealNumber: "",
+			numberFamilies: 0,
+			firstVisit: "",
+			secondVisit: "",
+			thirdVisit: "",
 		},
 	});
 
@@ -176,59 +192,77 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 			title: "Identificação das Famílias",
 			fields: [
 				{ 
-					name: "questionario", 
-					label: "Questionário", 
-					type: "text" as const,
-					readonly: true 
-				},
-				{ 
 					name: "seiNumber", 
 					label: "Nº SEI", 
-					type: "text" as const 
+					type: "text" 
 				},
+				{ 
+					name: "questionario", 
+					label: "Questionário", 
+					type: "text",
+					readonly: true 
+				},
+				
 				{ 
 					name: "interviewerName", 
 					label: "Nome completo da(o) Entrevistador(a)", 
-					type: "text" as const 
+					type: "text" 
 				},
 				{
-					name: "tipoDocumento",
-					label: "Tipo de Documento",
-					type: "select" as const,
-					options: [
-						{ label: "RG", value: "rg" },
-						{ label: "CPF", value: "cpf" },
-						{ label: "CNH", value: "cnh" }
-					]
+					name: "interviewDate",
+					label: "Data da Entrevista",
+					type: "text",
+					readonly: true
 				},
 				{
-					name: "isOwner",
-					label: "É proprietário?",
-					type: "checkbox" as const
+					name: "startTime",
+					label: "Início",
+					type: "text",
+					readonly: true
 				},
 				{
-					name: "gender",
-					label: "Gênero",
-					type: "radio" as const,
-					options: [
-						{ label: "Masculino", value: "male" },
-						{ label: "Feminino", value: "female" },
-						{ label: "Outro", value: "other" }
-					]
+					name: "endTime",
+					label: "Término",
+					type: "text",
+					readonly: true
+				},
+				{
+					name: "timeElapsed",
+					label: "Tempo da Entrevista",
+					type: "text",
+					readonly: true
+				},
+				{
+					name: "sealNumber",
+					label: "Digite o número do selo",
+					type: "text"
+				},
+				{
+					name: "numberFamilies",
+					label: "Quantas familias nesse formulário?",
+					type: "text"
+				},
+				{
+					name: "firstVisit",
+					label: "Data da Primeira visita",
+					type: "text",
+					readonly: true
+				},
+				{
+					name: "secondVisit",
+					label: "Data da Segunda visita",
+					type: "text",
+					readonly: true
+				},
+				{
+					name: "thirdVisit",
+					label: "Data da Terceira visita",
+					type: "text",
+					readonly: true
 				}
 			]
 		},
-		{
-			id: "documentacao",
-			title: "Documentação",
-			fields: [
-				{ 
-					name: "documentField", 
-					label: "Documento",
-					type: "text" as const
-				},
-			]
-		}
+
 	];
 
 	// Function to generate section and field numbers based on position
