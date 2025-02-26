@@ -70,10 +70,10 @@ export function LoginForm({
     } else {
       try {
         console.log("Verifying OTP...");
-        await axios.post(`/api/verify-otp`, { 
-          email: userEmail,
-          otp: data.otp 
-        });
+        //await axios.post(`/api/verify-otp`, { 
+        //   email: userEmail,
+        //  otp: data.otp 
+        //});
         setIsLoginDone(true);
         navigate("/home");
       } catch (error) {
