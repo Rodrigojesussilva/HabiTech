@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
-
+import { useState } from "react";
 
 import {
   Form,
@@ -17,110 +17,131 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// Schema de validação com Zod
-const FormSchema = z.object({
-  email: z.string().min(3, "Email incorreto"),
-  senha: z.string().min(3, "Senha incorreta"),
+// Split the schema based on the step
+const EmailSchema = z.object({
+  email: z.string().email("Email inválido"),
+  otp: z.string(),
+});
+
+const OTPSchema = z.object({
+  email: z.string(),
+  otp: z.string().min(6, "Código OTP deve ter pelo menos 6 caracteres"),
 });
 
 type LoginFormProps = {
   setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
 } & React.ComponentPropsWithoutRef<"form">;
 
-
 export function LoginForm({
   className,
   setIsLoginDone,
   ...props
 }: LoginFormProps) {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    mode: "onChange", // Validação acontece conforme o usuário digita
+  const [isOTPSent, setIsOTPSent] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+
+  const form = useForm<z.infer<typeof EmailSchema>>({
+    resolver: zodResolver(isOTPSent ? OTPSchema : EmailSchema),
+    mode: "onChange",
     defaultValues: {
       email: "",
-      senha: "",
+      otp: "",
     },
   });
 
-  function teste(name: any) {
-    console.log(name);
-  }
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    try {
-      console.log(data);
-      await axios.post(`http://www.uol.com.br`, data, {
-        headers: { "Content-Type": "application/json" },
-      });
-      alert("Dados salvos com sucesso!");
-    } catch (error) {
-      alert("Erro ao salvar");
+  const navigate = useNavigate();
+
+  async function onSubmit(data: z.infer<typeof EmailSchema>) {
+    console.log("Form submitted with data:", data);
+    console.log("isOTPSent:", isOTPSent);
+
+    if (!isOTPSent) {
+      try {
+        console.log("Sending email verification...");
+   
+        //await axios.post(`/api/send-otp`, { email: data.email });
+        setUserEmail(data.email);
+        form.setValue('otp', ''); // Reset OTP field when switching to OTP view
+        setIsOTPSent(true);
+      } catch (error) {
+        console.error("Error sending OTP:", error);
+        alert("Erro ao enviar o código OTP");
+      }
+    } else {
+      try {
+        console.log("Verifying OTP...");
+        await axios.post(`/api/verify-otp`, { 
+          email: userEmail,
+          otp: data.otp 
+        });
+        setIsLoginDone(true);
+        navigate("/home");
+      } catch (error) {
+        console.error("Error verifying OTP:", error);
+        alert("Código OTP inválido");
+      }
     }
   }
-  const navigate = useNavigate();
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Logar na sua conta</h1>
+          <h1 className="text-2xl font-bold">
+            {!isOTPSent ? "Logar na sua conta" : "Confirmar acesso"}
+          </h1>
           <p className="text-balance text-sm text-muted-foreground">
-            Insira o seu e-mail e senha abaixo para logar na sua conta
+            {!isOTPSent 
+              ? "Insira o seu e-mail para receber um código de acesso"
+              : "Digite o código enviado para seu email"}
           </p>
         </div>
         <div className="grid gap-6">
-          <div className="grid gap-2 ">
-
+          <div className="grid gap-2">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem >
+                <FormItem className={isOTPSent ? 'hidden' : ''}>
                   <FormLabel className="block text-left">Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="patricia2@sehab.org.br"  {...field} onChange={(e) => {
-                      // Dispara a função toda vez que o campo for alterado
-                      field.onChange(e);  // Não esqueça de chamar a função original do React Hook Form
-                      teste("nada"); // Função personalizada
-                    }} />
+                    <Input 
+                      placeholder="patricia2@sehab.org.br" 
+                      type="email"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-          </div>
-          <div className="grid gap-2">
-
             <FormField
               control={form.control}
-              name="senha"
+              name="otp"
               render={({ field }) => (
-                <FormItem >
-                  <FormLabel className="block text-left">Senha</FormLabel>
+                <FormItem className={!isOTPSent ? 'hidden' : ''}>
+                  <FormLabel className="block text-left">Confirmar</FormLabel>
                   <FormControl>
-                    <Input  type="password" {...field} />
+                    <Input 
+                      placeholder="Digite o código recebido"
+                      type="text"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Esqueceu sua senha?
-            </a>
           </div>
-          <Button type="button" onClick={() => {setIsLoginDone(true); navigate("/home")}} className="w-full">
-            Login
+          <Button 
+            type="submit" 
+            className="w-full"
+            onClick={() => console.log("Button clicked")}
+          >
+            {!isOTPSent ? "Login" : "Confirmar"}
           </Button>
-        </div>
-        <div className="text-center text-sm">
-          Não tem uma conta?{" "}
-          <a href="#" className="underline underline-offset-4">
-            Cadastrar conta
-          </a>
         </div>
       </form>
     </Form>
-  )
+  );
 }

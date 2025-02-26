@@ -4,7 +4,7 @@ import Header from './components/header'
 import Structure from './app/strucuture/structure'
 import FormularioContainer from './components/form-controller/form-controller'
 
-import { Routes, Route  } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './app/forms/arrolamento'
 import { useState } from 'react'
 
@@ -12,13 +12,13 @@ import { useState } from 'react'
 function App() {
 
   const [isLoginDone, setIsLoginDone] = useState(false);
-  
+
 
   return (
     <>
       <div className="relative flex h-screen flex-col bg-background">
         <Routes>
-          <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone}/>} />
+          <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
         </Routes>
         {isLoginDone && (
           <>
@@ -26,6 +26,7 @@ function App() {
             <Structure>
               <Routes>
                 <Route path="/home" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
               </Routes>
             </Structure>
           </>)}

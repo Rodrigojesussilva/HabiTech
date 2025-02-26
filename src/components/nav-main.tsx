@@ -39,10 +39,10 @@ export function NavMain({
         {items.map((item) => (
           <SidebarMenuItem>
             <SidebarMenuButton tooltip={item.title}>
-              <div className="flex bg-blue-700 aspect-square size-8 text-white items-center justify-center rounded-lg">
+              <div className="flex bg-gray-200 aspect-square size-8 text-blue-700 items-center justify-center rounded-lg">
                 {item.icon && <item.icon />}
               </div>
-              <span className="text-blue-800">{item.title}</span>
+              <span className="text-blue-700">{item.title}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
