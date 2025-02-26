@@ -1,12 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   children?: React.ReactNode;
 }
 
 export default function Header({ children }: HeaderProps) {
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    navigate('/login');
+    window.location.reload(); // This will force a re-render and reset the isLoginDone state
+  };
 
   return (
     <>
@@ -28,6 +35,7 @@ export default function Header({ children }: HeaderProps) {
           
         </div>
       </header>
+   
       {children}
     </>
   );

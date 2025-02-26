@@ -86,20 +86,6 @@ const IdentRespForm = ({ defaultValues, onSubmit }: IdentRespFormProps) => {
                                 style={{ cursor: 'pointer', backgroundColor: '#f1f1f1', padding: '10px', marginBottom: '10px', borderRadius: '15px' }}
                             >
                                 1. IDENTIFICAÇÃO DA(O) RESPONSÁVEL
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    style={{
-                                        backgroundColor: '#8b8b8b',
-                                        color: '#FFFFFF',
-                                        minWidth: '30px',
-                                        padding: '5px',
-                                        fontSize: '12px',
-                                        marginLeft: '15px',
-                                    }}
-                                >
-                                    {mostrarIdentificacao ? 'Esconder Formulário' : 'Mostrar Formulário'}
-                                </Button>
                             </div>
                         </CollapsibleTrigger>
                         <CollapsibleContent>

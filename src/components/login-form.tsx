@@ -71,6 +71,8 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
         //  otp: data.otp 
         //});
  
+        // Store authentication state
+        localStorage.setItem('isAuthenticated', 'true');
         setIsLoginDone(true);
         navigate("/home");
       } catch (error) {
