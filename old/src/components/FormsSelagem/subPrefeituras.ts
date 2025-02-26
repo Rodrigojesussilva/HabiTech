@@ -1,0 +1,37 @@
+export const subprefeituras ={
+    "subprefeituras": [
+      "Aricanduva/Formosa/Carrão",
+      "Butantã",
+      "Campo Limpo",
+      "Capela do Socorro",
+      "Casa Verde/Cachoeirinha",
+      "Cidade Ademar",
+      "Cidade Tiradentes",
+      "Ermelino Matarazzo",
+      "Freguesia/Brasilândia",
+      "Guaianases",
+      "Ipiranga",
+      "Itaim Paulista",
+      "Itaquera",
+      "Jabaquara",
+      "Jaçanã/Tremembé",
+      "Lapa",
+      "M'Boi Mirim",
+      "Mooca",
+      "Parelheiros",
+      "Penha",
+      "Perus/Anhanguera",
+      "Pinheiros",
+      "Pirituba/Jaraguá",
+      "Santana/Tucuruvi",
+      "Santo Amaro",
+      "São Mateus",
+      "São Miguel",
+      "Sapopemba",
+      "Sé",
+      "Vila Mariana",
+      "Vila Maria/Vila Guilherme",
+      "Vila Prudente"
+    ]
+  }
+  

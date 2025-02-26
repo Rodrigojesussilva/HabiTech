@@ -71,7 +71,7 @@ const FormContainer: React.FC<FormContainerProps> = ({FormComponent}) => {
 						</div>
 					)}
 				</Card>
-				<Card className="w-full md:w-3/4 lg:w-3/4 h-screen p-4 lg:ml-94 md:ml-70  m-4 ">
+				<Card className="w-full md:w-3/4 lg:w-3/4 h-full p-4 lg:ml-94 md:ml-70  m-4 ">
 					<FormComponent ref={formRef}	></FormComponent>
 				</Card>
 			</div>
