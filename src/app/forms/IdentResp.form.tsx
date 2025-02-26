@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import FormSectionRenderer from "@/components/ui/FormSectionRenderer";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { isValid, parse, isBefore, isAfter, differenceInYears } from 'date-fns';
+import { useFormContext } from 'react-hook-form';
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -113,14 +114,16 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     name: "nomeSocial",
                     label: "Nome Social Responsável",
                     type: "text" as const,
-                    required: false
+                    required: false,
+                    disableField: "naoSeAplica"
                 },
                 {
                     name: "naoSeAplica",
                     label: "Não se aplica",
                     type: "checkbox" as const,
                     required: false,
-                    dependent: true
+                    dependent: true,
+                    parentField: "nomeSocial"
                 },
                 {
                     name: "dataNascimento",
@@ -185,7 +188,8 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
-                dependent: true
+                dependent: true,
+                parentField: "nomeSocialEntrevistado"
             }
         );
     }

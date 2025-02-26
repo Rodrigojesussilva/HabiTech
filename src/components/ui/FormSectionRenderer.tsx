@@ -17,6 +17,8 @@ interface FormSectionRendererProps {
             readonly?: boolean;
             options?: { label: string; value: string }[];
             dependent?: boolean;
+            parentField?: string;
+            disableField?: string;
         }[];
     };
     formControl: any;
@@ -32,7 +34,9 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
             <div className="grid grid-cols-1 gap-6">
                 {section.fields.map((field, fieldIndex) => {
                     const isDependent = field.dependent;
-                    const parentField = section.fields[fieldIndex - 1];
+                    const parentFieldName = field.parentField;
+                    const parentField = section.fields.find(f => f.name === parentFieldName);
+                    const disableFieldName = field.disableField;
 
                     return (
                         <FormField
@@ -51,13 +55,14 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                                                     {...formField}
                                                     readOnly={field.readonly || (parentField && getValues(parentField.name))}
                                                     className={field.readonly ? "bg-gray-100 cursor-not-allowed" : ""}
+                                                    disabled={disableFieldName && getValues(`${disableFieldName}_disabled`)}
                                                 />
                                             )}
                                             {field.type === 'select' && (
                                                 <Select
                                                     onValueChange={formField.onChange}
                                                     defaultValue={formField.value}
-                                                    disabled={parentField && getValues(parentField.name)}
+                                                    disabled={disableFieldName && getValues(disableFieldName)}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder={`Selecione ${field.label}`} />
@@ -72,17 +77,20 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                                                 </Select>
                                             )}
                                             {field.type === 'checkbox' && (
-                                                <Checkbox
-                                                    checked={formField.value}
-                                                    onCheckedChange={(checked) => {
-                                                        formField.onChange(checked);
-                                                        if (parentField) {
-                                                            setValue(parentField.name, checked ? "" : getValues(parentField.name));
-                                                        }
-                                                    }}
-                                                >
-                                                    Não se aplica
-                                                </Checkbox>
+                                                <div>
+                                                    <Checkbox
+                                                        id={`checkbox-${field.name}`}
+                                                        checked={formField.value}
+                                                        onCheckedChange={(checked) => {
+                                                            formField.onChange(checked);
+                                                            if (parentFieldName) {
+                                                                const parentValue = getValues(parentFieldName);
+                                                                setValue(parentFieldName, checked ? "" : parentValue);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <label htmlFor={`checkbox-${field.name}`}>{field.label}</label>
+                                                </div>
                                             )}
                                             {field.type === 'radio' && (
                                                 <RadioGroup
