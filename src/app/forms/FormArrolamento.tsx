@@ -16,6 +16,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import IdentRespForm from "./IdentResp.form"
+import FormSectionRenderer from "@/components/ui/FormSectionRenderer"
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -154,12 +156,17 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 		},
 	});
 
-	// Handle form submission
+	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
 			onSubmit(data);
 		}
 		console.log(data);
+	};
+
+	// Handle form submission for IdentRespForm
+	const handleIdentRespSubmit = (data: any) => {
+		console.log("IdentRespForm data:", data);
 	};
 
 	// Define the form structure
@@ -234,33 +241,16 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{formSections.map((section, sectionIndex) => (
-						<div key={section.id}>
-							<div data-secao={section.id}></div>
-							<h4 className="text-xl font-semibold mb-4">{sectionIndex + 1} - {section.title}</h4>
-							<Separator className="mb-4" />
-							<div className="grid grid-cols-1 gap-6">
-								{section.fields.map((field, fieldIndex) => (
-									<FormField
-										key={field.name}
-										control={form.control}
-										name={field.name as keyof FormValues}
-										render={({ field: formField }) => (
-											<FormFieldRenderer
-												field={field}
-												fieldNumber={getFieldNumber(sectionIndex, fieldIndex)}
-												formField={formField}
-											/>
-										)}
-									/>
-								))}
-							</div>
+						<div key={section.id} data-secao={section.id} data-label={section.title}>
+							<FormSectionRenderer
+								section={section}
+								formControl={form.control}
+								getFieldNumber={getFieldNumber}
+								sectionIndex={sectionIndex}
+							/>
 						</div>
 					))}
-
-					<div data-secao="Características da Unidade"></div>
-					<div data-secao="Deficiências"></div>
-
-					<Button type="submit" className="mt-4">Salvar</Button>
+					<IdentRespForm onSubmit={handleIdentRespSubmit} />
 				</form>
 			</Form>
 		</div>

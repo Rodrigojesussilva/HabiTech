@@ -8,11 +8,8 @@ import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './app/forms/FormArrolamento'
 import { useState } from 'react'
 
-
 function App() {
-
   const [isLoginDone, setIsLoginDone] = useState(false);
-
 
   return (
     <>
@@ -29,10 +26,10 @@ function App() {
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
               </Routes>
             </Structure>
-          </>)}
-      </div >
+          </>
+        )}
+      </div>
     </>
-
   )
 }
 

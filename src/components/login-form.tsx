@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
+
 
 import {
   Form,
@@ -32,13 +32,11 @@ type LoginFormProps = {
   setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
 } & React.ComponentPropsWithoutRef<"form">;
 
-export function LoginForm({
-  className,
-  setIsLoginDone,
-  ...props
-}: LoginFormProps) {
+export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProps) {
   const [isOTPSent, setIsOTPSent] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof EmailSchema>>({
     resolver: zodResolver(isOTPSent ? OTPSchema : EmailSchema),
@@ -48,8 +46,6 @@ export function LoginForm({
       otp: "",
     },
   });
-
-  const navigate = useNavigate();
 
   async function onSubmit(data: z.infer<typeof EmailSchema>) {
     console.log("Form submitted with data:", data);
@@ -74,6 +70,7 @@ export function LoginForm({
         //   email: userEmail,
         //  otp: data.otp 
         //});
+ 
         setIsLoginDone(true);
         navigate("/home");
       } catch (error) {

@@ -1,11 +1,13 @@
 import { GalleryVerticalEnd, Building2 } from "lucide-react"
+import React from 'react';
 
 import { LoginForm } from "@/components/login-form"
-type LoginPageProps = {
-  setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
-};
 
-export default function LoginPage({setIsLoginDone}: LoginPageProps) {
+interface LoginPageProps {
+  setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ setIsLoginDone }) => {
   return (
     <div className="grid h-screen lg:grid-cols-2  bg-gray-200">
       <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -20,7 +22,7 @@ export default function LoginPage({setIsLoginDone}: LoginPageProps) {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <LoginForm setIsLoginDone={setIsLoginDone}/>
+            <LoginForm setIsLoginDone={setIsLoginDone} />
           </div>
         </div>
       </div>
@@ -34,3 +36,5 @@ export default function LoginPage({setIsLoginDone}: LoginPageProps) {
     </div>
   )
 }
+
+export default LoginPage;
