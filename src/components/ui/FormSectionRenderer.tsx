@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useFormContext } from 'react-hook-form';
 
 interface FormSectionRendererProps {
     section: {
@@ -15,6 +16,7 @@ interface FormSectionRendererProps {
             type: 'text' | 'select' | 'checkbox' | 'radio';
             readonly?: boolean;
             options?: { label: string; value: string }[];
+            dependent?: boolean;
         }[];
     };
     formControl: any;
@@ -23,69 +25,86 @@ interface FormSectionRendererProps {
 }
 
 const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, formControl, getFieldNumber, sectionIndex }) => {
+    const { getValues, setValue } = useFormContext();
+
     return (
         <div key={section.id}>
             <div className="grid grid-cols-1 gap-6">
-                {section.fields.map((field, fieldIndex) => (
-                    <FormField
-                        key={field.name}
-                        control={formControl}
-                        name={field.name}
-                        render={({ field: formField }) => (
-                            <FormItem>
-                                <FormLabel>{getFieldNumber(sectionIndex, fieldIndex)}. {field.label} *</FormLabel>
-                                <FormControl>
-                                    <div>
-                                        {field.type === 'text' && (
-                                            <Input
-                                                {...formField}
-                                                readOnly={field.readonly}
-                                                className={field.readonly ? "bg-gray-100 cursor-not-allowed" : ""}
-                                            />
-                                        )}
-                                        {field.type === 'select' && (
-                                            <Select
-                                                onValueChange={formField.onChange}
-                                                defaultValue={formField.value}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={`Selecione ${field.label}`} />
-                                                </SelectTrigger>
-                                                <SelectContent>
+                {section.fields.map((field, fieldIndex) => {
+                    const isDependent = field.dependent;
+                    const parentField = section.fields[fieldIndex - 1];
+
+                    return (
+                        <FormField
+                            key={field.name}
+                            control={formControl}
+                            name={field.name}
+                            render={({ field: formField }) => (
+                                <FormItem>
+                                    {!isDependent && (
+                                        <FormLabel>{getFieldNumber(sectionIndex, fieldIndex)}. {field.label} *</FormLabel>
+                                    )}
+                                    <FormControl>
+                                        <div className={isDependent ? "ml-6" : ""}>
+                                            {field.type === 'text' && (
+                                                <Input
+                                                    {...formField}
+                                                    readOnly={field.readonly || (parentField && getValues(parentField.name))}
+                                                    className={field.readonly ? "bg-gray-100 cursor-not-allowed" : ""}
+                                                />
+                                            )}
+                                            {field.type === 'select' && (
+                                                <Select
+                                                    onValueChange={formField.onChange}
+                                                    defaultValue={formField.value}
+                                                    disabled={parentField && getValues(parentField.name)}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={`Selecione ${field.label}`} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {field.options?.map((option) => (
+                                                            <SelectItem key={option.value} value={option.value}>
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                            {field.type === 'checkbox' && (
+                                                <Checkbox
+                                                    checked={formField.value}
+                                                    onCheckedChange={(checked) => {
+                                                        formField.onChange(checked);
+                                                        if (parentField) {
+                                                            setValue(parentField.name, checked ? "" : getValues(parentField.name));
+                                                        }
+                                                    }}
+                                                >
+                                                    Não se aplica
+                                                </Checkbox>
+                                            )}
+                                            {field.type === 'radio' && (
+                                                <RadioGroup
+                                                    onValueChange={formField.onChange}
+                                                    defaultValue={formField.value}
+                                                >
                                                     {field.options?.map((option) => (
-                                                        <SelectItem key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </SelectItem>
+                                                        <div key={option.value} className="flex items-center space-x-2">
+                                                            <RadioGroupItem value={option.value} />
+                                                            <FormLabel>{option.label}</FormLabel>
+                                                        </div>
                                                     ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                        {field.type === 'checkbox' && (
-                                            <Checkbox
-                                                checked={formField.value}
-                                                onCheckedChange={formField.onChange}
-                                            />
-                                        )}
-                                        {field.type === 'radio' && (
-                                            <RadioGroup
-                                                onValueChange={formField.onChange}
-                                                defaultValue={formField.value}
-                                            >
-                                                {field.options?.map((option) => (
-                                                    <div key={option.value} className="flex items-center space-x-2">
-                                                        <RadioGroupItem value={option.value} />
-                                                        <FormLabel>{option.label}</FormLabel>
-                                                    </div>
-                                                ))}
-                                            </RadioGroup>
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                ))}
+                                                </RadioGroup>
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

@@ -119,7 +119,8 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     name: "naoSeAplica",
                     label: "Não se aplica",
                     type: "checkbox" as const,
-                    required: false
+                    required: false,
+                    dependent: true
                 },
                 {
                     name: "dataNascimento",
@@ -183,7 +184,8 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                 name: "naoSeAplicaEntrevistado",
                 label: "Não se aplica",
                 type: "checkbox" as const,
-                required: false
+                required: false,
+                dependent: true
             }
         );
     }
