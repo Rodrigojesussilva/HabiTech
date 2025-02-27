@@ -9,7 +9,7 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ setIsLoginDone }) => {
   return (
-    <div className="grid h-screen lg:grid-cols-2  bg-gray-200">
+    <div className="grid h-screen lg:grid-cols-2 bg-secondary">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 ">
           <a href="#" className="flex items-center gap-2 font-medium">

@@ -165,15 +165,15 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="border-r bg-sidebar">
       <SidebarHeader>
         <div className="flex mt-4">
-          <div className="bg-purple-900 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
             <Building2 className="size-4" />
           </div>
           <div className="grid flex-1 ml-2 text-left text-sm leading-tight">
-            <span className="truncate font-medium text-purple-900">HabitaSampa</span>
-            <span className="truncate text-xs text-purple-900">Secretaria da Habitação</span>
+            <span className="truncate font-medium text-primary">{data.teams[0].name}</span>
+            <span className="truncate text-xs text-primary">{data.teams[0].plan}</span>
           </div>
         </div>
       </SidebarHeader>
