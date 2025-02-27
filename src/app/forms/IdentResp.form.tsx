@@ -29,6 +29,21 @@ const formSchema = z.object({
 // Define the form data type from the schema
 type FormValues = z.infer<typeof formSchema>;
 
+// Define the field type to use in the form
+type FormField = {
+    name: string;
+    label: string;
+    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display';
+    required: boolean;
+    readonly?: boolean;
+    options?: { label: string; value: string }[];
+    mask?: string;
+    placeholder?: string;
+    dependent?: boolean;
+    disableField?: string;
+    displayValue?: (data: any) => string;
+};
+
 interface IdentRespFormProps {
     defaultValues?: Partial<FormValues>;
     onSubmit?: (data: FormValues) => void;
@@ -119,7 +134,6 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     type: "checkbox" as const,
                     required: false,
                     dependent: true,
-                    parentField: "nomeSocial"
                 },
                 {
                     name: "dataNascimento",
@@ -145,7 +159,7 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                         }
                     }
                 }
-            ]
+            ] as FormField[]
         }
     ];
 
@@ -182,27 +196,27 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     { label: "Não Sabe Informar", value: "nsi" },
                     { label: "Outra Relação de Parentesco", value: "outro" }
                 ]
-            },
+            } as FormField,
             {
                 name: "nomeCompletoEntrevistado",
                 label: "Nome Completo da Pessoa Entrevistada",
                 type: "text" as const,
                 required: false
-            },
+            } as FormField,
             {
                 name: "nomeSocialEntrevistado",
                 label: "Nome Social Pessoa Entrevistada",
                 type: "text" as const,
                 required: false
-            },
+            } as FormField,
             {
                 name: "naoSeAplicaEntrevistado",
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
                 dependent: true,
-                parentField: "nomeSocialEntrevistado"
-            }
+                disableField: "nomeSocialEntrevistado"
+            } as FormField
         );
     }
 
@@ -213,7 +227,7 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
             label: "Descreva a Relação de Parentesco",
             type: "text" as const,
             required: false
-        });
+        } as FormField);
     }
 
     return (
