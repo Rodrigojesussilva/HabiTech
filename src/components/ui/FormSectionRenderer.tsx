@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 interface FormSectionRendererProps {
     section: {
@@ -13,11 +13,12 @@ interface FormSectionRendererProps {
         fields: {
             name: string;
             label: string;
-            type: 'text' | 'select' | 'checkbox' | 'radio';
+            type: 'text' | 'select' | 'checkbox' | 'radio' | 'display';
             readonly?: boolean;
             options?: { label: string; value: string }[];
             dependent?: boolean;
             parentField?: string;
+            displayValue?: (data: any) => string;
         }[];
     };
     formControl: any;
@@ -27,6 +28,7 @@ interface FormSectionRendererProps {
 
 const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, formControl, getFieldNumber, sectionIndex }) => {
     const { getValues, setValue, watch } = useFormContext();
+    const [refreshCounter, setRefreshCounter] = useState(0);
     
     // Create a mapping of parent fields to their dependent checkbox fields
     const parentToCheckboxMap: Record<string, string> = {};
@@ -35,6 +37,24 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
             parentToCheckboxMap[field.parentField] = field.name;
         }
     });
+    
+    // Look for display fields that might need to be refreshed when other fields change
+    const displayFields = section.fields.filter(field => field.type === 'display');
+    
+    // Set up watchers for fields that could affect display fields
+    useEffect(() => {
+        // Watch for date of birth changes to update age display
+        const dataNascimentoSubscription = watch((value, { name }) => {
+            if (name === 'dataNascimento') {
+                // Trigger refresh of display fields
+                setRefreshCounter(prev => prev + 1);
+            }
+        });
+        
+        return () => {
+            dataNascimentoSubscription.unsubscribe();
+        };
+    }, [watch]);
 
     return (
         <div key={section.id}>
@@ -47,6 +67,20 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                     // Check if this field has a checkbox that controls it
                     const controllingCheckbox = parentToCheckboxMap[field.name];
                     const isDisabled = controllingCheckbox ? watch(controllingCheckbox) : false;
+
+                    // For display fields, we'll create a special case
+                    if (field.type === 'display') {
+                        return (
+                            <div key={`${field.name}-${refreshCounter}`} className={isDependent ? "ml-6 -mt-4" : ""}>
+                                <div className="flex items-center">
+                                    <span className="text-sm font-medium mr-2">{field.label}:</span>
+                                    <span className="text-sm">
+                                        {field.displayValue ? field.displayValue(getValues()) : ""}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    }
 
                     return (
                         <FormField

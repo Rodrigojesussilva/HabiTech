@@ -2,15 +2,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { useState, useEffect } from "react";
 import FormSectionRenderer from "@/components/ui/FormSectionRenderer";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { isValid, parse, isBefore, isAfter, differenceInYears } from 'date-fns';
-import { useFormContext } from 'react-hook-form';
+import { isValid, parse, isBefore, differenceInYears } from 'date-fns';
+
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -131,6 +128,22 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     required: false,
                     mask: "99/99/9999",
                     placeholder: "DD/MM/AAAA"
+                },
+                {
+                    name: "idadeCalculada",
+                    label: "Idade",
+                    type: "display" as const,
+                    required: false,
+                    dependent: true,
+                    displayValue: (data: any) => {
+                        if (!data.dataNascimento) return "";
+                        try {
+                            const idade = calcularIdade(data.dataNascimento);
+                            return `${idade} anos`;
+                        } catch (error) {
+                            return "";
+                        }
+                    }
                 }
             ]
         }
