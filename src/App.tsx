@@ -27,7 +27,7 @@ function App() {
     
     // Add keyboard shortcut to show/hide theme editor (Ctrl+Shift+T)
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+      if (e.ctrlKey && e.shiftKey && e.key === 'H') {
         setShowThemeEditor(prev => !prev);
       }
     };
