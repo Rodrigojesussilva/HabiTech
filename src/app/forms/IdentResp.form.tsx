@@ -114,8 +114,7 @@ const IdentRespForm = ({ defaultValues, onSubmit, handleShowSectsResp, id }: Ide
                     name: "nomeSocial",
                     label: "Nome Social Responsável",
                     type: "text" as const,
-                    required: false,
-                    disableField: "naoSeAplica"
+                    required: false
                 },
                 {
                     name: "naoSeAplica",

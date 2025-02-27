@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 interface FormSectionRendererProps {
     section: {
@@ -18,7 +18,6 @@ interface FormSectionRendererProps {
             options?: { label: string; value: string }[];
             dependent?: boolean;
             parentField?: string;
-            disableField?: string;
         }[];
     };
     formControl: any;
@@ -27,7 +26,15 @@ interface FormSectionRendererProps {
 }
 
 const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, formControl, getFieldNumber, sectionIndex }) => {
-    const { getValues, setValue } = useFormContext();
+    const { getValues, setValue, watch } = useFormContext();
+    
+    // Create a mapping of parent fields to their dependent checkbox fields
+    const parentToCheckboxMap: Record<string, string> = {};
+    section.fields.forEach(field => {
+        if (field.parentField && field.type === 'checkbox') {
+            parentToCheckboxMap[field.parentField] = field.name;
+        }
+    });
 
     return (
         <div key={section.id}>
@@ -36,7 +43,10 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                     const isDependent = field.dependent;
                     const parentFieldName = field.parentField;
                     const parentField = section.fields.find(f => f.name === parentFieldName);
-                    const disableFieldName = field.disableField;
+                    
+                    // Check if this field has a checkbox that controls it
+                    const controllingCheckbox = parentToCheckboxMap[field.name];
+                    const isDisabled = controllingCheckbox ? watch(controllingCheckbox) : false;
 
                     return (
                         <FormField
@@ -55,14 +65,14 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                                                     {...formField}
                                                     readOnly={field.readonly || (parentField && getValues(parentField.name))}
                                                     className={field.readonly ? "bg-gray-100 cursor-not-allowed" : ""}
-                                                    disabled={disableFieldName && getValues(`${disableFieldName}_disabled`)}
+                                                    disabled={isDisabled}
                                                 />
                                             )}
                                             {field.type === 'select' && (
                                                 <Select
                                                     onValueChange={formField.onChange}
                                                     defaultValue={formField.value}
-                                                    disabled={disableFieldName && getValues(disableFieldName)}
+                                                    disabled={isDisabled}
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder={`Selecione ${field.label}`} />
@@ -77,19 +87,26 @@ const FormSectionRenderer: React.FC<FormSectionRendererProps> = ({ section, form
                                                 </Select>
                                             )}
                                             {field.type === 'checkbox' && (
-                                                <div>
+                                                <div className="flex items-center -mt-4 space-x-2">
                                                     <Checkbox
                                                         id={`checkbox-${field.name}`}
                                                         checked={formField.value}
                                                         onCheckedChange={(checked) => {
                                                             formField.onChange(checked);
+                                                            
+                                                            // If this checkbox is meant to disable a parent field
                                                             if (parentFieldName) {
+                                                                // Get the current value
                                                                 const parentValue = getValues(parentFieldName);
+                                                                // When checkbox is checked, clear and disable parent field
+                                                                // When unchecked, restore the parent field's value
                                                                 setValue(parentFieldName, checked ? "" : parentValue);
                                                             }
                                                         }}
                                                     />
-                                                    <label htmlFor={`checkbox-${field.name}`}>{field.label}</label>
+                                                    <FormLabel htmlFor={`checkbox-${field.name}`} className="font-normal cursor-pointer">
+                                                        {field.label}
+                                                    </FormLabel>
                                                 </div>
                                             )}
                                             {field.type === 'radio' && (
