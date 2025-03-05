@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import IdentRespForm from "./IdentResp.form"
-import FormSectionRenderer from "@/components/ui/FormSectionRenderer"
+import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
 // Define the form schema with Zod
 const formSchema = z.object({

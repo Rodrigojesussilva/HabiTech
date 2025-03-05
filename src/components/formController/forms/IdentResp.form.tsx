@@ -4,7 +4,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useState, useEffect } from "react";
-import FormSectionRenderer from "@/components/ui/FormSectionRenderer";
+import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { isValid, parse, isBefore, differenceInYears } from 'date-fns';
 

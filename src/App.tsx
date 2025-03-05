@@ -1,12 +1,12 @@
 import './App.css'
-import LoginPage from './app/login/page'
-import Header from './components/header'
+import LoginPage from './app/login/LoginPage'
+import Header from './components/navigation/Header'
 import Structure from './app/strucuture/structure'
-import FormularioContainer from './components/form-controller/form-controller'
+import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
 
 import { Routes, Route } from "react-router-dom";
-import FormArrolamento from './app/forms/FormArrolamento'
+import FormArrolamento from './components/formController/forms/FormArrolamento'
 import { useState, useEffect } from 'react'
 
 function App() {

@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -28,9 +26,6 @@ export default function Header({ children }: HeaderProps) {
             />
           </div>
           <div className="text-xl font-bold text-primary">Sistema de Cadastro de Pesquisa</div>
-
-       
-       
           <div></div>
           
         </div>

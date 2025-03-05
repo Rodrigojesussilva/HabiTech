@@ -1,12 +1,7 @@
 import * as React from "react"
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
   Fingerprint,
   Stamp,
-  ClipboardPen,
   House,
   Factory,
   Building,
@@ -14,18 +9,11 @@ import {
   Building2,
   Map,
   PieChart,
-  Settings2,
-  SquareTerminal,
 } from "lucide-react"
-
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/navigation/sidebar/NavMain"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"

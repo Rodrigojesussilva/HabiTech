@@ -1,7 +1,6 @@
-import { GalleryVerticalEnd, Building2 } from "lucide-react"
 import React from 'react';
 
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/app/login/LoginForm"
 
 interface LoginPageProps {
   setIsLoginDone: React.Dispatch<React.SetStateAction<boolean>>;
