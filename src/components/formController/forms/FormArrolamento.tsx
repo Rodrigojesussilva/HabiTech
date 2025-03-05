@@ -2,20 +2,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import type { Ref } from "react";
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import {
 	Form,
-	FormControl,
 	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
 } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 import IdentRespForm from "./IdentResp.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
@@ -64,93 +55,7 @@ type FormSection = {
 };
 
 // Create a FormFieldRenderer component
-const FormFieldRenderer = ({ 
-	field, 
-	fieldNumber, 
-	formField 
-}: { 
-	field: FormField; 
-	fieldNumber: string; 
-	formField: any; 
-}) => {
-	switch (field.type) {
-		case 'text':
-			return (
-				<FormItem>
-					<FormLabel>{fieldNumber}. {field.label} *</FormLabel>
-					<FormControl>
-						<Input
-							{...formField}
-							readOnly={field.readonly}
-							className={field.readonly ? "bg-gray-100 cursor-not-allowed" : ""}
-						/>
-					</FormControl>
-					<FormMessage />
-				</FormItem>
-			);
 
-		case 'select':
-			return (
-				<FormItem>
-					<FormLabel>{fieldNumber}. {field.label} *</FormLabel>
-					<Select 
-						onValueChange={formField.onChange} 
-						defaultValue={formField.value}
-					>
-						<SelectTrigger>
-							<SelectValue placeholder={`Selecione ${field.label}`} />
-						</SelectTrigger>
-						<SelectContent>
-							{field.options?.map((option) => (
-								<SelectItem key={option.value} value={option.value}>
-									{option.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<FormMessage />
-				</FormItem>
-			);
-
-		case 'checkbox':
-			return (
-				<FormItem className="flex flex-row items-start space-x-3 space-y-0">
-					<FormControl>
-						<Checkbox
-							checked={formField.value}
-							onCheckedChange={formField.onChange}
-						/>
-					</FormControl>
-					<FormLabel>{fieldNumber}. {field.label} *</FormLabel>
-					<FormMessage />
-				</FormItem>
-			);
-
-		case 'radio':
-			return (
-				<FormItem>
-					<FormLabel>{fieldNumber}. {field.label} *</FormLabel>
-					<FormControl>
-						<RadioGroup
-							onValueChange={formField.onChange}
-							defaultValue={formField.value}
-						>
-							{field.options?.map((option) => (
-								<div key={option.value} className="flex items-center space-x-2">
-									<RadioGroupItem value={option.value} />
-									<FormLabel>{option.label}</FormLabel>
-								</div>
-							))}
-						</RadioGroup>
-					</FormControl>
-					<FormMessage />
-				</FormItem>
-			);
-
-		default:
-			return null;
-	}
-};
 
 const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
