@@ -1,7 +1,7 @@
 import './App.css'
 import LoginPage from './app/login/LoginPage'
 import Header from './components/navigation/Header'
-import Structure from './app/strucuture/structure'
+import ContentController from './app/strucuture/structure'
 import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
 
@@ -14,7 +14,7 @@ function App() {
     // Initialize state from localStorage
     return localStorage.getItem('isAuthenticated') === 'true'
   });
-  
+
   const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   useEffect(() => {
@@ -24,14 +24,14 @@ function App() {
     } else {
       localStorage.removeItem('isAuthenticated');
     }
-    
+
     // Add keyboard shortcut to show/hide theme editor (Ctrl+Shift+T)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'H') {
         setShowThemeEditor(prev => !prev);
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isLoginDone]);
@@ -47,17 +47,17 @@ function App() {
         {isLoginDone && (
           <>
             <Header />
-            <Structure>
+            <ContentController>
               <Routes>
                 <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/home" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
               </Routes>
-            </Structure>
+            </ContentController>
           </>
         )}
-        
+
         {/* Floating theme editor - toggle with Ctrl+Shift+T */}
         {showThemeEditor && (
           <div className="fixed top-4 right-4 z-50 w-96 max-h-[90vh] overflow-auto">

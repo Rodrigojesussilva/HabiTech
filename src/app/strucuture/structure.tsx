@@ -1,12 +1,4 @@
 import { AppSidebar } from "@/components/navigation/sidebar/Sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -14,11 +6,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 
-interface StructureProps {
+interface ContentControllerProps {
 	children?: React.ReactNode;
 }
   
-export default function Structure({ children }: StructureProps) {
+export default function ContentController({ children }: ContentControllerProps) {
   return (
     <SidebarProvider >
       <AppSidebar  />
