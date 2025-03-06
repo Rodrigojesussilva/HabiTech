@@ -23,6 +23,7 @@ export type FormField = {
     conditions?: FormCondition[]; // For conditional rendering
     sidebarform?: boolean;
 	sidebarlabel?: string;
+	showinmodal?: boolean;
 };
 
 // Generic form section type

@@ -18,19 +18,23 @@ export default function Header({ children }: HeaderProps) {
       <header className="fixed z-12 w-full border-b bg-secondary shadow-sm">
         <div className="flex mx-auto h-12 items-center justify-between px-4">
           {/* Logo */}
-          <div className="">
-            <img
-              src="/psp.png"
-              alt="Image"
-              className="h-12 w-28"
-            />
+          <div className="flex flex-row items-center gap-8">
+            <div className="">
+              <img
+                src="/psp.png"
+                alt="Image"
+                className="h-12 w-28"
+              />
+
+            </div>
+            <div className="text-xl font-bold text-primary">Instrumentos de Pesquisa</div>
           </div>
-          <div className="text-xl font-bold text-primary">Sistema de Cadastro de Pesquisa</div>
           <div></div>
-          
+
+
         </div>
       </header>
-   
+
       {children}
     </>
   );

@@ -100,7 +100,7 @@ const FormArrolamento = ({
 	const metaDataSections: FormSection[] = [
 		{
 			id: "identificacao",
-			title: "Identificação das Famílias",
+			title: "",
 			fields: [
 				
 				{
@@ -110,7 +110,8 @@ const FormArrolamento = ({
 					readonly: true,
 					required: true,
 					sidebarform: true,
-					sidebarlabel: ""
+					sidebarlabel: "",
+					showinmodal: true,
 				} as FormFieldType,
 				{
 					name: "firstVisit",
@@ -119,6 +120,7 @@ const FormArrolamento = ({
 					readonly: true,
 					required: true,
 					sidebarform: true,
+					showinmodal: false,
 					sidebarlabel: "Visita: 1"
 				} as FormFieldType,
 				{
@@ -126,49 +128,61 @@ const FormArrolamento = ({
 					label: "Número SEI",
 					type: "text",
 					required: true,
-					sidebarform: true
+					sidebarform: true,
+					showinmodal: true
 				} as FormFieldType,
 				{
 					name: "sealNumber",
 					label: "Número Selo",
 					type: "text",
 					required: true,
-					sidebarform: true
+					sidebarform: true,
+					showinmodal: true
 				} as FormFieldType,
 
 				{
 					name: "interviewerName",
 					label: "Nome completo da(o) Entrevistador(a)",
 					type: "text",
-					required: true
+					required: true,
+					sidebarform: false,
+					showinmodal: false
 				} as FormFieldType,
 				{
 					name: "interviewDate",
 					label: "Data da Entrevista",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					showinmodal: false
 				} as FormFieldType,
 				{
 					name: "startTime",
 					label: "Início",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					showinmodal: false
 				} as FormFieldType,
 				{
 					name: "endTime",
 					label: "Término",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					showinmodal: false
 				} as FormFieldType,
 				{
 					name: "timeElapsed",
 					label: "Tempo da Entrevista",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					showinmodal: false
 				} as FormFieldType,
 				
 				{
@@ -177,7 +191,8 @@ const FormArrolamento = ({
 					type: "text",
 					required: true,
 					sidebarform: true,
-					sidebarlabel: "Quantidade de Famílias"
+					sidebarlabel: "Quantidade de Famílias",
+					showinmodal: true,
 				} as FormFieldType,
 				
 				{
@@ -185,14 +200,20 @@ const FormArrolamento = ({
 					label: "Data da Segunda visita",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					sidebarlabel: "Visita: 2",
+					showinmodal: false,
 				} as FormFieldType,
 				{
 					name: "thirdVisit",
 					label: "Data da Terceira visita",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: false,
+					sidebarlabel: "Visita: 3",
+					showinmodal: false,
 				} as FormFieldType
 			]
 		},
@@ -212,9 +233,9 @@ const FormArrolamento = ({
 
 							<DialogContent className="max-h-[90vh] overflow-y-auto">
 								<DialogHeader>
-									<DialogTitle>Metadados do Formulário</DialogTitle>
+									<DialogTitle>Arrolamento</DialogTitle>
 									<DialogDescription>
-										Preencha os campos de metadados abaixo:
+										Preencha os campos abaixo:
 									</DialogDescription>
 								</DialogHeader>
 
@@ -226,6 +247,8 @@ const FormArrolamento = ({
 											formControl={form.control}
 											getFieldNumber={getFieldNumber}
 											sectionIndex={sectionIndex}
+											handleModalFields={true}
+											showSectionLabel={false}
 										/>
 									</div>
 								))}
@@ -242,7 +265,7 @@ const FormArrolamento = ({
 				
 
 					{/* Always render the IdentRespForm */}
-					<IdentRespForm />
+					<IdentRespForm sectionIndex={0}/>
 				</form>
 			</Form>
 		</div>

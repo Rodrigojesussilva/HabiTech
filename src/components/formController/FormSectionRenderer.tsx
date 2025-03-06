@@ -14,6 +14,8 @@ interface FormSectionRendererProps {
     getFieldNumber: (sectionIndex: number, fieldIndex: number) => string | null;
     sectionIndex: number;
     formValues?: Record<string, any>;
+	handleModalFields?: boolean;
+    showSectionLabel?: boolean;
 }
 
 export const FormSectionRenderer = ({
@@ -21,7 +23,9 @@ export const FormSectionRenderer = ({
     formControl,
     getFieldNumber,
     sectionIndex,
-    formValues = {}
+    formValues = {},
+	handleModalFields = false,
+    showSectionLabel = true
 }: FormSectionRendererProps) => {
     const { getValues, setValue, watch } = useFormContext();
     const [refreshCounter, setRefreshCounter] = useState(0);
@@ -54,10 +58,13 @@ export const FormSectionRenderer = ({
 
     return (
         <div className="section mb-6">
-            {section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
+            {showSectionLabel && section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
             <div className="grid grid-cols-1 gap-4">
                 {section.fields.map((field, fieldIndex) => {
                     // Skip field if it doesn't meet its conditions
+                    if (handleModalFields && !field.showinmodal ) {
+                        return null;
+                    }
                     if (field.conditions && !evaluateConditions(field.conditions, formValues)) {
                         return null;
                     }
