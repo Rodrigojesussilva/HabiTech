@@ -6,7 +6,7 @@ import {
 	Form,
 } from "@/components/ui/form"
 
-import IdentRespForm from "./IdentResp.form"
+import IdentRespForm from "./formSections/IdentResp.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
 // Import the types from formUtils with a clear alias
