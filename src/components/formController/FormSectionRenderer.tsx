@@ -11,7 +11,7 @@ import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/u
 interface FormSectionRendererProps {
     section: FormSection;
     formControl: any;
-    getFieldNumber: (sectionIndex: number, fieldIndex: number) => string;
+    getFieldNumber: (sectionIndex: number, fieldIndex: number) => string | null;
     sectionIndex: number;
     formValues?: Record<string, any>;
 }

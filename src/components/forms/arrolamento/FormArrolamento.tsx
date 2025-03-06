@@ -5,7 +5,7 @@ import type { Ref } from "react";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +15,7 @@ import {
 	DialogTrigger
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useFormMetadata } from '@/hooks/useFormMetadata';
 
 import IdentRespForm from "./formSections/IdentResp.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
@@ -74,6 +75,18 @@ const FormArrolamento = ({
 			thirdVisit: "",
 		},
 	});
+	const { setForm, setMetadata } = useFormMetadata();
+	
+	// Share the form and metadata once on mount
+	useEffect(() => {
+		setForm(form);
+		setMetadata(metaDataSections[0]);
+		
+		return () => {
+			setForm(null);
+			setMetadata(null);
+		};
+	}, []);
 
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
@@ -89,18 +102,38 @@ const FormArrolamento = ({
 			id: "identificacao",
 			title: "Identificação das Famílias",
 			fields: [
-				{
-					name: "seiNumber",
-					label: "Nº SEI",
-					type: "text",
-					required: true
-				} as FormFieldType,
+				
 				{
 					name: "questionario",
-					label: "Questionário",
+					label: "Formulário",
 					type: "text",
 					readonly: true,
-					required: true
+					required: true,
+					sidebarform: true,
+					sidebarlabel: ""
+				} as FormFieldType,
+				{
+					name: "firstVisit",
+					label: "Data da Primeira visita",
+					type: "text",
+					readonly: true,
+					required: true,
+					sidebarform: true,
+					sidebarlabel: "Visita: 1"
+				} as FormFieldType,
+				{
+					name: "seiNumber",
+					label: "Número SEI",
+					type: "text",
+					required: true,
+					sidebarform: true
+				} as FormFieldType,
+				{
+					name: "sealNumber",
+					label: "Número Selo",
+					type: "text",
+					required: true,
+					sidebarform: true
 				} as FormFieldType,
 
 				{
@@ -137,25 +170,16 @@ const FormArrolamento = ({
 					readonly: true,
 					required: true
 				} as FormFieldType,
-				{
-					name: "sealNumber",
-					label: "Digite o número do selo",
-					type: "text",
-					required: true
-				} as FormFieldType,
+				
 				{
 					name: "numberFamilies",
 					label: "Quantas familias nesse formulário?",
 					type: "text",
-					required: true
+					required: true,
+					sidebarform: true,
+					sidebarlabel: "Quantidade de Famílias"
 				} as FormFieldType,
-				{
-					name: "firstVisit",
-					label: "Data da Primeira visita",
-					type: "text",
-					readonly: true,
-					required: true
-				} as FormFieldType,
+				
 				{
 					name: "secondVisit",
 					label: "Data da Segunda visita",

@@ -21,6 +21,8 @@ export type FormField = {
     disableField?: string;
     displayValue?: (data: Record<string, any>) => string;
     conditions?: FormCondition[]; // For conditional rendering
+    sidebarform?: boolean;
+	sidebarlabel?: string;
 };
 
 // Generic form section type
