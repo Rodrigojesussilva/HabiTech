@@ -60,7 +60,7 @@ function App() {
 
         {/* Floating theme editor - toggle with Ctrl+Shift+T */}
         {showThemeEditor && (
-          <div className="fixed top-4 right-4 z-50 w-96 max-h-[90vh] overflow-auto">
+          <div className="fixed top-4 right-4 z-50 w-126 max-h-[90vh] overflow-auto">
             <ThemeEditor />
           </div>
         )}

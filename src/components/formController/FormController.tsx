@@ -13,9 +13,10 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 
 	return (
 		<>
-			<div className="flex space-x-4">
+			<div className="flex gap-4">
 				{/* Sidebar controlando as seções */}
 				<FormSidebar formRef={formRef} />
+				{/* Card com o formulário */}
 				<Card className="w-full md:w-3/4 lg:w-3/4 h-full p-4 lg:ml-94 md:ml-70 m-4">
 					<FormComponent ref={formRef}></FormComponent>
 				</Card>

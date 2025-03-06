@@ -9,7 +9,7 @@ interface FormSidebarProps {
 }
 
 export default function FormSidebar({ formRef }: FormSidebarProps) {
-	const [secoes, setSecoes] = useState<{
+	const [metaDadosForm, setMetaDadosForm] = useState<{
 		nomeForm: string;
 		descrForm: string;
 		nomeSecao: { id: string; label: string }[]
@@ -34,7 +34,7 @@ export default function FormSidebar({ formRef }: FormSidebarProps) {
 					label: el.dataset.label || "",
 				}));
 
-			setSecoes({ 
+			setMetaDadosForm({ 
 				nomeForm: nomeForm || "", 
 				descrForm: descrForm || "", 
 				nomeSecao: secoesDetectadas 
@@ -65,16 +65,16 @@ export default function FormSidebar({ formRef }: FormSidebarProps) {
 	
 	return (
 		<Card className="hidden lg:block md:block w-1/4 h-4/5 fixed pl-4 pr-4 m-4 overflow-y-auto">
-			<h1 className="text-primary text-lg p-4 mt-6 mb-2 font-bold text-left">Formulário: {secoes.nomeForm}</h1>
+			<h1 className="text-primary text-lg p-4 mt-6 mb-2 font-bold text-left">Formulário: {metaDadosForm.nomeForm}</h1>
 			<p className="ml-7 mb-2 text-left text-muted-foreground text-sm">Descrição do formulário:</p>
 			<Card className="ml-6 mb-8 p-4 w-auto mr-4 h-auto">
 				<h4 className="text-sm text-left text-muted-foreground line-clamp-4">
-					{secoes.descrForm}
+					{metaDadosForm.descrForm}
 				</h4>
 			</Card>
-			{secoes.nomeSecao.length > 0 && (
+			{metaDadosForm.nomeSecao.length > 0 && (
 				<div className="flex flex-col w-[95%] space-x-4">
-					{secoes.nomeSecao.map((el: { id: string; label: string }, index: number) => (
+					{metaDadosForm.nomeSecao.map((el: { id: string; label: string }, index: number) => (
 						<Button 
 							key={el.id}
 							className={`flex flex-row group ml-4 w-full hover:bg-primary hover:text-primary-foreground text-primary ${secaoAtiva === el.id ? 'bg-primary text-primary-foreground' : 'bg-secondary'} mb-4`}
