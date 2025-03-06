@@ -12,7 +12,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogDescription,
-	DialogTrigger
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
@@ -48,6 +47,7 @@ interface FormArrolamentoProps {
 	onSubmit?: (data: FormValues) => void;
 	isMetadataModalOpen: boolean;
 	setIsMetadataModalOpen: (open: boolean) => void;
+	activeFamilyIndex: number;
 }
 
 const FormArrolamento = ({
@@ -55,7 +55,8 @@ const FormArrolamento = ({
 	defaultValues,
 	onSubmit,
 	isMetadataModalOpen,
-	setIsMetadataModalOpen
+	setIsMetadataModalOpen,
+	activeFamilyIndex
 }: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
@@ -76,12 +77,12 @@ const FormArrolamento = ({
 		},
 	});
 	const { setForm, setMetadata } = useFormMetadata();
-	
+
 	// Share the form and metadata once on mount
 	useEffect(() => {
 		setForm(form);
 		setMetadata(metaDataSections[0]);
-		
+
 		return () => {
 			setForm(null);
 			setMetadata(null);
@@ -96,13 +97,15 @@ const FormArrolamento = ({
 		console.log(data);
 	};
 
+	
+
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
 		{
 			id: "identificacao",
 			title: "",
 			fields: [
-				
+
 				{
 					name: "questionario",
 					label: "Formulário",
@@ -184,7 +187,7 @@ const FormArrolamento = ({
 					sidebarform: false,
 					showinmodal: false
 				} as FormFieldType,
-				
+
 				{
 					name: "numberFamilies",
 					label: "Quantas familias nesse formulário?",
@@ -194,7 +197,7 @@ const FormArrolamento = ({
 					sidebarlabel: "Quantidade de Famílias",
 					showinmodal: true,
 				} as FormFieldType,
-				
+
 				{
 					name: "secondVisit",
 					label: "Data da Segunda visita",
@@ -228,44 +231,48 @@ const FormArrolamento = ({
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
-					
-						<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
 
-							<DialogContent className="max-h-[90vh] overflow-y-auto">
-								<DialogHeader>
-									<DialogTitle>Arrolamento</DialogTitle>
-									<DialogDescription>
-										Preencha os campos abaixo:
-									</DialogDescription>
-								</DialogHeader>
+					<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
 
-								{/* Render metaDataSections inside the Dialog */}
-								{metaDataSections.map((section, sectionIndex) => (
-									<div key={section.id} data-secao={section.id} data-label={section.title}>
-										<FormSectionRenderer
-											section={section}
-											formControl={form.control}
-											getFieldNumber={getFieldNumber}
-											sectionIndex={sectionIndex}
-											handleModalFields={true}
-											showSectionLabel={false}
-										/>
-									</div>
-								))}
+						<DialogContent className="max-h-[90vh] overflow-y-auto">
+							<DialogHeader>
+								<DialogTitle>Arrolamento</DialogTitle>
+								<DialogDescription>
+									Preencha os campos abaixo:
+								</DialogDescription>
+							</DialogHeader>
 
-								<Button
-									type="button"
-									onClick={() => setIsMetadataModalOpen(false)}
-									className="mt-4"
-								>
-									Concluir
-								</Button>
-							</DialogContent>
-						</Dialog>
-				
+							{/* Render metaDataSections inside the Dialog */}
+							{metaDataSections.map((section, sectionIndex) => (
+								<div key={section.id} data-secao={section.id} data-label={section.title}>
+									<FormSectionRenderer
+										section={section}
+										formControl={form.control}
+										getFieldNumber={getFieldNumber}
+										sectionIndex={sectionIndex}
+										handleModalFields={true}
+										showSectionLabel={false}
+									/>
+								</div>
+							))}
+
+							<Button
+								type="button"
+								onClick={() => setIsMetadataModalOpen(false)}
+								className="mt-4"
+							>
+								Concluir
+							</Button>
+						</DialogContent>
+					</Dialog>
+
 
 					{/* Always render the IdentRespForm */}
-					<IdentRespForm sectionIndex={0}/>
+					{Array.from({ length: form.getValues("numberFamilies") }).map((_, index) => (
+						<div key={index} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
+							<IdentRespForm sectionIndex={0} familyIndex={index} />
+						</div>
+					))}
 				</form>
 			</Form>
 		</div>

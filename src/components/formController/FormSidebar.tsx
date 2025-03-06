@@ -10,9 +10,12 @@ import FormSectionRenderer from "./FormSectionRenderer";
 interface FormSidebarProps {
 	formRef: React.RefObject<HTMLDivElement | null>;
 	children?: React.ReactNode;
+	handleFamilyIndexChange: (index: number) => void;
+	activeFamilyIndex: number;
+	isMetadataModalOpen: boolean;
 }
 
-export default function FormSidebar({ formRef }: FormSidebarProps) {
+export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFamilyIndex, isMetadataModalOpen }: FormSidebarProps) {
 	const { form, metadata } = useFormMetadata();
 	const [nomeForm, setNomeForm] = useState("");
 	const [formDomSections, setFormDomSections] = useState<{
@@ -29,18 +32,24 @@ export default function FormSidebar({ formRef }: FormSidebarProps) {
 			const nomeForm = form.getAttribute("nome-form");
 			setNomeForm(nomeForm || "");
 
-			const detectedDomSections = Array.from(form.querySelectorAll("[data-secao]") as NodeListOf<HTMLElement>)
-				.map((el: HTMLElement) => ({
-					id: el.getAttribute("data-secao") || "",
-					label: el.dataset.label || "",
-				}));
-			setFormDomSections(detectedDomSections);
+			// Get sections only from the active family
+			const activeFamily = form.querySelector(`[data-family-index="${activeFamilyIndex}"]`) as HTMLElement;
+			const detectedDomSections =
+				activeFamily ?
+					Array.from(activeFamily.querySelectorAll("[data-secao]") as NodeListOf<HTMLElement>)
+				: [];
+
+			console.log(detectedDomSections);
+			setFormDomSections(detectedDomSections.map((el: HTMLElement) => ({
+				id: el.getAttribute("data-secao") || "",
+				label: el.dataset.label || "",
+			})));
 
 			if (detectedDomSections.length > 0 && !activeSection) {
 				setActiveSection(detectedDomSections[0].id);
 			}
 		}
-	}, [formRef, activeSection]);
+	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen]);
 
 	function sectIsChecked(secao: string): boolean {
 		return secoesConcluidas.includes(secao);
@@ -52,7 +61,7 @@ export default function FormSidebar({ formRef }: FormSidebarProps) {
 		// Scroll to section
 		const form = formRef?.current || null;
 		if (form) {
-			const sectionElement = form.querySelector(`[data-secao="${secaoId}"]`);
+			const sectionElement = form.querySelector(`[data-family-index="${activeFamilyIndex}"]`)?.querySelector(`[data-secao="${secaoId}"]`);
 			if (sectionElement) {
 				sectionElement.scrollIntoView({ behavior: 'smooth' });
 			}
@@ -98,6 +107,32 @@ export default function FormSidebar({ formRef }: FormSidebarProps) {
 			)}
 			{formDomSections.length > 0 && (
 				<>
+					<div className="flex items-center justify-between px-4 mb-4">
+						<span className="font-medium text-sm">Família:</span>
+						<div className="flex items-center space-x-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => handleFamilyIndexChange(Math.max(0, activeFamilyIndex - 1))}
+								disabled={activeFamilyIndex <= 0}
+								className="px-2 py-1"
+							>
+								&lt;&lt;
+							</Button>
+							<span className="text-sm font-medium">
+								{activeFamilyIndex + 1}/{form?.getValues("numberFamilies") || 1}
+							</span>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => handleFamilyIndexChange(Math.min((form?.getValues("numberFamilies") || 1) - 1, activeFamilyIndex + 1))}
+								disabled={activeFamilyIndex >= (form?.getValues("numberFamilies") || 1) - 1}
+								className="px-2 py-1"
+							>
+								&gt;&gt;
+							</Button>
+						</div>
+					</div>
 					<div className="w-full border-t border-gray-200 my-4"></div>
 					<div className="flex flex-col w-[95%] space-x-4">
 						{formDomSections.map((el: { id: string; label: string }, index: number) => (

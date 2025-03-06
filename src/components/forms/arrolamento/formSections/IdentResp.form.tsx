@@ -18,9 +18,10 @@ interface IdentRespFormProps {
     defaultValues?: Partial<FormValues>;
     id?: string;
     sectionIndex?: number;
+    familyIndex?: number;
 }
 
-const IdentRespForm = ({ defaultValues, id, sectionIndex: sectionNumber }: IdentRespFormProps) => {
+const IdentRespForm = ({ defaultValues, id, sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
 
     // Initialize the form with react-hook-form
