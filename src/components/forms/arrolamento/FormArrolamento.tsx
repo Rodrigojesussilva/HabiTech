@@ -4,11 +4,13 @@ import * as z from "zod";
 import type { Ref } from "react";
 import {
 	Form,
-	FormField,
 } from "@/components/ui/form"
 
 import IdentRespForm from "./IdentResp.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
+
+// Import the types from formUtils with a clear alias
+import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -34,28 +36,6 @@ interface FormArrolamentoProps {
 	defaultValues?: Partial<FormValues>;
 	onSubmit?: (data: FormValues) => void;
 }
-
-// Define possible field types
-type FieldType = 'text' | 'select' | 'checkbox' | 'radio';
-
-// Extend the field interface to include type and options
-interface FormField {
-	name: string;
-	label: string;
-	type: FieldType;
-	readonly?: boolean;
-	options?: { label: string; value: string }[];
-}
-
-// Define the section type
-type FormSection = {
-	id: string;
-	title: string;
-	fields: FormField[];
-};
-
-// Create a FormFieldRenderer component
-
 
 const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
@@ -85,12 +65,8 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 		console.log(data);
 	};
 
-	// Handle form submission for IdentRespForm
-	const handleIdentRespSubmit = (data: any) => {
-		console.log("IdentRespForm data:", data);
-	};
 
-	// Define the form structure
+	// Define the form structure using FormFieldType for each field
 	const formSections: FormSection[] = [
 		{
 			id: "identificacao",
@@ -99,77 +75,87 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 				{ 
 					name: "seiNumber", 
 					label: "Nº SEI", 
-					type: "text" 
-				},
+					type: "text",
+					required: true
+				} as FormFieldType,
 				{ 
 					name: "questionario", 
 					label: "Questionário", 
 					type: "text",
-					readonly: true 
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				
 				{ 
 					name: "interviewerName", 
 					label: "Nome completo da(o) Entrevistador(a)", 
-					type: "text" 
-				},
+					type: "text",
+					required: true
+				} as FormFieldType,
 				{
 					name: "interviewDate",
 					label: "Data da Entrevista",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "startTime",
 					label: "Início",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "endTime",
 					label: "Término",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "timeElapsed",
 					label: "Tempo da Entrevista",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "sealNumber",
 					label: "Digite o número do selo",
-					type: "text"
-				},
+					type: "text",
+					required: true
+				} as FormFieldType,
 				{
 					name: "numberFamilies",
 					label: "Quantas familias nesse formulário?",
-					type: "text"
-				},
+					type: "text",
+					required: true
+				} as FormFieldType,
 				{
 					name: "firstVisit",
 					label: "Data da Primeira visita",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "secondVisit",
 					label: "Data da Segunda visita",
 					type: "text",
-					readonly: true
-				},
+					readonly: true,
+					required: true
+				} as FormFieldType,
 				{
 					name: "thirdVisit",
 					label: "Data da Terceira visita",
 					type: "text",
-					readonly: true
-				}
+					readonly: true,
+					required: true
+				} as FormFieldType
 			]
 		},
-
 	];
-
 	// Function to generate section and field numbers based on position
 	const getFieldNumber = (sectionIndex: number, fieldIndex: number) => {
 		return `${sectionIndex + 1}.${fieldIndex + 1}`;
@@ -189,7 +175,7 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 							/>
 						</div>
 					))}
-					<IdentRespForm onSubmit={handleIdentRespSubmit} />
+					<IdentRespForm />
 				</form>
 			</Form>
 		</div>

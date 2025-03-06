@@ -6,7 +6,7 @@ import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
 
 import { Routes, Route } from "react-router-dom";
-import FormArrolamento from './components/formController/forms/FormArrolamento'
+import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import { useState, useEffect } from 'react'
 
 function App() {
