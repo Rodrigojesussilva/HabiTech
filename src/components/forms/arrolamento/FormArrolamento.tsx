@@ -5,6 +5,16 @@ import type { Ref } from "react";
 import {
 	Form,
 } from "@/components/ui/form"
+import { useState } from "react";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogTrigger
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import IdentRespForm from "./formSections/IdentResp.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
@@ -35,9 +45,17 @@ interface FormArrolamentoProps {
 	ref: Ref<HTMLDivElement>;
 	defaultValues?: Partial<FormValues>;
 	onSubmit?: (data: FormValues) => void;
+	isMetadataModalOpen: boolean;
+	setIsMetadataModalOpen: (open: boolean) => void;
 }
 
-const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps) => {
+const FormArrolamento = ({
+	ref,
+	defaultValues,
+	onSubmit,
+	isMetadataModalOpen,
+	setIsMetadataModalOpen
+}: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -65,30 +83,29 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 		console.log(data);
 	};
 
-
 	// Define the form structure using FormFieldType for each field
-	const formSections: FormSection[] = [
+	const metaDataSections: FormSection[] = [
 		{
 			id: "identificacao",
 			title: "Identificação das Famílias",
 			fields: [
-				{ 
-					name: "seiNumber", 
-					label: "Nº SEI", 
+				{
+					name: "seiNumber",
+					label: "Nº SEI",
 					type: "text",
 					required: true
 				} as FormFieldType,
-				{ 
-					name: "questionario", 
-					label: "Questionário", 
+				{
+					name: "questionario",
+					label: "Questionário",
 					type: "text",
 					readonly: true,
 					required: true
 				} as FormFieldType,
-				
-				{ 
-					name: "interviewerName", 
-					label: "Nome completo da(o) Entrevistador(a)", 
+
+				{
+					name: "interviewerName",
+					label: "Nome completo da(o) Entrevistador(a)",
 					type: "text",
 					required: true
 				} as FormFieldType,
@@ -165,16 +182,42 @@ const FormArrolamento = ({ ref, defaultValues, onSubmit }: FormArrolamentoProps)
 		<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-					{formSections.map((section, sectionIndex) => (
-						<div key={section.id} data-secao={section.id} data-label={section.title}>
-							<FormSectionRenderer
-								section={section}
-								formControl={form.control}
-								getFieldNumber={getFieldNumber}
-								sectionIndex={sectionIndex}
-							/>
-						</div>
-					))}
+					{/* Dialog for metadata fields */}
+					
+						<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
+
+							<DialogContent className="max-h-[90vh] overflow-y-auto">
+								<DialogHeader>
+									<DialogTitle>Metadados do Formulário</DialogTitle>
+									<DialogDescription>
+										Preencha os campos de metadados abaixo:
+									</DialogDescription>
+								</DialogHeader>
+
+								{/* Render metaDataSections inside the Dialog */}
+								{metaDataSections.map((section, sectionIndex) => (
+									<div key={section.id} data-secao={section.id} data-label={section.title}>
+										<FormSectionRenderer
+											section={section}
+											formControl={form.control}
+											getFieldNumber={getFieldNumber}
+											sectionIndex={sectionIndex}
+										/>
+									</div>
+								))}
+
+								<Button
+									type="button"
+									onClick={() => setIsMetadataModalOpen(false)}
+									className="mt-4"
+								>
+									Concluir
+								</Button>
+							</DialogContent>
+						</Dialog>
+				
+
+					{/* Always render the IdentRespForm */}
 					<IdentRespForm />
 				</form>
 			</Form>
