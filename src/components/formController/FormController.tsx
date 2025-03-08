@@ -24,6 +24,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 					handleFamilyIndexChange={handleFamilyIndexChange}
 					activeFamilyIndex={activeFamilyIndex}
 					isMetadataModalOpen={isMetadataModalOpen}
+					setIsMetadataModalOpen={setIsMetadataModalOpen}
 				/>
 				{/* Card com o formulário */}
 				<Card className="w-full md:w-3/4 lg:w-3/4 h-full p-4 lg:ml-94 md:ml-70 m-4">

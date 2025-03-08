@@ -1,3 +1,5 @@
+import * as z from "zod";
+
 // Generic form utilities - not tied to any specific form
 
 // Define condition type
@@ -70,3 +72,24 @@ export function evaluateConditions(conditions: FormCondition[], formValues: Reco
         }
     });
 } 
+
+// Utility function to derive default values from a Zod schema
+export function getDefaultValuesFromSchema(schema: z.ZodObject<any>): Record<string, any> {
+	const defaultValues: Record<string, any> = {};
+	for (const key in schema.shape) {
+	  const field = schema.shape[key];
+	  if (field instanceof z.ZodString) {
+		defaultValues[key] = "";
+	  } else if (field instanceof z.ZodNumber) {
+		defaultValues[key] = 0;
+	  } else if (field instanceof z.ZodBoolean) {
+		defaultValues[key] = false;
+	  } else if (field instanceof z.ZodArray) {
+		defaultValues[key] = [];
+	  } else {
+		defaultValues[key] = null; // Default for other types
+	  }
+	}
+	return defaultValues;
+  }
+  

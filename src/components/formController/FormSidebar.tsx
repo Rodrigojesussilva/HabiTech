@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button"
 import { SquareCheckBig, Square } from "lucide-react"
 import { useState, useEffect } from "react";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import FormSectionRenderer from "./FormSectionRenderer";
+
 
 interface FormSidebarProps {
 	formRef: React.RefObject<HTMLDivElement | null>;
@@ -13,9 +11,10 @@ interface FormSidebarProps {
 	handleFamilyIndexChange: (index: number) => void;
 	activeFamilyIndex: number;
 	isMetadataModalOpen: boolean;
+	setIsMetadataModalOpen: (open: boolean) => void;
 }
 
-export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFamilyIndex, isMetadataModalOpen }: FormSidebarProps) {
+export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFamilyIndex, isMetadataModalOpen, setIsMetadataModalOpen }: FormSidebarProps) {
 	const { form, metadata } = useFormMetadata();
 	const [nomeForm, setNomeForm] = useState("");
 	const [formDomSections, setFormDomSections] = useState<{
@@ -37,7 +36,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			const detectedDomSections =
 				activeFamily ?
 					Array.from(activeFamily.querySelectorAll("[data-secao]") as NodeListOf<HTMLElement>)
-				: [];
+					: [];
 
 			console.log(detectedDomSections);
 			setFormDomSections(detectedDomSections.map((el: HTMLElement) => ({
@@ -85,11 +84,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 								onClick={() => {
 									// When a field is clicked, open the metadata modal
 									if (form) {
-										// Set the current field in focus before opening the modal
-										const { setIsMetadataModalOpen } = form.getValues();
-										if (typeof setIsMetadataModalOpen === 'function') {
-											setIsMetadataModalOpen(true);
-										}
+										setIsMetadataModalOpen(true);
 									}
 								}}
 							>
@@ -107,6 +102,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			)}
 			{formDomSections.length > 0 && (
 				<>
+					<div className="w-full border-gray-200 my-4 border-t-2"></div>
 					<div className="flex items-center justify-between px-4 mb-4">
 						<span className="font-medium text-sm">Família:</span>
 						<div className="flex items-center space-x-2">
@@ -133,7 +129,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 							</Button>
 						</div>
 					</div>
-					<div className="w-full border-t border-gray-200 my-4"></div>
+
 					<div className="flex flex-col w-[95%] space-x-4">
 						{formDomSections.map((el: { id: string; label: string }, index: number) => (
 							<Button

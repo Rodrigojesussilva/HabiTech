@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FormConfig } from "@/utils/formUtils";
 
 // Form validation schema
-export const formSchema = z.object({
+export const identRespSchema = z.object({
     responsavel: z.string().optional(),
     relacaoResponsavel: z.string().optional(),
     nomeCompletoResp: z.string().optional(),
@@ -20,7 +20,7 @@ export const formSchema = z.object({
     arrolamento_id: z.string().optional(),
 });
 
-export type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof identRespSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {

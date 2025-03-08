@@ -1,11 +1,13 @@
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import type { Ref } from "react";
+import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useWatch } from "react-hook-form";
 import {
 	Dialog,
 	DialogContent,
@@ -21,7 +23,12 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
+import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
 
+// Define the schema for a single family, integrating IdentResp schema
+const familySchema = z.object({
+   ...identRespSchema.shape,
+});
 // Define the form schema with Zod
 const formSchema = z.object({
 	questionario: z.string(),
@@ -36,6 +43,7 @@ const formSchema = z.object({
 	firstVisit: z.string(),
 	secondVisit: z.string(),
 	thirdVisit: z.string(),
+	families: z.array(familySchema),
 });
 
 // Define the form data type from the schema
@@ -74,8 +82,51 @@ const FormArrolamento = ({
 			firstVisit: "",
 			secondVisit: "",
 			thirdVisit: "",
+			families: [{}],
 		},
 	});
+
+	const { fields: familyFields, append, remove } = useFieldArray({
+		control: form.control,
+		name: "families",
+	  });
+	
+	  // Watch for changes to numberFamilies
+	  const numberFamilies = useWatch({
+		control: form.control,
+		name: "numberFamilies",
+	  });
+
+	  const families = useWatch({
+		control: form.control,
+		name: "families",
+	  });
+	  useEffect(() => {
+		console.log("Watched families:", families);
+	  }, [families]);
+	  
+	  const defaultFamilyEntry = getDefaultValuesFromSchema(identRespSchema);
+	  // Synchronize families array with numberFamilies
+
+
+	  useEffect(() => {
+		const currentLength = familyFields.length;
+		const targetLength = numberFamilies || 0;
+	
+		if (targetLength > currentLength) {
+		  // Add new entries
+		  const newEntries = Array(targetLength - currentLength).fill(0).map(() => ({
+			...defaultFamilyEntry
+		  }));
+		  newEntries.forEach(entry => append(entry));
+		} else if (targetLength < currentLength) {
+		  // Remove excess entries
+		  for (let i = currentLength - 1; i >= targetLength; i--) {
+			remove(i);
+		  }
+		}
+	  }, [numberFamilies, familyFields.length, append, remove]);
+
 	const { setForm, setMetadata } = useFormMetadata();
 
 	// Share the form and metadata once on mount
@@ -248,10 +299,12 @@ const FormArrolamento = ({
 									<FormSectionRenderer
 										section={section}
 										formControl={form.control}
+										form={form}
 										getFieldNumber={getFieldNumber}
 										sectionIndex={sectionIndex}
 										handleModalFields={true}
 										showSectionLabel={false}
+										
 									/>
 								</div>
 							))}
@@ -266,10 +319,9 @@ const FormArrolamento = ({
 						</DialogContent>
 					</Dialog>
 
-
 					{/* Always render the IdentRespForm */}
-					{Array.from({ length: form.getValues("numberFamilies") }).map((_, index) => (
-						<div key={index} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
+					{familyFields.map((field, index) => (
+						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
 							<IdentRespForm sectionIndex={0} familyIndex={index} />
 						</div>
 					))}
