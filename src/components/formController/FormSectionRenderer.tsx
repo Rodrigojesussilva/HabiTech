@@ -4,14 +4,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useFormContext } from 'react-hook-form';
 import { Label } from "@/components/ui/label";
 import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/utils/formUtils";
 
 interface FormSectionRendererProps {
     section: FormSection;
     formControl: any;
-    form: any;
     getFieldNumber: (sectionIndex: number, fieldIndex: number) => string | null;
     sectionIndex: number;
     formValues?: Record<string, any>;
@@ -23,7 +21,6 @@ interface FormSectionRendererProps {
 export const FormSectionRenderer = ({
     section,
     formControl,
-    form,
     getFieldNumber,
     sectionIndex,
     formValues = {},
@@ -31,10 +28,8 @@ export const FormSectionRenderer = ({
     showSectionLabel = true,
     familyIndex = null,
 }: FormSectionRendererProps) => {
-    const { getValues, setValue, watch } = useFormContext();
-    const [refreshCounter, setRefreshCounter] = useState(0);
 
-    const mainForm = useFormContext();
+
     // Create a mapping of fields to their controlling checkboxes
     const fieldToCheckboxMap: Record<string, string> = {};
     section.fields.forEach(field => {
@@ -42,29 +37,7 @@ export const FormSectionRenderer = ({
             fieldToCheckboxMap[field.disableField] = field.name;
         }
     });
-
-    // Look for display fields that might need to be refreshed when other fields change
-    const displayFields = section.fields.filter(field => field.type === 'display');
-
-    // Set up watchers for fields that could affect display fields
-    useEffect(() => {
-        // Watch for date of birth changes to update age display
-        const dataNascimentoSubscription = watch((value, { name }) => {
-            if (name === 'dataNascimento') {
-                // Trigger refresh of display fields
-                setRefreshCounter(prev => prev + 1);
-            }
-        });
-
-        return () => {
-            dataNascimentoSubscription.unsubscribe();
-        };
-    }, [watch]);
-
-    useEffect(() => {
-        console.log("formControl", mainForm.getValues("families"));
-        console.log("formValues", formValues);
-    }, [mainForm.getValues("families"), formValues]);
+    
 
     return (
         <div className="section mb-6">
@@ -81,16 +54,13 @@ export const FormSectionRenderer = ({
 
                     const key = familyIndex !== undefined && familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
                     const name = familyIndex !== undefined && familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
-                    console.log("formControl", mainForm.getValues("families"));
-                    console.log("formValues", formValues);
-                    console.log("form", form);
-                    console.log("name", name);
+                   
                     return (
                         <FormField
                             key={key}
-                            control={form.control}
+                            control={formControl}
                             name={name} // esse campo é o que faz a relação com o campo do array de familia no form principal
-                            render={({ field: formField }) => (
+                            render={({ field: JSONformField }) => (
                                 <FormItem>
                                     <FormLabel className="flex items-center">
                                         <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
@@ -98,7 +68,7 @@ export const FormSectionRenderer = ({
                                     </FormLabel>
 
                                     <FormControl>
-                                        {renderFormField(field, formField, formValues, name)}
+                                        {renderFormField(field, JSONformField, formValues)}
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -112,20 +82,18 @@ export const FormSectionRenderer = ({
 };
 
 // Helper function to render different field types
-function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>, name: string) {
+function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>) {
     switch (field.type) {
         case "text":
             if (field.mask) {
                 return (
                     <Input
-                        name={name}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         placeholder={field.placeholder}
                         {...formField}
                         value={formField.value ?? ""}
                         disabled={field.readonly}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            console.log("onChange", e.target.value);
                             formField.onChange(e.target.value);
                         }}
                     />
@@ -133,17 +101,12 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             }
             return (
                     <Input
-                    name={name}
                     {...formField}
                     placeholder={field.placeholder}
                     disabled={field.readonly}
                     value={formField.value ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        console.log("onChange", e.target.value);
                         formField.onChange(e.target.value);
-                        console.log("formField", formField);
-                        console.log("formField.onChange", formField.onChange);
-                        console.log("formField.value", formField.value);
                     }}
                 />
             );
@@ -151,7 +114,6 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
         case "select":
             return (
                 <Select
-                    name={name}
                     onValueChange={formField.onChange}
                     defaultValue={formField.value}
                     disabled={field.readonly}
@@ -172,7 +134,6 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
         case "checkbox":
             return (
                 <Checkbox
-                    name={name}
                     checked={formField.value}
                     onCheckedChange={formField.onChange}
                     disabled={field.readonly}
@@ -182,7 +143,6 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
         case "radio":
             return (
                 <RadioGroup
-                    name={name}
                     defaultValue={formField.value}
                     onValueChange={formField.onChange}
                     disabled={field.readonly}

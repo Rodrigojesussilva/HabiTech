@@ -27,7 +27,7 @@ import { identRespSchema } from "@/components/forms/arrolamento/definitions/iden
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
-   ...identRespSchema.shape,
+	...identRespSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -89,45 +89,16 @@ const FormArrolamento = ({
 	const { fields: familyFields, append, remove } = useFieldArray({
 		control: form.control,
 		name: "families",
-	  });
-	
-	  // Watch for changes to numberFamilies
-	  const numberFamilies = useWatch({
+	});
+
+	// Watch for changes to numberFamilies
+	const numberFamilies = useWatch({
 		control: form.control,
 		name: "numberFamilies",
-	  });
+	});
 
-	  const families = useWatch({
-		control: form.control,
-		name: "families",
-	  });
-	  useEffect(() => {
-		console.log("Watched families:", families);
-	  }, [families]);
-	  
-	  const defaultFamilyEntry = getDefaultValuesFromSchema(identRespSchema);
-	  // Synchronize families array with numberFamilies
-
-
-	  useEffect(() => {
-		const currentLength = familyFields.length;
-		const targetLength = numberFamilies || 0;
-	
-		if (targetLength > currentLength) {
-		  // Add new entries
-		  const newEntries = Array(targetLength - currentLength).fill(0).map(() => ({
-			...defaultFamilyEntry
-		  }));
-		  newEntries.forEach(entry => append(entry));
-		} else if (targetLength < currentLength) {
-		  // Remove excess entries
-		  for (let i = currentLength - 1; i >= targetLength; i--) {
-			remove(i);
-		  }
-		}
-	  }, [numberFamilies, familyFields.length, append, remove]);
-
-	const { setForm, setMetadata } = useFormMetadata();
+	const defaultFamilyEntry = getDefaultValuesFromSchema(identRespSchema);
+	// Synchronize families array with numberFamilies
 
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -140,6 +111,27 @@ const FormArrolamento = ({
 		};
 	}, []);
 
+	useEffect(() => {
+		const currentLength = familyFields.length;
+		const targetLength = numberFamilies || 0;
+
+		if (targetLength > currentLength) {
+			// Add new entries
+			const newEntries = Array(targetLength - currentLength).fill(0).map(() => ({
+				...defaultFamilyEntry
+			}));
+			newEntries.forEach(entry => append(entry));
+		} else if (targetLength < currentLength) {
+			// Remove excess entries
+			for (let i = currentLength - 1; i >= targetLength; i--) {
+				remove(i);
+			}
+		}
+	}, [numberFamilies, familyFields.length, append, remove]);
+
+	const { setForm, setMetadata } = useFormMetadata();
+
+
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
@@ -147,8 +139,6 @@ const FormArrolamento = ({
 		}
 		console.log(data);
 	};
-
-	
 
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
@@ -299,12 +289,11 @@ const FormArrolamento = ({
 									<FormSectionRenderer
 										section={section}
 										formControl={form.control}
-										form={form}
 										getFieldNumber={getFieldNumber}
 										sectionIndex={sectionIndex}
 										handleModalFields={true}
 										showSectionLabel={false}
-										
+
 									/>
 								</div>
 							))}
