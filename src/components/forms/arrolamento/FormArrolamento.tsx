@@ -86,6 +86,18 @@ const FormArrolamento = ({
 		},
 	});
 
+	const { setForm, setMetadata } = useFormMetadata();
+	// Share the form and metadata once on mount
+	useEffect(() => {
+		setForm(form);
+		setMetadata(metaDataSections[0]);
+
+		return () => {
+			setForm(null);
+			setMetadata(null);
+		};
+	}, []);
+
 	const { fields: familyFields, append, remove } = useFieldArray({
 		control: form.control,
 		name: "families",
@@ -98,18 +110,6 @@ const FormArrolamento = ({
 	});
 
 	const defaultFamilyEntry = getDefaultValuesFromSchema(identRespSchema);
-	// Synchronize families array with numberFamilies
-
-	// Share the form and metadata once on mount
-	useEffect(() => {
-		setForm(form);
-		setMetadata(metaDataSections[0]);
-
-		return () => {
-			setForm(null);
-			setMetadata(null);
-		};
-	}, []);
 
 	useEffect(() => {
 		const currentLength = familyFields.length;
@@ -128,9 +128,6 @@ const FormArrolamento = ({
 			}
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
-
-	const { setForm, setMetadata } = useFormMetadata();
-
 
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
@@ -293,7 +290,6 @@ const FormArrolamento = ({
 										sectionIndex={sectionIndex}
 										handleModalFields={true}
 										showSectionLabel={false}
-
 									/>
 								</div>
 							))}

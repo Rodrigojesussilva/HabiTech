@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-    identRespDefinition
+    getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/identResp.definition";
-import { getConditionalFields, calcularIdade } from "@/components/forms/arrolamento/helpers/identResp.helper";
+import {  calcularIdade } from "@/components/forms/arrolamento/helpers/identResp.helper";
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -22,6 +22,7 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
+    const formSections = getMergedFormSections(formValues);
     // Update age when date of birth changes
     useEffect(() => {
         const dataNascimento = formValues.dataNascimentoResp;
@@ -31,19 +32,8 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
         }
     }, [formValues.dataNascimentoResp]);
 
-    // Get conditional fields based on current form values
-    const conditionalFields = getConditionalFields(formValues);
-
-    // Create a merged form structure with base fields and conditional fields
-    const formSections = [
-        {
-            ...identRespDefinition.sections[0],
-            fields: [
-                ...identRespDefinition.sections[0].fields,
-                ...conditionalFields
-            ]
-        }
-    ];
+    // Get merged form sections with conditional fields included
+   
 
     return (
         <div className="text-left">

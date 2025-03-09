@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FormConfig } from "@/utils/formUtils";
+import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
 export const identRespSchema = z.object({
@@ -123,3 +123,78 @@ export const identRespDefinition: FormConfig = {
         }
     ]
 }; 
+
+/**
+ * Get additional conditional fields based on form values for IdentResp form
+ * This centralizes all conditional field logic specific to IdentResp in one place
+ * @param formValues Current form values from IdentResp form
+ */
+export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+    const conditionalFields: FormField[] = [];
+    
+    // Conditionally add fields based on "responsavel" value
+    if (formValues.responsavel === "nao") {
+        conditionalFields.push(
+            {
+                name: "relacaoResponsavel",
+                label: "Qual a sua relação de parentesco com a pessoa responsável?",
+                type: "select",
+                required: false,
+                options: [
+                    { label: "Cônjuge/Companheiro(a)", value: "conjuge" },
+                    { label: "Filho(a)", value: "filho" },
+                    { label: "Enteado(a)", value: "enteado" },
+                    { label: "Genro/Nora", value: "genro_nora" },
+                    { label: "Pai/Mãe", value: "pai_mae" },
+                    { label: "Sogro(a)", value: "sogro" },
+                    { label: "Neto(a)", value: "neto" },
+                    { label: "Irmão/Irmã", value: "irmao" },
+                    { label: "Outro", value: "outro" }
+                ]
+            },
+            {
+                name: "nomeCompletoEntrevistado",
+                label: "Nome Completo da Pessoa Entrevistada",
+                type: "text",
+                required: false
+            }
+        );
+    }
+    
+    // Conditionally add fields based on "relacaoResponsavel" value
+    if (formValues.relacaoResponsavel === "outro") {
+        conditionalFields.push({
+            name: "DescrevParentesco",
+            label: "Descreva a Relação de Parentesco",
+            type: "text",
+            required: false,
+            conditions: [
+                { field: "relacaoResponsavel", operator: "equals", value: "outro" }
+            ]
+        });
+    }
+    
+    return conditionalFields;
+} 
+
+/**
+ * Get complete form sections with merged static and conditional fields
+ * This centralizes the merging logic of base and conditional fields
+ * @param formValues Current form values from IdentResp form
+ * @returns Array of form sections with merged fields
+ */
+export function getMergedFormSections(formValues: Partial<FormValues>) {
+    // Get conditional fields based on current form values
+    const conditionalFields = getConditionalFields(formValues);
+
+    // Create and return a merged form structure with base fields and conditional fields
+    return [
+        {
+            ...identRespDefinition.sections[0],
+            fields: [
+                ...identRespDefinition.sections[0].fields,
+                ...conditionalFields
+            ]
+        }
+    ];
+} 
