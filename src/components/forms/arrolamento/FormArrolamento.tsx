@@ -19,15 +19,18 @@ import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
 import IdentRespForm from "./formSections/IdentResp.form"
+import InfoContatoForm from "./formSections/InfoContato.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
 import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
+import {infoContatoSchema} from "@/components/forms/arrolamento/definitions/infoContato.definition";
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
+	...infoContatoSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -308,6 +311,7 @@ const FormArrolamento = ({
 					{familyFields.map((field, index) => (
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
 							<IdentRespForm sectionIndex={0} familyIndex={index} />
+							<InfoContatoForm sectionIndex={1} familyIndex={index} />
 						</div>
 					))}
 				</form>
