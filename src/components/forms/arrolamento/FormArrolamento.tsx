@@ -20,17 +20,19 @@ import { useFormMetadata } from '@/hooks/useFormMetadata';
 
 import IdentRespForm from "./formSections/IdentResp.form"
 import InfoContatoForm from "./formSections/InfoContato.form"
+import SituUsoUniForm from "./formSections/SituUsoUni.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
 import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
 import {infoContatoSchema} from "@/components/forms/arrolamento/definitions/infoContato.definition";
-
+import { situUsoUniSchema } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
 	...infoContatoSchema.shape,
+	...situUsoUniSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -312,6 +314,7 @@ const FormArrolamento = ({
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
 							<IdentRespForm sectionIndex={0} familyIndex={index} />
 							<InfoContatoForm sectionIndex={1} familyIndex={index} />
+							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
 						</div>
 					))}
 				</form>
