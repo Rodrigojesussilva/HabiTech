@@ -9,14 +9,14 @@
     "sidebarPrimary": "hsl(240 5.9% 10%)",
     "sidebarPrimaryForeground": "hsl(0 0% 98%)"
   },
-  "darkTheme": {
-    "primary": "hsl(60 9.1% 97.8%)",
-    "primaryForeground": "hsl(24 9.8% 10%)",
-    "secondary": "hsl(12 6.5% 15.1%)",
-    "secondaryForeground": "hsl(60 9.1% 97.8%)",
-    "sidebar": "hsl(240 5.9% 10%)",
-    "sidebarForeground": "hsl(240 4.8% 95.9%)",
-    "sidebarPrimary": "hsl(224.3 76.3% 48%)",
-    "sidebarPrimaryForeground": "hsl(0 0% 100%)"
+  "redTheme": {
+    "primary": "hsl(0 100% 30%)",
+    "primaryForeground": "hsl(60 9.1% 100.8%)",
+    "secondary": "hsl(60 4.8% 90.9%)",
+    "secondaryForeground": "hsl(24 9.8% 10%)",
+    "sidebar": "hsl(0 15% 95%)",
+    "sidebarForeground": "hsl(240 5.3% 26.1%)",
+    "sidebarPrimary": "hsl(0 100% 30%)",
+    "sidebarPrimaryForeground": "hsl(0 0% 98%)"
   }
-} 
+}

@@ -4,20 +4,20 @@ import themeConfig from '@/lib/theme-config.json';
 import { Button } from '@/components/ui/button';
 
 const ThemeEditor: React.FC = () => {
-  const [selectedTheme, setSelectedTheme] = useState<'lightTheme' | 'darkTheme'>('lightTheme');
+  const [selectedTheme, setSelectedTheme] = useState<'lightTheme' | 'redTheme'>('lightTheme');
   const [colorValues, setColorValues] = useState(themeConfig[selectedTheme]);
 
   const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const theme = e.target.value as 'lightTheme' | 'darkTheme';
+    const theme = e.target.value as 'lightTheme' | 'redTheme';
     setSelectedTheme(theme);
     setColorValues(themeConfig[theme]);
     applyThemeColors(theme);
 
     // Add or remove dark class based on theme
-    if (theme === 'darkTheme') {
-      document.documentElement.classList.add('dark');
+    if (theme === 'redTheme') {
+      document.documentElement.classList.add('red');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('red');
     }
   };
 
@@ -59,7 +59,7 @@ const ThemeEditor: React.FC = () => {
             className="mt-1 block w-full p-2 border rounded-md"
           >
             <option value="lightTheme">Light Theme</option>
-            <option value="darkTheme">Dark Theme</option>
+            <option value="redTheme">Red Theme</option>
           </select>
         </label>
       </div>

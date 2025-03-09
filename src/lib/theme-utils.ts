@@ -1,6 +1,6 @@
 import themeConfig from './theme-config.json';
 
-type ThemeType = 'lightTheme' | 'darkTheme';
+type ThemeType = 'lightTheme' | 'redTheme';
 
 interface ThemeColors {
   primary: string;
@@ -59,15 +59,15 @@ export const updateThemeColor = (
  * Automatically detects dark mode preference
  */
 export const initializeTheme = (): void => {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme: ThemeType = prefersDark ? 'darkTheme' : 'lightTheme';
+  const prefersDark = window.matchMedia('(prefers-color-scheme: red)').matches;
+  const theme: ThemeType = prefersDark ? 'redTheme' : 'lightTheme';
   
   applyThemeColors(theme);
   
   // Add dark class to body if using dark theme
-  if (theme === 'darkTheme') {
-    document.documentElement.classList.add('dark');
+  if (theme === 'redTheme') {
+    document.documentElement.classList.add('red');
   } else {
-    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('red');
   }
 }; 
