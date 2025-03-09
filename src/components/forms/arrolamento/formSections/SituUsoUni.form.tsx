@@ -18,8 +18,6 @@ interface SituUsoUniFormProps {
 
 const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniFormProps) => {
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isFirstRender, setIsFirstRender] = useState(true);
 
     const form = useFormContext();
     
@@ -33,37 +31,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
 
-    // Inicializar formulário apenas uma vez
-    useEffect(() => {
-        if (isFirstRender) {
-            // Garantir que os selects tenham valores válidos para evitar erros de renderização
-            try {
-                // Lista de todos os campos select que precisam de valores não vazios
-                const selectFields = [
-                    'regime_ocupacao',
-                    'cozinhaCompartilhada',
-                    'banheiroCompartilhado',
-                    'separaResiduos',
-                    'contrato_locacao',
-                    'documentoComprovacao',
-                    'destinoReciclavel',
-                    'destinoOrganico',
-                    'destinoDomestico'
-                ];
-                
-                // Inicializar cada campo select com um valor "select" se necessário
-                selectFields.forEach(field => {
-                    const currentValue = form.getValues(`families[${familyIndex}].${field}`);
-                    if (currentValue === undefined || currentValue === null || currentValue === "") {
-                        form.setValue(`families[${familyIndex}].${field}`, "select");
-                    }
-                });
-            } catch (err) {
-                console.error("Erro ao inicializar formulário:", err);
-            }
-            setIsFirstRender(false);
-        }
-    }, [isFirstRender, form, familyIndex]);
+
 
     // Format values when they change
     useEffect(() => {
@@ -99,27 +67,10 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             return sections;
         } catch (err) {
             console.error("Erro ao obter as seções do formulário:", err);
-            setError(`Erro ao carregar formulário: ${err}`);
             return [situUsoUniDefinition.sections[0]]; // Fallback para seção básica
         }
     })();
 
-    // Tratamento de erro
-    if (error) {
-        return (
-            <div className="text-left">
-                <div className="section-header bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
-                    <h4 className="text-xl font-semibold mb-4">
-                        {`${sectionNumber ? sectionNumber + 1 : 4}. Situação e Uso da Unidade`}
-                    </h4>
-                    <div className="text-red-500 mt-2">{error}</div>
-                </div>
-            </div>
-        );
-    }
-
-    // Só mostra o conteúdo se o formulário estiver pronto
-    const renderContent = !isFirstRender;
 
     return (
         <div className="text-left">
@@ -132,7 +83,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                    {renderContent && Array.isArray(formSections) && formSections.length > 0 && formSections[0].fields ? (
+                    {Array.isArray(formSections) && formSections.length > 0 && formSections[0].fields && (
                         formSections.map((section, sectionIndex) => (
                             <FormSectionRenderer
                                 key={section.id}
@@ -145,10 +96,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                                 familyIndex={familyIndex}
                             />
                         ))
-                    ) : (
-                        <div className="p-4 border border-red-300 bg-red-50 rounded">
-                            {isFirstRender ? "Carregando formulário..." : "Erro ao carregar campos do formulário."}
-                        </div>
                     )}
                 </CollapsibleContent>
             </Collapsible>
