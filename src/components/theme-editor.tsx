@@ -28,12 +28,24 @@ const ThemeEditor: React.FC = () => {
   };
 
   const handleColorChange = (key: string, value: string) => {
+    // Update local state
     setColorValues({
       ...colorValues,
       [key]: value
     });
 
+    // Update the theme color in the DOM
     updateThemeColor(selectedTheme, key as keyof typeof colorValues, value);
+    
+    // Also apply CSS variable directly for immediate feedback
+    document.documentElement.style.setProperty(`--${key}`, value);
+  };
+
+  // Format a color key to a display name (camelCase to Title Case with spaces)
+  const formatColorName = (key: string) => {
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase());
   };
 
   return (
@@ -73,16 +85,28 @@ const ThemeEditor: React.FC = () => {
         </label>
       </div>
 
-      <div className="grid gap-4 mb-4 p-8">
+      <div className="grid gap-4 mb-4 p-4">
         {Object.entries(colorValues).map(([key, value]) => (
-          <div key={key} className="grid grid-cols-2 items-center">
-            <span className="text-sm font-medium text-left">{key}</span>
+          <div key={key} className="grid grid-cols-[1fr,150px,80px] gap-4 items-center">
+            <span className="text-sm font-medium">{formatColorName(key)}</span>
             <input
               type="text"
               value={value as string}
               onChange={(e) => handleColorChange(key, e.target.value)}
               className="p-2 border rounded-md text-right"
             />
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={value as string}
+                onChange={(e) => handleColorChange(key, e.target.value)}
+                className="w-8 h-8 border cursor-pointer"
+              />
+              <div
+                className="w-8 h-8 border"
+                style={{ backgroundColor: value as string }}
+              />
+            </div>
           </div>
         ))}
       </div>

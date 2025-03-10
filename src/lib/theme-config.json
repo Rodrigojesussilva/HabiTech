@@ -19,14 +19,24 @@
     "sidebarPrimary": "hsl(0 100% 30%)",
     "sidebarPrimaryForeground": "hsl(0 0% 98%)"
   },
-  "red2Theme": {
-    "primary": "hsl(0 100% 30%)",
-    "primaryForeground": "hsl(60 9.1% 100.8%)",
-    "secondary": "hsl(60 4.8% 90.9%)",
-    "secondaryForeground": "hsl(24 9.8% 10%)",
-    "sidebar": "hsl(0 15% 95%)",
-    "sidebarForeground": "hsl(240 5.3% 26.1%)",
-    "sidebarPrimary": "hsl(0 100% 30%)",
-    "sidebarPrimaryForeground": "hsl(0 0% 98%)"
+  "blueTheme": {
+    "primary": "#02005c",
+    "primaryForeground": "#853d3d",
+    "secondary": "#d6c7ff",
+    "secondaryForeground": "#9d0c0c",
+    "sidebar": "#c7b8ff",
+    "sidebarForeground": "#9a1818",
+    "sidebarPrimary": "#9e0a0a",
+    "sidebarPrimaryForeground": "#4e0e0e"
+  },
+  "greenTheme": {
+    "primary": "#205c00",
+    "primaryForeground": "#701010",
+    "secondary": "#f2fff0",
+    "secondaryForeground": "#9d0c0c",
+    "sidebar": "#c3edc0",
+    "sidebarForeground": "#912b2b",
+    "sidebarPrimary": "#9e0a0a",
+    "sidebarPrimaryForeground": "#4e0e0e"
   }
 }
