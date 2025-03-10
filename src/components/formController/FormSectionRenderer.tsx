@@ -115,7 +115,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             return (
                 <Select
                     onValueChange={formField.onChange}
-                    defaultValue={formField.value}
+                    value={formField.value || ""}
                     disabled={field.readonly}
                 >
                     <SelectTrigger>

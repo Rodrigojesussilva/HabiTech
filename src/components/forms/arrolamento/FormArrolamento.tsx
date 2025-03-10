@@ -21,6 +21,7 @@ import { useFormMetadata } from '@/hooks/useFormMetadata';
 import IdentRespForm from "./formSections/IdentResp.form"
 import InfoContatoForm from "./formSections/InfoContato.form"
 import SituUsoUniForm from "./formSections/SituUsoUni.form"
+import DocsForm from "./formSections/Docs.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 
 // Import the types from formUtils with a clear alias
@@ -28,11 +29,13 @@ import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
 import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
 import {infoContatoSchema} from "@/components/forms/arrolamento/definitions/infoContato.definition";
 import { situUsoUniSchema } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
+import { docsSchema } from "@/components/forms/arrolamento/definitions/docs.definition";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
 	...infoContatoSchema.shape,
 	...situUsoUniSchema.shape,
+	...docsSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -113,8 +116,13 @@ const FormArrolamento = ({
 		control: form.control,
 		name: "numberFamilies",
 	});
-
-	const defaultFamilyEntry = getDefaultValuesFromSchema(identRespSchema);
+	// Merge all schemas to create a complete default family entry
+	const defaultFamilyEntry = {
+		...getDefaultValuesFromSchema(identRespSchema),
+		...getDefaultValuesFromSchema(docsSchema),
+		...getDefaultValuesFromSchema(infoContatoSchema),
+		...getDefaultValuesFromSchema(situUsoUniSchema),
+	};
 
 	useEffect(() => {
 		const currentLength = familyFields.length;
@@ -315,6 +323,7 @@ const FormArrolamento = ({
 							<IdentRespForm sectionIndex={0} familyIndex={index} />
 							<InfoContatoForm sectionIndex={1} familyIndex={index} />
 							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
+							<DocsForm sectionIndex={3} familyIndex={index} />
 						</div>
 					))}
 				</form>
