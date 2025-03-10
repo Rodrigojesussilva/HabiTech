@@ -18,5 +18,15 @@
     "sidebarForeground": "hsl(240 5.3% 26.1%)",
     "sidebarPrimary": "hsl(0 100% 30%)",
     "sidebarPrimaryForeground": "hsl(0 0% 98%)"
+  },
+  "red2Theme": {
+    "primary": "hsl(0 100% 30%)",
+    "primaryForeground": "hsl(60 9.1% 100.8%)",
+    "secondary": "hsl(60 4.8% 90.9%)",
+    "secondaryForeground": "hsl(24 9.8% 10%)",
+    "sidebar": "hsl(0 15% 95%)",
+    "sidebarForeground": "hsl(240 5.3% 26.1%)",
+    "sidebarPrimary": "hsl(0 100% 30%)",
+    "sidebarPrimaryForeground": "hsl(0 0% 98%)"
   }
 }

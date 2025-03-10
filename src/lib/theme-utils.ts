@@ -1,6 +1,7 @@
 import themeConfig from './theme-config.json';
 
-type ThemeType = 'lightTheme' | 'redTheme';
+// Change from hard-coded to dynamically generated from theme config
+type ThemeType = keyof typeof themeConfig;
 
 interface ThemeColors {
   primary: string;
@@ -14,40 +15,38 @@ interface ThemeColors {
 }
 
 /**
- * Applies theme colors from the configuration to CSS variables
- * @param theme The theme to apply ('lightTheme' or 'darkTheme')
+ * Applies theme colors from the configuration to CSS variables.
+ * @param theme The theme to apply.
  */
 export const applyThemeColors = (theme: ThemeType = 'lightTheme'): void => {
   const colors = themeConfig[theme] as ThemeColors;
   const root = document.documentElement;
 
-  // Apply main colors
-  root.style.setProperty('--primary', colors.primary);
-  root.style.setProperty('--primary-foreground', colors.primaryForeground);
-  root.style.setProperty('--secondary', colors.secondary);
-  root.style.setProperty('--secondary-foreground', colors.secondaryForeground);
+  if (!colors) {
+    console.warn(`Theme "${theme}" not found. Falling back to default theme.`);
+    return;
+  }
 
-  // Apply sidebar colors
-  root.style.setProperty('--sidebar', colors.sidebar);
-  root.style.setProperty('--sidebar-foreground', colors.sidebarForeground);
-  root.style.setProperty('--sidebar-primary', colors.sidebarPrimary);
-  root.style.setProperty('--sidebar-primary-foreground', colors.sidebarPrimaryForeground);
+  // Apply CSS variables
+  Object.entries(colors).forEach(([key, value]) => {
+    root.style.setProperty(`--${key}`, value as string);
+  });
 };
 
 /**
- * Updates specific theme color in the configuration
- * @param theme The theme to update ('lightTheme' or 'darkTheme')
- * @param colorKey The color key to update
- * @param colorValue The new color value
+ * Updates a specific color in a theme.
+ * @param theme The theme to update.
+ * @param colorKey The color key to update.
+ * @param colorValue The new color value.
  */
 export const updateThemeColor = (
   theme: ThemeType,
   colorKey: keyof ThemeColors,
   colorValue: string
 ): void => {
-  if (themeConfig[theme] && colorKey in themeConfig[theme]) {
-    // This is just for runtime updates - would need to be persisted separately
-    (themeConfig[theme] as ThemeColors)[colorKey] = colorValue;
+  if (themeConfig[theme]) {
+    // Update the color in the current document
+    document.documentElement.style.setProperty(`--${colorKey}`, colorValue);
     
     // Apply the updated theme
     applyThemeColors(theme);
@@ -56,18 +55,17 @@ export const updateThemeColor = (
 
 /**
  * Initialize theme from config
- * Automatically detects dark mode preference
+ * Automatically selects the appropriate theme or uses default
  */
 export const initializeTheme = (): void => {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: red)').matches;
-  const theme: ThemeType = prefersDark ? 'redTheme' : 'lightTheme';
+  // Get available themes and use a default
+  const availableThemes = Object.keys(themeConfig) as ThemeType[];
+  const defaultTheme: ThemeType = 'lightTheme';
   
-  applyThemeColors(theme);
+  // Apply the theme
+  applyThemeColors(defaultTheme);
   
-  // Add dark class to body if using dark theme
-  if (theme === 'redTheme') {
-    document.documentElement.classList.add('red');
-  } else {
-    document.documentElement.classList.remove('red');
-  }
+  // Remove all theme classes then add the active one
+  document.documentElement.classList.remove(...availableThemes);
+  document.documentElement.classList.add(defaultTheme);
 }; 

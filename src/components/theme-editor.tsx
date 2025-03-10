@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateThemeColor, applyThemeColors } from '@/lib/theme-utils';
 import themeConfig from '@/lib/theme-config.json';
 import { Button } from '@/components/ui/button';
 
 const ThemeEditor: React.FC = () => {
-  const [selectedTheme, setSelectedTheme] = useState<'lightTheme' | 'redTheme'>('lightTheme');
+  // Get theme names dynamically from the config
+  const themeNames = Object.keys(themeConfig) as Array<keyof typeof themeConfig>;
+  const [selectedTheme, setSelectedTheme] = useState<keyof typeof themeConfig>(
+    'lightTheme' // Default theme
+  );
   const [colorValues, setColorValues] = useState(themeConfig[selectedTheme]);
 
+  // Apply theme when component mounts
+  useEffect(() => {
+    applyThemeColors(selectedTheme);
+  }, []);
+
   const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const theme = e.target.value as 'lightTheme' | 'redTheme';
+    const theme = e.target.value as keyof typeof themeConfig;
     setSelectedTheme(theme);
     setColorValues(themeConfig[theme]);
     applyThemeColors(theme);
 
-    // Add or remove dark class based on theme
-    if (theme === 'redTheme') {
-      document.documentElement.classList.add('red');
-    } else {
-      document.documentElement.classList.remove('red');
-    }
+    // Update document class for styling
+    document.documentElement.classList.remove(...themeNames);
+    document.documentElement.classList.add(theme);
   };
 
   const handleColorChange = (key: string, value: string) => {
@@ -27,18 +33,14 @@ const ThemeEditor: React.FC = () => {
       [key]: value
     });
 
-    updateThemeColor(
-      selectedTheme,
-      key as any,
-      value
-    );
+    updateThemeColor(selectedTheme, key as keyof typeof colorValues, value);
   };
 
   return (
     <div className="p-8 border rounded-lg shadow-sm bg-background">
       <h2 className="text-xl font-bold mb-4">Theme Editor</h2>
 
-      {/* Sample UI elements to preview theme changes */}
+      {/* Preview UI elements */}
       <div className="p-4 border rounded-lg mb-4">
         <h3 className="text-lg font-medium mb-2">Preview</h3>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -58,8 +60,15 @@ const ThemeEditor: React.FC = () => {
             onChange={handleThemeChange}
             className="mt-1 block w-full p-2 border rounded-md"
           >
-            <option value="lightTheme">Light Theme</option>
-            <option value="redTheme">Red Theme</option>
+            {/* Dynamically generate options from theme config */}
+            {themeNames.map(themeName => (
+              <option key={themeName} value={themeName}>
+                {/* Format theme name for display (e.g., "lightTheme" -> "Light Theme") */}
+                {themeName.replace(/([A-Z])/g, ' $1')
+                  .replace(/^./, str => str.toUpperCase())
+                  .replace(/Theme$/, ' Theme')}
+              </option>
+            ))}
           </select>
         </label>
       </div>
@@ -77,8 +86,6 @@ const ThemeEditor: React.FC = () => {
           </div>
         ))}
       </div>
-
-
     </div>
   );
 };
