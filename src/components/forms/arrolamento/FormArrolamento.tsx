@@ -26,6 +26,7 @@ import IdentEtiRacGeneForm from "./formSections/IdentEticRacGene.form"
 import NupcidadeForm from "./formSections/Nupcidade.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 import PessoaDefForm from "./formSections/PessoaDef.form"
+import InfoFamiliaForm from "./formSections/InfoFamilia.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
@@ -36,6 +37,7 @@ import { docsSchema } from "@/components/forms/arrolamento/definitions/docs.defi
 import { identEticRacGeneSchema } from "@/components/forms/arrolamento/definitions/identEticRacGene.definition";
 import { nupcidadeSchema } from "@/components/forms/arrolamento/definitions/nupcidade.definition";
 import { pessoaDefSchema } from "@/components/forms/arrolamento/definitions/pessoaDef.definition";
+import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -44,7 +46,8 @@ const familySchema = z.object({
 	...docsSchema.shape,
 	...identEticRacGeneSchema.shape,
 	...nupcidadeSchema.shape,
-	...pessoaDefSchema.shape,
+	...pessoaDefSchema.shape,	
+	...infoFamiliaSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -134,7 +137,8 @@ const FormArrolamento = ({
 		...getDefaultValuesFromSchema(identEticRacGeneSchema),
 		...getDefaultValuesFromSchema(nupcidadeSchema),
 		...getDefaultValuesFromSchema(pessoaDefSchema),
-	};
+		...getDefaultValuesFromSchema(infoFamiliaSchema),
+	} as const;
 
 	useEffect(() => {
 		const currentLength = familyFields.length;
@@ -142,9 +146,7 @@ const FormArrolamento = ({
 
 		if (targetLength > currentLength) {
 			// Add new entries
-			const newEntries = Array(targetLength - currentLength).fill(0).map(() => ({
-				...defaultFamilyEntry
-			}));
+			const newEntries = Array(targetLength - currentLength).fill(defaultFamilyEntry);
 			newEntries.forEach(entry => append(entry));
 		} else if (targetLength < currentLength) {
 			// Remove excess entries
@@ -339,6 +341,7 @@ const FormArrolamento = ({
 							<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
 							<NupcidadeForm sectionIndex={5} familyIndex={index} />
 							<PessoaDefForm sectionIndex={6} familyIndex={index} />
+							<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
 				</form>
