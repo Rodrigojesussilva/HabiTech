@@ -38,7 +38,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
                             key={section.id}
                             section={section}
                             formControl={form.control}
-                            getFieldNumber={(sectionIndex, fieldIndex) => `${sectionIndex + 1}.${fieldIndex + 1}`}
+                            getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
                             sectionIndex={sectionIndex}
                             formValues={formValues}
                             showSectionLabel={false}

@@ -78,7 +78,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                             key={section.id}
                             section={section}
                             formControl={form.control}
-                            getFieldNumber={(sectionIndex, fieldIndex) => `${sectionIndex + 1}.${fieldIndex + 1}`}
+                            getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 2}.${fieldIndex + 1}`}
                             sectionIndex={sectionIndex}
                             formValues={formValues}
                             showSectionLabel={false}

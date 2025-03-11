@@ -77,7 +77,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 							key={section.id}
 							section={section}
 							formControl={form.control}
-							getFieldNumber={(sectionIndex, fieldIndex) => `${sectionIndex + 1}.${fieldIndex + 1}`}
+							getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 3}.${fieldIndex + 1}`}
 							sectionIndex={sectionIndex}
 							formValues={formValues}
 							showSectionLabel={false}
