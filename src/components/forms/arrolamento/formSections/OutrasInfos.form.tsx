@@ -16,7 +16,7 @@ interface OutrasInfosFormProps {
 }
 
 const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInfosFormProps) => {
-    const [mostrarOutrasInfos, setMostrarOutrasInfos] = useState(true);
+    const [mostrarOutrasInfos, setMostrarOutrasInfos] = useState(false);
     
     // Get form context from React Hook Form
     const form = useFormContext();
@@ -32,7 +32,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
             <Collapsible open={mostrarOutrasInfos} onOpenChange={setMostrarOutrasInfos}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
-                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`${sectionNumber ? sectionNumber + 1 : 1}. ${formSections[0].title}`}</h4>
+                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

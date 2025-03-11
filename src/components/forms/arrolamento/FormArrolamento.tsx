@@ -32,7 +32,7 @@ import OutrasInfosForm from "./formSections/OutrasInfos.form"
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
 import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
-import {infoContatoSchema} from "@/components/forms/arrolamento/definitions/infoContato.definition";
+import { infoContatoSchema } from "@/components/forms/arrolamento/definitions/infoContato.definition";
 import { situUsoUniSchema } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
 import { docsSchema } from "@/components/forms/arrolamento/definitions/docs.definition";
 import { identEticRacGeneSchema } from "@/components/forms/arrolamento/definitions/identEticRacGene.definition";
@@ -49,7 +49,7 @@ const familySchema = z.object({
 	...docsSchema.shape,
 	...identEticRacGeneSchema.shape,
 	...nupcidadeSchema.shape,
-	...pessoaDefSchema.shape,	
+	...pessoaDefSchema.shape,
 	...infoFamiliaSchema.shape,
 	...outrasInfosSchema.shape,
 });
@@ -336,6 +336,14 @@ const FormArrolamento = ({
 						</DialogContent>
 					</Dialog>
 
+					<div className="flex flex-row gap-2">
+						<h3>Preenchimento:</h3>
+						<p className="text-primary">
+							0%
+						</p>
+					</div>
+
+					<div className="w-full border-t border-gray-300 my-4"></div>
 					{/* Always render the IdentRespForm */}
 					{familyFields.map((field, index) => (
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>

@@ -16,7 +16,7 @@ interface IdentRespFormProps {
 }
 
 const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
-    const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
+    const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
 
     const form = useFormContext();
     // Get form values for conditional logic
@@ -42,7 +42,7 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
-                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`${sectionNumber ? sectionNumber + 1 : 1}. ${formSections[0].title}`}</h4>
+                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>
                     </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

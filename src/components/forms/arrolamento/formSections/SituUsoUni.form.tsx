@@ -78,7 +78,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>
-                            {`${sectionNumber ? sectionNumber + 1 : 3}. Situação e Uso da Unidade`}
+                            {`Seção ${sectionNumber ? sectionNumber + 1 : 3} - Situação e Uso da Unidade`}
                         </h4>
                     </div>
                 </CollapsibleTrigger>
