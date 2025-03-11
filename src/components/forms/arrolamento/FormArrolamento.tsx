@@ -25,6 +25,7 @@ import DocsForm from "./formSections/Docs.form"
 import IdentEtiRacGeneForm from "./formSections/IdentEticRacGene.form"
 import NupcidadeForm from "./formSections/Nupcidade.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
+import PessoaDefForm from "./formSections/PessoaDef.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
@@ -34,6 +35,7 @@ import { situUsoUniSchema } from "@/components/forms/arrolamento/definitions/sit
 import { docsSchema } from "@/components/forms/arrolamento/definitions/docs.definition";
 import { identEticRacGeneSchema } from "@/components/forms/arrolamento/definitions/identEticRacGene.definition";
 import { nupcidadeSchema } from "@/components/forms/arrolamento/definitions/nupcidade.definition";
+import { pessoaDefSchema } from "@/components/forms/arrolamento/definitions/pessoaDef.definition";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -42,6 +44,7 @@ const familySchema = z.object({
 	...docsSchema.shape,
 	...identEticRacGeneSchema.shape,
 	...nupcidadeSchema.shape,
+	...pessoaDefSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -130,6 +133,7 @@ const FormArrolamento = ({
 		...getDefaultValuesFromSchema(situUsoUniSchema),
 		...getDefaultValuesFromSchema(identEticRacGeneSchema),
 		...getDefaultValuesFromSchema(nupcidadeSchema),
+		...getDefaultValuesFromSchema(pessoaDefSchema),
 	};
 
 	useEffect(() => {
@@ -334,6 +338,7 @@ const FormArrolamento = ({
 							<DocsForm sectionIndex={3} familyIndex={index} />
 							<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
 							<NupcidadeForm sectionIndex={5} familyIndex={index} />
+							<PessoaDefForm sectionIndex={6} familyIndex={index} />
 						</div>
 					))}
 				</form>
