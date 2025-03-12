@@ -1,5 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  LogOut,
+  CirclePlus
+} from "lucide-react"
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -39,7 +44,7 @@ export default function Header({ children }: HeaderProps) {
         <div className="flex mx-auto h-12 items-center justify-between px-4">
           {/* Logo */}
           <div className="flex flex-row items-center gap-8">
-            <div className="">
+            <div className="hidden md:block">
               <img
                 src="/psp.png"
                 alt="Image"
@@ -50,51 +55,54 @@ export default function Header({ children }: HeaderProps) {
           </div>
 
           {/* Form Selection Menu */}
-          <div className="relative">
-            <button
-              onClick={toggleMenu}
-              className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-primary"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </div>
-              <span>Novo Formulário</span>
-            </button>
+          <div className="flex flex-row items-center gap-6">
+            <div className="relative">
+              <button
+                onClick={toggleMenu}
+                className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2 cursor-pointer"
+              >
+
+                <CirclePlus className="text-secondary" />
 
 
-            <div
-              className={`absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-20 transition-opacity duration-500 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 visible pointer-events-none'
-                }`}
-            >
-              <div className="py-1">
-                {formOptions.map((form, index) => (
-                  <button
-                    key={index}
-                    onClick={() => navigateToForm(form.path)}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
-                  >
-                    {form.name}
-                  </button>
-                ))}
+                <span className="hidden md:block">Novo Formulário</span>
+              </button>
+
+              <div
+                className={`absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-20 transition-opacity duration-500 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 visible pointer-events-none'
+                  }`}
+              >
+                <div className="py-1">
+                  {formOptions.map((form, index) => (
+                    <button
+                      key={index}
+                      onClick={() => navigateToForm(form.path)}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                    >
+                      {form.name}
+                    </button>
+                  ))}
+                </div>
+
               </div>
 
             </div>
-
+            <Avatar>
+              <AvatarImage src="/avatar1.jpg" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+            <button
+              onClick={() => {
+                localStorage.removeItem('isAuthenticated');
+                window.location.href = '/login';
+              }}
+              className="flex cursor-pointer items-center justify-center p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title="Sair"
+            >
+              <LogOut />
+            </button>
           </div>
+
         </div>
       </header>
 
