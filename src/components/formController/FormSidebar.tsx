@@ -66,16 +66,11 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			}
 		}
 	}
-
-	const getFieldNumber = (sectionIndex: number, fieldIndex: number) => {
-		return null;
-	};
-
 	return (
-		<Card className="hidden lg:block md:block w-1/4 h-4/5 fixed pl-4 pr-4 m-4 overflow-y-auto">
-			<h1 className="text-primary text-lg p-4 mt-6 mb-2 font-bold text-left"> {nomeForm}</h1>
+		<Card className="hidden lg:block md:block w-1/4 h-4/5 fixed px-4 m-4 overflow-y-auto">
+			<h4 className="text-primary text-sm pt-4 pl-2 pb-2  font-bold text-left"> Dados de controle</h4>
 			{metadata && form && (
-				<div className="mb-8 px-4">
+				<div className="mb-2 px-4">
 					<div className="grid grid-cols-2 text-left">
 						{metadata.fields.filter((field) => field.sidebarform).map((field) => (
 							<div
@@ -102,7 +97,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			)}
 			{formDomSections.length > 0 && (
 				<>
-					<div className="w-full border-gray-200 my-4 border-t-2"></div>
+					<div className="w-full border-gray-200 my-2 border-t-2"></div>
 					<div className="flex items-center justify-between px-4 mb-4">
 						<span className="font-medium text-sm">Família:</span>
 						<div className="flex items-center space-x-2">
@@ -130,20 +125,15 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 						</div>
 					</div>
 
-					<div className="flex flex-col w-[95%] space-x-4">
+					<div className="flex flex-col w-[95%] space-x-4 p-0">
 						{formDomSections.map((el: { id: string; label: string }, index: number) => (
 							<Button
 								key={el.id}
-								className={`flex flex-row group ml-4 w-full hover:bg-primary hover:text-primary-foreground text-primary ${activeSection === el.id ? 'bg-primary text-primary-foreground' : 'bg-secondary'} mb-4`}
+								className={`flex flex-row group ml-4 cursor-pointer shadow-none mb-0 mt-0 w-full bg-transparent hover:bg-secondary hover:text-secundary-foreground   ${activeSection === el.id ? 'bg-secondary text-secundary-foreground' : 'text-secundary-foreground'} mb-0`}
 								onClick={() => handleSectionClick(el.id)}
 							>
 								<div className="w-full flex flex-row">
-									{sectIsChecked(el.id) ? (
-										<SquareCheckBig className="h-6 w-6 text-left text-primary group-hover:text-primary-foreground"></SquareCheckBig>
-									)
-										:
-										<Square className="h-6 w-6 text-left text-primary/70 group-hover:text-primary-foreground"></Square>
-									}
+									
 									<span className="text-xs ml-2 text-left truncate">{index + 1}. {el.id} </span>
 								</div>
 

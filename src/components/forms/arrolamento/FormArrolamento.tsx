@@ -3,10 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import type { Ref } from "react";
 import { getDefaultValuesFromSchema } from "@/utils/formUtils";
+
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -91,6 +92,7 @@ const FormArrolamento = ({
 	activeFamilyIndex
 }: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
+
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: defaultValues || {
@@ -121,6 +123,8 @@ const FormArrolamento = ({
 			setMetadata(null);
 		};
 	}, []);
+
+
 
 	const { fields: familyFields, append, remove } = useFieldArray({
 		control: form.control,
@@ -304,7 +308,10 @@ const FormArrolamento = ({
 
 					<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
 
-						<DialogContent className="max-h-[90vh] overflow-y-auto">
+						<DialogContent
+							className="max-h-[90vh] overflow-y-auto "
+						>
+						
 							<DialogHeader>
 								<DialogTitle>Arrolamento</DialogTitle>
 								<DialogDescription>
@@ -333,34 +340,39 @@ const FormArrolamento = ({
 							>
 								Concluir
 							</Button>
-						</DialogContent>
-					</Dialog>
+					
+					</DialogContent>
+				</Dialog>
 
-					<div className="flex flex-row gap-2">
+				<div className="flex flex-row justify-between gap-2">
+					<div className="text-left text-lg font-bold">
+						Arrolamento
+					</div>
+					<div className="text-right flex flex-row gap-2">
 						<h3>Preenchimento:</h3>
 						<p className="text-primary">
 							0%
 						</p>
 					</div>
-
-					<div className="w-full border-t border-gray-300 my-4"></div>
-					{/* Always render the IdentRespForm */}
-					{familyFields.map((field, index) => (
-						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
-							<IdentRespForm sectionIndex={0} familyIndex={index} />
-							<InfoContatoForm sectionIndex={1} familyIndex={index} />
-							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-							<DocsForm sectionIndex={3} familyIndex={index} />
-							<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
-							<NupcidadeForm sectionIndex={5} familyIndex={index} />
-							<PessoaDefForm sectionIndex={6} familyIndex={index} />
-							<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
-							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
-						</div>
-					))}
-				</form>
-			</Form>
-		</div>
+				</div>
+				<div className="w-full border-t border-gray-300 my-4"></div>
+				{/* Always render the IdentRespForm */}
+				{familyFields.map((field, index) => (
+					<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
+						<IdentRespForm sectionIndex={0} familyIndex={index} />
+						<InfoContatoForm sectionIndex={1} familyIndex={index} />
+						<SituUsoUniForm sectionIndex={2} familyIndex={index} />
+						<DocsForm sectionIndex={3} familyIndex={index} />
+						<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
+						<NupcidadeForm sectionIndex={5} familyIndex={index} />
+						<PessoaDefForm sectionIndex={6} familyIndex={index} />
+						<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
+						<OutrasInfosForm sectionIndex={8} familyIndex={index} />
+					</div>
+				))}
+			</form>
+		</Form>
+		</div >
 	)
 };
 

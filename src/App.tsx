@@ -38,7 +38,7 @@ function App() {
 
   return (
     <>
-      <div className="relative flex h-screen flex-col bg-background">
+      <div className="relative flex h-screen flex-col bg-background animate-fadeIn">
         {!isLoginDone && (<Routes>
           <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
           <Route path="/login" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
