@@ -8,6 +8,7 @@ import ThemeEditor from './components/theme-editor'
 import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import { useState, useEffect } from 'react'
+import DemoPage from './components/formDataTables/arrolamento/page'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -38,7 +39,7 @@ function App() {
 
   return (
     <>
-      <div className="relative flex h-screen flex-col bg-background animate-fadeIn">
+      <div className="relative flex h-screen flex-col bg-background">
         {!isLoginDone && (<Routes>
           <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
           <Route path="/login" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/home" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
+                <Route path="/lista-arrolamentos" element={<DemoPage />} />
               </Routes>
             </ContentController>
           </>
