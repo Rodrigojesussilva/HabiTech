@@ -1,7 +1,7 @@
 "use client"
 
 import { type LucideIcon } from "lucide-react"
-
+import { Link } from "react-router-dom"
 
 import {
   SidebarGroup,
@@ -28,15 +28,17 @@ export function NavMain({
   return (
     <SidebarGroup className="-ml-2">
       <SidebarGroupLabel>Formulários</SidebarGroupLabel>
-      <SidebarMenu >
+      <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip={item.title}>
-              <div className="flex bg-secondary aspect-square size-8 text-primary items-center justify-center rounded-lg">
-                {item.icon && <item.icon />}
-              </div>
-              <span className="text-primary">{item.title}</span>
-            </SidebarMenuButton>
+          <SidebarMenuItem key={item.url}>
+            <Link to={item.url} className="w-full">
+              <SidebarMenuButton className="cursor-pointer" tooltip={item.title}>
+                <div className="flex bg-secondary aspect-square size-8 text-primary items-center justify-center rounded-lg">
+                  {item.icon && <item.icon />}
+                </div>
+                <span className="text-primary">{item.title}</span>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>

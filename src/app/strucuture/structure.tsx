@@ -14,7 +14,7 @@ export default function ContentController({ children }: ContentControllerProps) 
   return (
     <SidebarProvider >
       <AppSidebar  />
-      <SidebarInset className="inset-y-12">
+      <SidebarInset className="inset-y-14">
         <SidebarTrigger className="fixed ml-2 z-10" />
         <Separator
           orientation="vertical"

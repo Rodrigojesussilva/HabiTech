@@ -10,6 +10,7 @@ import {
   Map,
   PieChart,
 } from "lucide-react"
+import { Link } from "react-router-dom"
 import { NavMain } from "@/components/navigation/sidebar/NavMain"
 import {
   Sidebar,
@@ -45,8 +46,8 @@ const data = {
     },
     {
       title: "Arrolamento",
-      url: "#",
-      icon: Fingerprint ,
+      url: "/lista-arrolamentos",
+      icon: Fingerprint,
       items: [
         {
           title: "Genesis",
@@ -154,21 +155,23 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} className="border-r bg-sidebar">
-      <SidebarHeader>
-        <div className="flex mt-4">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <Building2 className="size-4" />
+      <Link to={"/home"} className="w-full">
+        <SidebarHeader>
+          <div className="flex mt-4">
+            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <Building2 className="size-4" />
+            </div>
+            <div className="grid flex-1 ml-2 text-left text-sm leading-tight">
+              <span className="truncate font-medium text-primary">{data.teams[0].name}</span>
+              <span className="truncate text-xs text-primary">{data.teams[0].plan}</span>
+            </div>
           </div>
-          <div className="grid flex-1 ml-2 text-left text-sm leading-tight">
-            <span className="truncate font-medium text-primary">{data.teams[0].name}</span>
-            <span className="truncate text-xs text-primary">{data.teams[0].plan}</span>
-          </div>
-        </div>
-      </SidebarHeader>
+        </SidebarHeader>
+      </Link>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      
+
       <SidebarRail />
     </Sidebar>
   )

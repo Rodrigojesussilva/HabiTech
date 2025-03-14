@@ -74,7 +74,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
         // Store authentication state
         localStorage.setItem('isAuthenticated', 'true');
         setIsLoginDone(true);
-        navigate("/lista-arrolamentos");
+        navigate("/home");
       } catch (error) {
         console.error("Error verifying OTP:", error);
         alert("Código OTP inválido");

@@ -8,7 +8,8 @@ import ThemeEditor from './components/theme-editor'
 import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import { useState, useEffect } from 'react'
-import DemoPage from './components/formDataTables/arrolamento/page'
+import DemoPage from './components/formDataTables/arrolamento/list'
+import Home from './app/home'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -51,7 +52,7 @@ function App() {
             <ContentController>
               <Routes>
                 <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
-                <Route path="/home" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
                 <Route path="/lista-arrolamentos" element={<DemoPage />} />

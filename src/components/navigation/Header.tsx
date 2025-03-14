@@ -41,7 +41,7 @@ export default function Header({ children }: HeaderProps) {
   return (
     <>
       <header className="fixed z-12 w-full border-b bg-secondary shadow-sm">
-        <div className="flex mx-auto h-12 items-center justify-between px-4">
+        <div className="flex mx-auto h-14 items-center justify-between px-4">
           {/* Logo */}
           <div className="flex flex-row items-center gap-8">
             <div className="hidden md:block">
