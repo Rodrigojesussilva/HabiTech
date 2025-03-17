@@ -13,7 +13,7 @@ export type FormCondition = {
 export type FormField = {
     name: string;
     label: string;
-    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display';
+    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number';
     required: boolean;
     readonly?: boolean;
     options?: { label: string; value: string }[];
@@ -26,6 +26,7 @@ export type FormField = {
     sidebarform?: boolean;
 	sidebarlabel?: string;
 	showinmodal?: boolean;
+    min?: number;
 };
 
 // Generic form section type

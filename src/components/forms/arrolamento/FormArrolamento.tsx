@@ -104,7 +104,7 @@ const FormArrolamento = ({
 			endTime: "",
 			timeElapsed: "",
 			sealNumber: "",
-			numberFamilies: 0,
+			numberFamilies: 1,
 			firstVisit: "",
 			secondVisit: "",
 			thirdVisit: "",
@@ -265,11 +265,12 @@ const FormArrolamento = ({
 				{
 					name: "numberFamilies",
 					label: "Quantas familias nesse formulário?",
-					type: "text",
+					type: "number",
 					required: true,
 					sidebarform: true,
 					sidebarlabel: "Quantidade de Famílias",
 					showinmodal: true,
+					min: 1,
 				} as FormFieldType,
 
 				{

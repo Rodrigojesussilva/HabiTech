@@ -163,6 +163,23 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             }
             return <div className="p-2 border rounded bg-gray-50">{displayValue}</div>;
 
+        case "number":
+            return (
+                <Input
+                    type="number"
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={field.readonly}
+                    min={field.min}
+                    value={formField.value || field.min || ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value ? parseInt(e.target.value, 10) : field.min || "";
+                        formField.onChange(value);
+                    }}
+                    className="w-32"
+                />
+            );
+
         default:
             return null;
     }
