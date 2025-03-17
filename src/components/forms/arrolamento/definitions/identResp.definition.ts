@@ -138,6 +138,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "checkbox",
                 required: false,
                 disableField: "nomeSocialEntrevistado",
+                dependent: true,
             },
         );
     }

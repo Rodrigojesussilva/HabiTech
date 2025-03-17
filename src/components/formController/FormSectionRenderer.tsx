@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -28,17 +28,6 @@ export const FormSectionRenderer = ({
     showSectionLabel = true,
     familyIndex = null,
 }: FormSectionRendererProps) => {
-
-
-    // Create a mapping of fields to their controlling checkboxes
-    const fieldToCheckboxMap: Record<string, string> = {};
-    section.fields.forEach(field => {
-        if (field.type === 'checkbox' && field.disableField) {
-            fieldToCheckboxMap[field.disableField] = field.name;
-        }
-    });
-    
-
     return (
         <div className="section mb-6">
             {showSectionLabel && section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
@@ -52,23 +41,73 @@ export const FormSectionRenderer = ({
                         return null;
                     }
 
-                    const key = familyIndex !== undefined && familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
-                    const name = familyIndex !== undefined && familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
-                   
+                    const key = familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
+                    const name = familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
+                    
+                    // Check if this field should be disabled by a checkbox
+                    let isDisabled = field.readonly || false;
+                    
+                    // Find if this field is controlled by any checkbox in the section
+                    const controllingCheckbox = section.fields.find(f => 
+                        f.type === 'checkbox' && f.disableField === field.name
+                    );
+                    
+                    if (controllingCheckbox) {
+                        isDisabled = !!formValues[controllingCheckbox.name];
+                    }
+
+                    const isDependent = field.dependent;
+
+                    // Special handling for checkbox fields
+                    if (field.type === 'checkbox') {
+                        return (
+                            <FormField
+                                key={key}
+                                control={formControl}
+                                name={name}
+                                render={({ field: JSONformField }) => (
+                                    <FormItem className={`flex flex-row items-start space-x-3 space-y-0 ${isDependent ? 'ml-6' : ''}`}>
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={JSONformField.value}
+                                                onCheckedChange={JSONformField.onChange}
+                                                disabled={isDisabled}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>
+                                                {!isDependent && getFieldNumber(sectionIndex, fieldIndex) && 
+                                                    <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
+                                                }
+                                                {field.label}
+                                            </FormLabel>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        );
+                    }
+
                     return (
                         <FormField
                             key={key}
                             control={formControl}
-                            name={name} // esse campo é o que faz a relação com o campo do array de familia no form principal
+                            name={name}
                             render={({ field: JSONformField }) => (
                                 <FormItem>
-                                    <FormLabel className="flex items-center">
-                                        <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
+                                    <FormLabel className={`flex items-center ${isDependent ? 'ml-6' : ''}`}>
+                                        <span className="mr-2">{!isDependent ? getFieldNumber(sectionIndex, fieldIndex) : ''}</span>
                                         {field.label}
                                     </FormLabel>
 
                                     <FormControl>
-                                        {renderFormField(field, JSONformField, formValues)}
+                                        <div className={isDependent ? "ml-6" : ""}>
+                                            {renderFormField(field, {
+                                                ...JSONformField,
+                                                disabled: isDisabled
+                                            }, formValues)}
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -92,7 +131,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                         placeholder={field.placeholder}
                         {...formField}
                         value={formField.value ?? ""}
-                        disabled={field.readonly}
+                        disabled={formField.disabled}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             formField.onChange(e.target.value);
                         }}
@@ -100,10 +139,10 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                 );
             }
             return (
-                    <Input
+                <Input
                     {...formField}
                     placeholder={field.placeholder}
-                    disabled={field.readonly}
+                    disabled={formField.disabled}
                     value={formField.value ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formField.onChange(e.target.value);
@@ -116,7 +155,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                 <Select
                     onValueChange={formField.onChange}
                     value={formField.value || ""}
-                    disabled={field.readonly}
+                    disabled={formField.disabled}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Selecione uma opção" />
@@ -132,20 +171,14 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             );
 
         case "checkbox":
-            return (
-                <Checkbox
-                    checked={formField.value}
-                    onCheckedChange={formField.onChange}
-                    disabled={field.readonly}
-                />
-            );
+            return null;
 
         case "radio":
             return (
                 <RadioGroup
                     defaultValue={formField.value}
                     onValueChange={formField.onChange}
-                    disabled={field.readonly}
+                    disabled={formField.disabled}
                 >
                     {field.options?.map((option) => (
                         <div key={option.value} className="flex items-center space-x-2">
@@ -169,7 +202,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     type="number"
                     {...formField}
                     placeholder={field.placeholder}
-                    disabled={field.readonly}
+                    disabled={formField.disabled}
                     min={field.min}
                     value={formField.value || field.min || ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
