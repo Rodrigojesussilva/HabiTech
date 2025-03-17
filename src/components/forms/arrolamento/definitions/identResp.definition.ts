@@ -7,13 +7,9 @@ export const identRespSchema = z.object({
     relacaoResponsavel: z.string().optional(),
     nomeCompletoResp: z.string().optional(),
     nomeCompletoEntrevistado: z.string().optional(),
+    nomeSocialEntrevistado: z.string().optional(),
     dataNascimentoResp: z.string().optional(),
     idadeResp: z.string().optional(),
-    sexoResp: z.string().optional(),
-    cpf: z.string().optional(),
-    celular: z.string().optional(),
-    whatsapp: z.string().optional(),
-    email: z.string().optional(),
     respDocs: z.string().optional(),
     DescrevParentesco: z.string().optional(),
     idLocal: z.string().optional(),
@@ -28,13 +24,9 @@ export const defaultValues: Partial<FormValues> = {
     relacaoResponsavel: "",
     nomeCompletoResp: "",
     nomeCompletoEntrevistado: "",
+    nomeSocialEntrevistado: "",
     dataNascimentoResp: "",
     idadeResp: "",
-    sexoResp: "",
-    cpf: "",
-    celular: "",
-    whatsapp: "",
-    email: "",
     respDocs: "",
     DescrevParentesco: "",
     idLocal: "not",
@@ -79,50 +71,11 @@ export const identRespDefinition: FormConfig = {
                     required: false,
                     displayValue: (data: Partial<FormValues>) => data?.idadeResp || ""
                 },
-                {
-                    name: "sexoResp",
-                    label: "Sexo",
-                    type: "select" as const,
-                    required: false,
-                    options: [
-                        { label: "Feminino", value: "feminino" },
-                        { label: "Masculino", value: "masculino" }
-                    ]
-                },
-                {
-                    name: "cpf",
-                    label: "CPF",
-                    type: "text" as const,
-                    required: false,
-                    mask: "999.999.999-99"
-                },
-                {
-                    name: "celular",
-                    label: "Celular",
-                    type: "text" as const,
-                    required: false,
-                    mask: "(99) 99999-9999"
-                },
-                {
-                    name: "whatsapp",
-                    label: "Este celular tem WhatsApp?",
-                    type: "select" as const,
-                    required: false,
-                    options: [
-                        { label: "Sim", value: "sim" },
-                        { label: "Não", value: "nao" }
-                    ]
-                },
-                {
-                    name: "email",
-                    label: "E-mail",
-                    type: "text" as const,
-                    required: false
-                }
+
             ]
         }
     ]
-}; 
+};
 
 /**
  * Get additional conditional fields based on form values for IdentResp form
@@ -131,7 +84,7 @@ export const identRespDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
+
     // Conditionally add fields based on "responsavel" value
     if (formValues.responsavel === "nao") {
         conditionalFields.push(
@@ -141,15 +94,30 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "select",
                 required: false,
                 options: [
-                    { label: "Cônjuge/Companheiro(a)", value: "conjuge" },
-                    { label: "Filho(a)", value: "filho" },
-                    { label: "Enteado(a)", value: "enteado" },
-                    { label: "Genro/Nora", value: "genro_nora" },
-                    { label: "Pai/Mãe", value: "pai_mae" },
-                    { label: "Sogro(a)", value: "sogro" },
-                    { label: "Neto(a)", value: "neto" },
-                    { label: "Irmão/Irmã", value: "irmao" },
-                    { label: "Outro", value: "outro" }
+                    { label: "Cônjuge/Companheiro(a)", value: "conjuge_campanheiro" },
+                    { label: "Filho", value: "filho" },
+                    { label: "Filha", value: "filha" },
+                    { label: "Enteado", value: "enteado" },
+                    { label: "Enteada", value: "enteada" },
+                    { label: "Irmão", value: "irmao" },
+                    { label: "Irmã", value: "irma" },
+                    { label: "Pai", value: "pai" },
+                    { label: "Mãe", value: "mae" },
+                    { label: "Sogro", value: "sogro" },
+                    { label: "Sogra", value: "sogra" },
+                    { label: "Neto", value: "neto" },
+                    { label: "Neta", value: "neta" },
+                    { label: "Bisneto", value: "bisneto" },
+                    { label: "Bisneta", value: "bisneta" },
+                    { label: "Genro", value: "genro" },
+                    { label: "Nora", value: "nora" },
+                    { label: "Padrasto", value: "padrasto" },
+                    { label: "Madrasta", value: "madrasta" },
+                    { label: "Sobrinho", value: "sobrinho" },
+                    { label: "Sobrinha", value: "sobrinha" },
+                    { label: "Sem Relação de Parentesco", value: "sem_parentesco" },
+                    { label: "Não Sabe Informar", value: "nsi" },
+                    { label: "Outra Relação de Parentesco", value: "outro" }
                 ]
             },
             {
@@ -157,10 +125,23 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Nome Completo da Pessoa Entrevistada",
                 type: "text",
                 required: false
-            }
+            },
+            {
+                name: "nomeSocialEntrevistado",
+                label: "Nome Social Pessoa Entrevistada",
+                type: "text",
+                required: false
+            },
+            {
+                name: "naoSeAplicaEntrevistado",
+                label: "Não se aplica",
+                type: "checkbox",
+                required: false,
+                disableField: "nomeSocialEntrevistado",
+            },
         );
     }
-    
+
     // Conditionally add fields based on "relacaoResponsavel" value
     if (formValues.relacaoResponsavel === "outro") {
         conditionalFields.push({
@@ -173,9 +154,9 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             ]
         });
     }
-    
+
     return conditionalFields;
-} 
+}
 
 /**
  * Get complete form sections with merged static and conditional fields

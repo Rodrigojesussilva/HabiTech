@@ -65,7 +65,8 @@ const formSchema = z.object({
 	timeElapsed: z.string(),
 	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }),
 	numberFamilies: z.number().min(0),
-	firstVisit: z.string(),
+	firstVisitStart: z.string(),
+	firstVisitEnd: z.string(),
 	secondVisit: z.string(),
 	thirdVisit: z.string(),
 	families: z.array(familySchema),
@@ -96,7 +97,7 @@ const FormArrolamento = ({
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: defaultValues || {
-			questionario: "SEHAB-<123>",
+			questionario: "SEHAB-123",
 			seiNumber: "",
 			interviewerName: "",
 			interviewDate: "",
@@ -105,7 +106,14 @@ const FormArrolamento = ({
 			timeElapsed: "",
 			sealNumber: "",
 			numberFamilies: 1,
-			firstVisit: "",
+			firstVisitStart: new Date().toLocaleString('pt-BR', { 
+				day: '2-digit',
+				month: '2-digit',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			}).replace(',', ' -'),
+			firstVisitEnd: "",
 			secondVisit: "",
 			thirdVisit: "",
 			families: [{}],
@@ -191,14 +199,24 @@ const FormArrolamento = ({
 					showinmodal: true,
 				} as FormFieldType,
 				{
-					name: "firstVisit",
-					label: "Data da Primeira visita",
+					name: "firstVisitStart",
+					label: "Hora início - Primeira visita",
 					type: "text",
 					readonly: true,
 					required: true,
 					sidebarform: true,
 					showinmodal: false,
-					sidebarlabel: "Visita: 1"
+					sidebarlabel: "Início"
+				} as FormFieldType,
+				{
+					name: "firstVisitEnd",
+					label: "Hora término - Primeira visita",
+					type: "text",
+					readonly: true,
+					required: true,
+					sidebarform: false,
+					showinmodal: false,
+					sidebarlabel: "Término"
 				} as FormFieldType,
 				{
 					name: "seiNumber",
