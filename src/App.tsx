@@ -10,6 +10,7 @@ import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import { useState, useEffect } from 'react'
 import DemoPage from './components/formDataTables/arrolamento/list'
 import Home from './app/home'
+import { ChartAreaInteractive } from './app/dashboard/dash'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -56,6 +57,7 @@ function App() {
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
                 <Route path="/lista-arrolamentos" element={<DemoPage />} />
+                <Route path="/chart" element={<ChartAreaInteractive />} />
               </Routes>
             </ContentController>
           </>
