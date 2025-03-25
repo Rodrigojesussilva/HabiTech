@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react'
 import DemoPage from './components/formDataTables/arrolamento/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'
+import FormRegFundiaria from './components/forms/regFundiaria/FormRegFundiaria'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/theme-editor" element={<ThemeEditor />} />
                 <Route path="/lista-arrolamentos" element={<DemoPage />} />
                 <Route path="/chart" element={<ChartAreaInteractive />} />
+                <Route path="/create-reg-fundiaria" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
               </Routes>
             </ContentController>
           </>
