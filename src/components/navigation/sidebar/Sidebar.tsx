@@ -46,42 +46,10 @@ const data = {
 
       ],
     },
-    {
-      title: "Selagem",
-      url: "#",
-      icon: Stamp,
-      isActive: true,
-      items: [
-
-      ],
-    },
-    {
-      title: "Arrolamento",
-      url: "/lista-arrolamentos",
-      icon: Fingerprint,
-      items: [],
-    },
-    {
-      title: "Residencial",
-      url: "#",
-      icon: House,
-      items: [],
-    },
-    {
-      title: "Não Residencial",
-      url: "#",
-      icon: Factory,
-      items: [],
-    },
-    {
-      title: "Ocupação Predial",
-      url: "#",
-      icon: Building,
-      items: [],
-    },
+    
     {
       title: "Regularização Fundiária",
-      url: "/create-reg-fundiaria",
+      url: "/lista-reg-fundiaria",
       icon: Handshake,
       items: [],
     },

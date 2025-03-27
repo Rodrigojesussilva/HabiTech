@@ -21,21 +21,16 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 
 // Import the types from formUtils
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
-import { 
-    regFundiariaSchema, 
-    defaultValues as regFundiariaDefaultValues 
+import {
+    regFundiariaSchema,
+    defaultValues as regFundiariaDefaultValues
 } from "./definitions/regFundiaria.definition";
 
 // Define the form schema with Zod - combining metadata and regFundiaria fields
 const formSchema = z.object({
-    processoAdm: z.string(),
+    cadastrador: z.string().min(1, { message: "Nome do cadastrador é obrigatório" }),
     dataVisita: z.string(),
-    tecnicoResponsavel: z.string().min(1, { message: "Nome do técnico responsável é obrigatório" }),
-    enderecoImovel: z.string(),
-    metadataQuadra: z.string(),
-    metadataLote: z.string(),
-    nucleo: z.string(),
-    municipio: z.string(),
+    qtdeDomicilios: z.number(),
     // Include all regFundiaria fields directly at root level
     ...regFundiariaSchema.shape
 });
@@ -62,21 +57,16 @@ const FormRegFundiaria = ({
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: defaultValues || {
-            processoAdm: "",
+            cadastrador: "",
             dataVisita: new Date().toLocaleDateString('pt-BR'),
-            tecnicoResponsavel: "",
-            enderecoImovel: "",
-            metadataQuadra: "",
-            metadataLote: "",
-            nucleo: "",
-            municipio: "",
+            qtdeDomicilios: 1,
             // Add all regFundiaria default values
             ...regFundiariaDefaultValues
         },
     });
 
     const { setForm, setMetadata } = useFormMetadata();
-    
+
     // Share the form and metadata once on mount
     useEffect(() => {
         setForm(form);
@@ -99,88 +89,42 @@ const FormRegFundiaria = ({
     // Define the metadata form structure
     const metaDataSections: FormSection[] = [
         {
-            id: "identificacao",
+            id: "dadosControle",
             title: "",
             fields: [
                 {
-                    name: "processoAdm",
-                    label: "Processo Administrativo",
+                    name: "cadastrador",
+                    label: "Cadastrador",
                     type: "text",
-                    required: true,
-                    sidebarform: true,
-                    sidebarlabel: "Processo",
+                    disabled: true,
+                    required: false,
+                    sidebarform: false,
+                    sidebarlabel: "Cadastrador",
                     showinmodal: true,
                 } as FormFieldType,
+
                 {
                     name: "dataVisita",
                     label: "Data da Visita",
                     type: "text",
                     required: true,
                     sidebarform: true,
-                    sidebarlabel: "Data",
+                    sidebarlabel: "Visita",
                     showinmodal: true,
                 } as FormFieldType,
                 {
-                    name: "tecnicoResponsavel",
-                    label: "Técnico Responsável",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    sidebarlabel: "Técnico",
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "enderecoImovel",
-                    label: "Endereço do Imóvel",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    sidebarlabel: "Endereço",
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "metadataQuadra",
-                    label: "Quadra",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "metadataLote",
-                    label: "Lote",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "nucleo",
-                    label: "Núcleo",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "municipio",
-                    label: "Município",
-                    type: "text",
-                    required: true,
-                    sidebarform: true,
-                    showinmodal: true,
-                } as FormFieldType,
-                {
-                    name: "quantidadeDomicilios",
-                    label: "Quantidade de domicílios no lote",
+                    name: "qtdeDomicilios",
+                    label: "Quantidade de Domicílios",
                     type: "number",
-                    required: false,
+                    required: true,
                     sidebarform: true,
-                    sidebarlabel: "Qtd. Domicílios",
+                    sidebarlabel: "Domicílios",
                     showinmodal: true,
                 } as FormFieldType,
+                
             ]
         },
+
     ];
 
     // Function to generate section and field numbers
@@ -205,6 +149,7 @@ const FormRegFundiaria = ({
                             {/* Render metaDataSections inside the Dialog */}
                             {metaDataSections.map((section, sectionIndex) => (
                                 <div key={section.id} data-secao={section.id} data-label={section.title}>
+                                    <h3 className="font-bold text-lg mt-4 mb-2">{section.title}</h3>
                                     <FormSectionRenderer
                                         section={section}
                                         formControl={form.control}
@@ -238,7 +183,7 @@ const FormRegFundiaria = ({
                         </div>
                     </div>
                     <div className="w-full border-t border-gray-300 my-4"></div>
-                    
+
                     {/* Render RegFundiariaForm directly without family index */}
                     <div data-family-index="0">
                         <RegFundiariaForm sectionIndex={0} familyIndex={null} />

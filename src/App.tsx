@@ -55,9 +55,9 @@ function App() {
               <Routes>
                 <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/home" element={<Home />} />
-                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
-                <Route path="/lista-arrolamentos" element={<DemoPage />} />
+                <Route path="/lista-reg-fundiaria" element={<DemoPage />} />
                 <Route path="/chart" element={<ChartAreaInteractive />} />
                 <Route path="/create-reg-fundiaria" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
               </Routes>
