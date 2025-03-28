@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 export default function Home() {
 	return (
 		<div className="flex flex-col text-left ml-20 mt-10 h-screen">
-			<h1 className="text-2xl  font-bold">Bem-vindo ao sistema de Instrumentos de Pesquisa</h1>
+			<h1 className="text-2xl  font-bold">Bem-vindo ao sistema de Regularização Fundiária</h1>
 			<p className="text-sm text-gray-500 mt-4">
 				Acompanhe e gerencie formulários para ajudar a melhorar as condições em moradias precárias.
 			</p>
@@ -15,7 +14,7 @@ export default function Home() {
 			<div className=" flex flex-col  mt-20 h-auto  ">
 				
 						<div className="flex flex-row gap-8">
-						<Link to="/create-arrolamento">
+						<Link to="/create-reg-fundiaria">
 							<div className="group">
 							
 								<img 
@@ -26,7 +25,7 @@ export default function Home() {
 								<p className="ml-2 cursor-pointer mt-2 text-sm text-gray-500">Iniciar novo formulário</p>
 							</div>
 						</Link>
-						<Link to="/lista-arrolamentos">
+						<Link to="/lista-reg-fundiaria">
 							<div className="group">
 								<img 
 									src="/pesquisa6.jpg" 

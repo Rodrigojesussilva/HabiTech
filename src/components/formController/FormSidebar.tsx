@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { SquareCheckBig, Square } from "lucide-react"
 import { useState, useEffect } from "react";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
@@ -22,11 +21,13 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		label: string
 	}[]>([]);
 	const [activeSection, setActiveSection] = useState<string | null>(null);
-	const [secoesConcluidas, setSecoesConcluidas] = useState<string[]>([]);
+	
 
 	// Quando o formulário for montado, ele vai nos dizer quais seções existem
 	useEffect(() => {
 		const form = formRef?.current || null;
+		console.log(nomeForm);
+		
 		if (form) {
 			const nomeForm = form.getAttribute("nome-form");
 			setNomeForm(nomeForm || "");
@@ -50,9 +51,6 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		}
 	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen]);
 
-	function sectIsChecked(secao: string): boolean {
-		return secoesConcluidas.includes(secao);
-	}
 
 	function handleSectionClick(secaoId: string) {
 		setActiveSection(secaoId);

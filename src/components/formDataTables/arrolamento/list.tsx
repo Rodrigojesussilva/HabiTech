@@ -35,9 +35,9 @@ export default function DemoPage() {
 	return (
 		<>
 			<div className="flex flex-col text-left ml-10 mt-10 gap-4">
-				<h1 className="text-2xl font-bold">Arrolamentos</h1>
+				<h1 className="text-2xl font-bold">Regularização Fundiária</h1>
 				<p className="text-sm text-gray-500">
-					Visualize ou modifique os dados de arrolamento.
+					Visualize ou modifique os dados de Regularização Fundiária.
 				</p>
 			</div>
 			<div className="container mx-auto p-10">

@@ -14,11 +14,7 @@ export default function Header({ children }: HeaderProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/login');
-    window.location.reload(); // This will force a re-render and reset the isLoginDone state
-  };
+  
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,11 +27,8 @@ export default function Header({ children }: HeaderProps) {
 
   // List of available forms
   const formOptions = [
-    { name: "Arrolamento", path: "/create-arrolamento" },
-    { name: "Selagem", path: "/create-selagem" },
-    { name: "Residencial", path: "/create-residencial" },
-    { name: "Não Residencial", path: "/create-nao-residencial" },
-    { name: "Ocupação Predial", path: "/create-ocupacao-predial" },
+    { name: "Regularização Fundiária", path: "/create-reg-fundiaria" },
+    
   ];
 
   return (
@@ -51,7 +44,7 @@ export default function Header({ children }: HeaderProps) {
                 className="h-12 w-28"
               />
             </div>
-            <div className="text-xl font-bold text-primary">Instrumentos de Pesquisa</div>
+            <div className="text-xl font-bold text-primary">Regularização Fundiária</div>
           </div>
 
           {/* Form Selection Menu */}
