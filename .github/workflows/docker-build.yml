@@ -33,6 +33,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: build
     env:
       DEPLOY_DIR: /home/administrator/frontend-instrumentos-pesquisa
 
