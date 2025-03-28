@@ -6,7 +6,6 @@ import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
 
 import { Routes, Route } from "react-router-dom";
-import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import { useState, useEffect } from 'react'
 import DemoPage from './components/formDataTables/arrolamento/list'
 import Home from './app/home'
@@ -53,7 +52,7 @@ function App() {
             <Header />
             <ContentController>
               <Routes>
-                <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
