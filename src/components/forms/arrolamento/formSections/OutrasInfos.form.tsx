@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-    getMergedFormSections,
-    FormValues
+    getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
 
 // Import form section renderer

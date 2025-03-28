@@ -34,7 +34,7 @@ type LoginFormProps = {
 
 export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProps) {
   const [isOTPSent, setIsOTPSent] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
+  //const [userEmail, setUserEmail] = useState("");
 
   const navigate = useNavigate();
 
@@ -56,7 +56,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
         console.log("Sending email verification...");
    
         //await axios.post(`/api/send-otp`, { email: data.email });
-        setUserEmail(data.email);
+        //setUserEmail(data.email);
         form.setValue('otp', ''); // Reset OTP field when switching to OTP view
         setIsOTPSent(true);
       } catch (error) {

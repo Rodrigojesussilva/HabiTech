@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FormConfig, FormField } from "@/utils/formUtils";
+import { FormConfig } from "@/utils/formUtils";
 
 // Form validation schema
 export const regFundiariaSchema = z.object({
@@ -1973,5 +1973,6 @@ export const regFundiariaDefinition: FormConfig = {
 export function getMergedFormSections(formValues: Partial<FormValues>) {
 	// For now, we're just returning the base form structure
 	// In the future, you can add conditional fields here based on form values
+	console.log(formValues);
 	return regFundiariaDefinition.sections;
 } 

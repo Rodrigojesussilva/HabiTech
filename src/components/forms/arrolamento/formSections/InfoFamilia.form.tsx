@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-    getMergedFormSections,
-    FormValues
+    getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 import {
     formatCurrency,
@@ -13,8 +12,7 @@ import {
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
-// Optional: Import country data if used in the component
-import { countries } from "countries-list";
+
 
 interface InfoFamiliaFormProps {
     id?: string;
@@ -24,7 +22,7 @@ interface InfoFamiliaFormProps {
 
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
-    const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+    //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
 
     const form = useFormContext();
     // Get form values for conditional logic
@@ -52,7 +50,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     }, [formValues.rendaFamiliar, familyIndex, form]);
 
     // Handle nationality selection changes
-    const handleNationalityChange = (selectedOptions: string[]) => {
+    /*const handleNationalityChange = (selectedOptions: string[]) => {
+        console.log(selectedCountries);
         setSelectedCountries(selectedOptions);
         form.setValue(`families[${familyIndex}].nacionalidadesSelecionadas`, selectedOptions);
         
@@ -75,9 +74,10 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         });
         
         form.setValue(`families[${familyIndex}].numerosPorPais`, updatedCounts);
-    };
+    };*/
 
     // Handle change in country-specific person count
+    
     const handleCountryCountChange = (country: string, count: number) => {
         const currentCounts = formValues.numerosPorPais || {};
         form.setValue(`families[${familyIndex}].numerosPorPais`, {
@@ -85,6 +85,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             [country]: count
         });
     };
+    console.log(handleCountryCountChange);
 
     return (
         <div className="text-left">

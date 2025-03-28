@@ -46,10 +46,7 @@ export const updateThemeColor = (
 ): void => {
   if (themeConfig[theme]) {
     // Create a temporary modified theme with the updated color
-    const updatedTheme = {
-      ...themeConfig[theme],
-      [colorKey]: colorValue
-    };
+    
 
     // Directly update the CSS variable
     document.documentElement.style.setProperty(`--${colorKey}`, colorValue);

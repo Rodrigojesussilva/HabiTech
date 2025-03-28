@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell, ResponsiveContainer, Legend } from "recharts"
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell,  Legend } from "recharts"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Card,
@@ -414,7 +414,7 @@ export function ChartAreaInteractive() {
                   nameKey="name"
                   label={(entry) => `${entry.name}: ${entry.value}%`}
                 >
-                  {vulnerabilityData.map((entry, index) => (
+                  {vulnerabilityData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

@@ -1,10 +1,5 @@
 import * as React from "react"
 import {
-  Fingerprint,
-  Stamp,
-  House,
-  Factory,
-  Building,
   Frame,
   Building2,
   Map,

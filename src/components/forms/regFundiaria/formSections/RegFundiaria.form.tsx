@@ -16,7 +16,7 @@ interface RegFundiariaFormProps {
 
 const RegFundiariaForm = ({ sectionIndex: sectionNumber }: RegFundiariaFormProps) => {
     const [mostrarSecao, setMostrarSecao] = useState(true);
-
+    console.log(sectionNumber);
     const form = useFormContext();
     // Get form values for conditional logic - now directly from the root level
     const formValues = form.watch() || {};
