@@ -1,0 +1,12 @@
+services:
+  frontend:
+    image: ghcr.io/angerona-sehab/frontend-instrumentos-pesquisa:latest
+    container_name: frontend-instrumentos-pesquisa
+    restart: always
+    ports:
+      - "127.0.0.1:8082:80"
+    networks:
+      - apps
+
+networks:
+  apps:
