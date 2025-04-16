@@ -1,50 +1,91 @@
-# React + TypeScript + Vite
+#  Sistema de Instrumentos de Pesquisa - SEHAB
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Projeto frontend para o sistema de instrumentos de pesquisa da **Secretaria de Habitação da Cidade de São Paulo**, desenvolvido com **React + TypeScript + Vite**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+##  Tecnologias Utilizadas
 
-## Expanding the ESLint configuration
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [ShadCN UI](https://ui.shadcn.dev/)
+- [React Hook Form](https://react-hook-form.com/)
+- [Zod](https://zod.dev/)
+- [Cleave.js](https://nosir.github.io/cleave.js/) — para máscaras de input
+- [Lucide Icons](https://lucide.dev/icons/) — para ícones
+- [Framer Motion](https://www.framer.com/motion/) — para animações
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+---
 
-- Configure the top-level `parserOptions` property like this:
+##  Instalação
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+# Clonar o repositório
+git clone https://github.com/Angerona-Sehab/frontend-instrumentos-pesquisa.git
+
+# Entrar na pasta
+cd frontend-instrumentos-pesquisa
+
+# Instalar dependências
+npm install
+
+# Rodar o projeto localmente
+npm run dev
+```
+New-Item -Path . -Name "columns.tsx" -ItemType "File"
+New-Item -Path . -Name "data-table.tsx" -ItemType "File"
+New-Item -Path . -Name "list.tsx" -ItemType "File"
+
+
+---
+
+##  Branches principais
+
+- `main`: versão estável do projeto
+- `feature/dashboard`: implementação do painel administrativo e estrutura de formulários
+- `feature/formulario-selagem`: implementação do formulário específico de Selagem
+
+---
+
+##  Formulário de Selagem – Implementação
+
+###  Branch de Desenvolvimento
+> Todas as alterações relacionadas ao formulário de **Selagem** devem ser feitas na branch:
+```
+feature/formulario-selagem
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Essa branch foi criada a partir da `feature/dashboard` e será usada exclusivamente para estruturar, ajustar e implementar os campos, regras de negócio, permissões e validações do formulário **Selagem**, conforme as definições da equipe técnica.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+###  Tarefas Incluídas
+- Criação da estrutura completa do formulário.
+- Reorganização dos campos em única coluna com numeração sequencial (ex: 1.1, 1.2...).
+- Aplicação de máscaras e validações (telefone, CPF, NIS).
+- Implementação de regras de exibição condicional (ex: Terreno cercado, Uso Misto).
+- Controle de permissões por tipo de usuário (Pesquisador, Técnico, Supervisor, Coordenador).
+- Implementação do sistema de status: Novo, Em andamento, Finalizado, Validado, Enviado.
+- Upload de anexos com renomeação e visualização.
+- Geração automática do número SEHAB no padrão `SEHAB-/2025`.
+- Preenchimento automático de campos: nome do entrevistador, subprefeitura, data/hora.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+###  Como contribuir
+
+```bash
+# Certifique-se de estar na branch correta
+git checkout feature/formulario-selagem
+
+# Após fazer alterações:
+git add .
+git commit -m "feat(selagem): [descrição do que foi feito]"
+git push origin feature/formulario-selagem
 ```
+
+Depois de concluir um conjunto de funcionalidades, **crie um Pull Request (PR)** para a branch `feature/dashboard`.
+
+---
+
+## Licença
+
+Este projeto é de uso interno da Secretaria de Habitação e não possui licença pública de redistribuição.
