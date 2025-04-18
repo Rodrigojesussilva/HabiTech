@@ -37,7 +37,7 @@ const data = {
   navMain: [
     {
       title: "Selagem",
-      url: "#",
+      url: "/lista-selagens",
       icon: Stamp,
       isActive: true,
       items: [

@@ -7,8 +7,10 @@ import ThemeEditor from './components/theme-editor'
 
 import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
+import FormSelagem from './components/forms/selagem/FormSelagem'
 import { useState, useEffect } from 'react'
 import DemoPage from './components/formDataTables/arrolamento/list'
+import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'
 
@@ -55,8 +57,10 @@ function App() {
                 <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
                 <Route path="/lista-arrolamentos" element={<DemoPage />} />
+                <Route path="/lista-selagens" element={<DemoPageS />} />
                 <Route path="/chart" element={<ChartAreaInteractive />} />
               </Routes>
             </ContentController>
