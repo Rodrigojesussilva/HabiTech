@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import Cleave from "cleave.js"; // <-- versão pura do Cleave.js
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/arrolamento/definitions/infoContato.definition";
-import { formatarTelefone } from "@/components/forms/arrolamento/helpers/infoContato.helper";
-
-// Import your FormSectionRenderer
+} from "@/components/forms/selagem/definitions/infoContato.definition";
+import { formatarTelefone } from "@/components/forms/selagem/helpers/infoContato.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 interface InfoContatoFormProps {
@@ -17,12 +16,10 @@ interface InfoContatoFormProps {
 
 const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
     const [mostrarContato, setMostrarContato] = useState(false);
-
     const form = useFormContext();
-    // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
-    
-    // Initialize telefones array if it doesn't exist
+
+    // Inicializa o array de telefones, se não existir
     useEffect(() => {
         const currentTelefones = form.getValues(`families[${familyIndex}].telefones`);
         if (!currentTelefones || !Array.isArray(currentTelefones) || currentTelefones.length === 0) {
@@ -30,19 +27,18 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         }
     }, []);
 
-    // Format telefone fields when they change
+    // Formata os telefones existentes com helper
     useEffect(() => {
-        // Format all possible phone fields
         const phoneFields = [
-            'telefone1',
-            'telefone2',
-            'telefone3',
-            'telefoneResidencial',
-            'telefoneRecado',
-            'telefoneComercial'
+            "telefone1",
+            "telefone2",
+            "telefone3",
+            "telefoneResidencial",
+            "telefoneRecado",
+            "telefoneComercial"
         ];
 
-        phoneFields.forEach(field => {
+        phoneFields.forEach((field) => {
             if (formValues[field]) {
                 const formatted = formatarTelefone(formValues[field]);
                 if (formatted !== formValues[field]) {
@@ -59,7 +55,37 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         formValues.telefoneComercial
     ]);
 
-    // Get merged form sections with conditional fields included
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            const phoneFields = [
+                "telefone1",
+                "telefone2",
+                "telefone3",
+                "telefoneResidencial",
+                "telefoneRecado",
+                "telefoneComercial"
+            ];
+    
+            const instances: Cleave[] = [];
+    
+            phoneFields.forEach((field) => {
+                const selector = `input[name="families[${familyIndex}].${field}"]`;
+                const input = document.querySelector(selector) as HTMLInputElement | null;
+    
+                if (input && !input.dataset.cleaveAttached) {
+                    const cleave = new Cleave(input, {
+                        phone: true,
+                        phoneRegionCode: "BR",
+                    });
+                    input.dataset.cleaveAttached = "true";
+                    instances.push(cleave);
+                }
+            });
+        }, 100); // Aguarda 100ms para garantir que os inputs renderizaram
+    
+        return () => clearTimeout(timeout);
+    }, [mostrarContato, familyIndex]);
+
     const formSections = getMergedFormSections(formValues);
 
     return (
@@ -91,4 +117,4 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     );
 };
 
-export default InfoContatoForm; 
+export default InfoContatoForm;

@@ -3,12 +3,12 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
 	getMergedFormSections,
-} from "@/components/forms/arrolamento/definitions/docs.definition";
+} from "@/components/forms/selagem/definitions/docs.definition";
 import {
 	getCountryOptions,
 	getStateOptions,
 	getCityOptions,
-} from "@/components/forms/arrolamento/helpers/docs.helper";
+} from "@/components/forms/selagem/helpers/docs.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 

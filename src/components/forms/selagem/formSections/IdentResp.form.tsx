@@ -3,8 +3,8 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/arrolamento/definitions/identResp.definition";
-import {  calcularIdade } from "@/components/forms/arrolamento/helpers/identResp.helper";
+} from "@/components/forms/selagem/definitions/identResp.definition";
+import {  calcularIdade, formatDate } from "@/components/forms/selagem/helpers/identResp.helper";
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -31,7 +31,25 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
             form.setValue(`families[${familyIndex}].idadeResp`, idade);
         }
     }, [formValues.dataNascimentoResp]);
+   
 
+    useEffect(() => {
+      const fieldToFormat = 'dataNascimentoResp';
+  
+      if (formValues[fieldToFormat]) {
+          // Formata o valor do campo dataNascimentoResp
+          const formattedDate = formatDate(formValues[fieldToFormat]);
+  
+          // Se o valor formatado for diferente do valor original no form, atualize
+          if (formattedDate !== formValues[fieldToFormat]) {
+              form.setValue(`families[${familyIndex}].${fieldToFormat}`, formattedDate);
+          }
+      }
+  }, [
+      formValues.dataNascimentoResp,
+      familyIndex,
+      form
+  ]);
     // Get merged form sections with conditional fields included
    
 

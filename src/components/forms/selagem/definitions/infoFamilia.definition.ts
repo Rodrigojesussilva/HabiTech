@@ -2,18 +2,19 @@ import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
+// Form validation schema
 export const infoFamiliaSchema = z.object({
     rendaFamiliar: z.string().optional(),
-    criancas0a3: z.number().default(0),
-    criancas4a6: z.number().default(0),
-    criancas7a11: z.number().default(0),
-    adolescentes12a18: z.number().default(0),
-    adultos19a59: z.number().default(0),
-    idosos60: z.number().default(0),
-    pessoasComDeficiencia: z.number().default(0),
-    pessoasComDoencasCronicas: z.number().default(0),
-    gestantes: z.number().default(0),
-    pessoasImigrantes: z.number().default(0),
+    criancas0a3: z.string().default("0"),  // Alterado de z.number() para z.string()
+    criancas4a6: z.string().default("0"),  // Alterado de z.number() para z.string()
+    criancas7a11: z.string().default("0"), // Alterado de z.number() para z.string()
+    adolescentes12a18: z.string().default("0"), // Alterado de z.number() para z.string()
+    adultos19a59: z.string().default("0"), // Alterado de z.number() para z.string()
+    idosos60: z.string().default("0"), // Alterado de z.number() para z.string()
+    pessoasComDeficiencia: z.string().default("0"), // Alterado de z.number() para z.string()
+    pessoasComDoencasCronicas: z.string().default("0"), // Alterado de z.number() para z.string()
+    gestantes: z.string().default("0"), // Alterado de z.number() para z.string()
+    pessoasImigrantes: z.string().default("0"), // Alterado de z.number() para z.string()
     nacionalidadesSelecionadas: z.array(z.string()).default([]),
     numerosPorPais: z.record(z.string(), z.number()).default({}),
     idLocal: z.string().optional(),
@@ -23,18 +24,19 @@ export const infoFamiliaSchema = z.object({
 export type FormValues = z.infer<typeof infoFamiliaSchema>;
 
 // Default values
+// Default values
 export const defaultValues: Partial<FormValues> = {
     rendaFamiliar: "",
-    criancas0a3: 0,
-    criancas4a6: 0,
-    criancas7a11: 0,
-    adolescentes12a18: 0,
-    adultos19a59: 0,
-    idosos60: 0,
-    pessoasComDeficiencia: 0,
-    pessoasComDoencasCronicas: 0,
-    gestantes: 0,
-    pessoasImigrantes: 0,
+    criancas0a3: "0",  // Alterado para string
+    criancas4a6: "0",  // Alterado para string
+    criancas7a11: "0", // Alterado para string
+    adolescentes12a18: "0", // Alterado para string
+    adultos19a59: "0", // Alterado para string
+    idosos60: "0", // Alterado para string
+    pessoasComDeficiencia: "0", // Alterado para string
+    pessoasComDoencasCronicas: "0", // Alterado para string
+    gestantes: "0", // Alterado para string
+    pessoasImigrantes: "0", // Alterado para string
     nacionalidadesSelecionadas: [],
     numerosPorPais: {},
     idLocal: "not",
@@ -55,12 +57,12 @@ export const infoFamiliaDefinition: FormConfig = {
                     required: false,
                     displayValue: (data: Partial<FormValues>) => {
                         const total = (
-                            (data.criancas0a3 || 0) +
-                            (data.criancas4a6 || 0) +
-                            (data.criancas7a11 || 0) +
-                            (data.adolescentes12a18 || 0) +
-                            (data.adultos19a59 || 0) +
-                            (data.idosos60 || 0)
+                            (Number(data.criancas0a3) || 0) +
+                            (Number(data.criancas4a6) || 0) +
+                            (Number(data.criancas7a11) || 0) +
+                            (Number(data.adolescentes12a18) || 0) +
+                            (Number(data.adultos19a59) || 0) +
+                            (Number(data.idosos60) || 0)
                         ).toString();
                         return total;
                     }

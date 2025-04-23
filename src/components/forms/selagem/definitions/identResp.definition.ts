@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
+
 // Form validation schema
 export const identRespSchema = z.object({
     responsavel: z.string().optional(),
@@ -71,7 +72,6 @@ export const identRespDefinition: FormConfig = {
                     required: false,
                     displayValue: (data: Partial<FormValues>) => data?.idadeResp || ""
                 },
-
             ]
         }
     ]
@@ -179,4 +179,6 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}
+
+

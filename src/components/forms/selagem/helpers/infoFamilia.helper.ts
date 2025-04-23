@@ -24,6 +24,30 @@ export function formatCurrency(value: string | number): string {
     }).format(numValue);
 }
 
+export function formatInteger(value: string | number, maxDigits: number = 0): string {
+    if (!value) return "0";
+
+    // Converte para número, removendo tudo que não for dígito
+    let numValue = typeof value === 'string'
+        ? parseInt(value.replace(/[^\d]/g, ''), 10)
+        : Math.floor(value); // Garante que seja inteiro
+
+    // Verifica se é um número válido
+    if (isNaN(numValue)) return "0";
+
+    // Limita a quantidade de dígitos
+    const limitedValue = numValue.toString().slice(0, maxDigits);
+
+    // Converte o valor limitado de volta para número
+    const limitedNumber = parseInt(limitedValue, 10);
+
+    // Formata com separadores de milhar no padrão brasileiro
+    return new Intl.NumberFormat('pt-BR', {
+        maximumFractionDigits: 0,
+    }).format(limitedNumber);
+}
+
+
 /**
  * Calculate the total number of people from age groups
  * @param data Form data containing age group counts
@@ -31,12 +55,12 @@ export function formatCurrency(value: string | number): string {
  */
 export function calculateTotalPeople(data: Partial<FormValues>): number {
     return (
-        (data.criancas0a3 || 0) +
-        (data.criancas4a6 || 0) +
-        (data.criancas7a11 || 0) +
-        (data.adolescentes12a18 || 0) +
-        (data.adultos19a59 || 0) +
-        (data.idosos60 || 0)
+        (Number(data.criancas0a3) || 0) +
+        (Number(data.criancas4a6) || 0) +
+        (Number(data.criancas7a11) || 0) +
+        (Number(data.adolescentes12a18) || 0) +
+        (Number(data.adultos19a59) || 0) +
+        (Number(data.idosos60) || 0)
     );
 }
 
@@ -61,17 +85,18 @@ export function validateInfoFamiliaData(data: Partial<FormValues>): boolean {
     }
     
     // If immigrant count > 0, must have selected nationalities
-    if (data.pessoasImigrantes && data.pessoasImigrantes > 0) {
+    if (data.pessoasImigrantes && parseInt(data.pessoasImigrantes) > 0) {
         if (!data.nacionalidadesSelecionadas || data.nacionalidadesSelecionadas.length === 0) {
             return false;
         }
-        
+    
         // Total immigrants from countries must match the overall count
         const totalFromCountries = calculateTotalImmigrants(data.numerosPorPais);
-        if (totalFromCountries !== data.pessoasImigrantes) {
+        if (totalFromCountries !== parseInt(data.pessoasImigrantes)) {
             return false;
         }
     }
+    
     
     return true;
 } 

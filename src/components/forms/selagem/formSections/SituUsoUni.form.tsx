@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections, situUsoUniDefinition
-} from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
+} from "@/components/forms/selagem/definitions/situUsoUni.definition";
 import { formatCurrency, ensureValidSelectValue } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
 
 

@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections,
     FormValues
-} from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
+} from "@/components/forms/selagem/definitions/outrasInfos.definition";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";

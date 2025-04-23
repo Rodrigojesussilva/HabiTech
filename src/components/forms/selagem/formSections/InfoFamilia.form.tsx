@@ -4,18 +4,19 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections,
     FormValues
-} from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
+} from "@/components/forms/selagem/definitions/infoFamilia.definition";
 import {
+    formatInteger,
     formatCurrency,
     calculateTotalImmigrants
-} from "@/components/forms/arrolamento/helpers/infoFamilia.helper";
+} from "@/components/forms/selagem/helpers/infoFamilia.helper";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 // Optional: Import country data if used in the component
 import { countries } from "countries-list";
-
+import Cleave from "cleave.js"; // <-- versão pura do Cleave.js
 interface InfoFamiliaFormProps {
     id?: string;
     sectionIndex?: number;
@@ -51,6 +52,49 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         }
     }, [formValues.rendaFamiliar, familyIndex, form]);
 
+    useEffect(() => {
+        const fieldsToFormat = [
+            'criancas0a3',
+            'criancas4a6',
+            'criancas7a11',
+            'adolescentes12a18',
+            'adultos19a59',
+            'idosos60',
+            'pessoasComDeficiencia',
+            'pessoasComDoencasCronicas',
+            'gestantes',
+            'pessoasImigrantes'
+        ];
+    
+        fieldsToFormat.forEach((field) => {
+            if (formValues[field]) {
+                // Formata o valor de cada campo
+                const formattedValue = formatInteger(formValues[field], 2);
+        
+                // Se o valor formatado for diferente do valor original no form, atualize
+                if (formattedValue !== formValues[field]) {
+                    form.setValue(`families[${familyIndex}].${field}`, formattedValue);
+                }
+            }
+        });
+    }, [
+        formValues.criancas0a3,
+        formValues.criancas4a6,
+        formValues.criancas7a11,
+        formValues.adolescentes12a18,
+        formValues.adultos19a59,
+        formValues.idosos60,
+        formValues.pessoasComDeficiencia,
+        formValues.pessoasComDoencasCronicas,
+        formValues.gestantes,
+        formValues.pessoasImigrantes,
+        familyIndex,
+        form
+    ]);
+    
+    
+   
+    
     // Handle nationality selection changes
     const handleNationalityChange = (selectedOptions: string[]) => {
         setSelectedCountries(selectedOptions);

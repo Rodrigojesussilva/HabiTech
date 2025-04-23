@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/arrolamento/definitions/nupcidade.definition";
+} from "@/components/forms/selagem/definitions/nupcidade.definition";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
