@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/selagem/definitions/identEticRacGene.definition";
+} from "@/components/forms/selagem/definitions/CaracInfraUrbUnid.definition";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -14,7 +14,7 @@ interface IdentEticRacGeneFormProps {
     familyIndex: number;
 }
 
-const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentEticRacGeneFormProps) => {
+const CaracInfraUrbUnidForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentEticRacGeneFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
 
     const form = useFormContext();
@@ -51,4 +51,4 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
     );
 };
 
-export default IdentEticRacGeneForm; 
+export default CaracInfraUrbUnidForm; 

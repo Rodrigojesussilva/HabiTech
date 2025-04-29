@@ -3,6 +3,8 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
 export const situUsoUniSchema = z.object({
+    uso_da_unidade: z.string().optional(),
+    detalhamento_uso:z.string().optional(),
     regime_ocupacao: z.string().optional(),
     valor_locacao: z.string().optional(),
     nsi_valor_locacao: z.boolean().optional(),
@@ -10,24 +12,30 @@ export const situUsoUniSchema = z.object({
     nome_proprietario: z.string().optional(),
     contato_proprietario: z.string().optional(),
     nsi_contato_proprietario: z.boolean().optional(),
-    
+
     // Própria
     documentoComprovacao: z.string().optional(),
     descricaoDocumento: z.string().optional(),
-    
+
     // Cedida
     nome_proprietario_cedida: z.string().optional(),
     telefone_proprietario_cedida: z.string().optional(),
-    
+
+    //Terreno cercado_Terreno sem cercamento
+    nome_responsavel: z.string().optional(),
+    telefone_responsavel: z.string().optional(),
+    responsavel_nao_identificado: z.boolean().optional(),
+    uso_terreno: z.string().optional(),
+
     // Tempo de moradia
     tempoMoradiaAnos: z.string().optional(),
     tempoMoradiaMeses: z.string().optional(),
     tempoMoradiaNaoSabe: z.boolean().optional(),
-    
+
     // Compartilhamento
     cozinhaCompartilhada: z.string().optional(),
     banheiroCompartilhado: z.string().optional(),
-    
+
     // Resíduos - simplificados para string
     separaResiduos: z.string().optional(),
     destinoReciclavel: z.string().optional(),
@@ -36,7 +44,7 @@ export const situUsoUniSchema = z.object({
     outroDestinoOrganico: z.string().optional(),
     destinoDomestico: z.string().optional(),
     outroDestinoDomestico: z.string().optional(),
-    
+
     // Identificadores
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
@@ -46,6 +54,8 @@ export type FormValues = z.infer<typeof situUsoUniSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
+    uso_da_unidade:"select",
+    detalhamento_uso:"",
     regime_ocupacao: "select",
     valor_locacao: "",
     nsi_valor_locacao: false,
@@ -53,20 +63,26 @@ export const defaultValues: Partial<FormValues> = {
     nome_proprietario: "",
     contato_proprietario: "",
     nsi_contato_proprietario: false,
-    
+
     documentoComprovacao: "select",
     descricaoDocumento: "",
-    
+
     nome_proprietario_cedida: "",
     telefone_proprietario_cedida: "",
+
     
+    nome_responsavel: "", 
+    telefone_responsavel: "", 
+    responsavel_nao_identificado: false, 
+    uso_terreno: "", 
+
     tempoMoradiaAnos: "",
     tempoMoradiaMeses: "",
     tempoMoradiaNaoSabe: false,
-    
+
     cozinhaCompartilhada: "select",
     banheiroCompartilhado: "select",
-    
+
     separaResiduos: "select",
     destinoReciclavel: "select",
     outroDestinoReciclavel: "",
@@ -74,7 +90,7 @@ export const defaultValues: Partial<FormValues> = {
     outroDestinoOrganico: "",
     destinoDomestico: "select",
     outroDestinoDomestico: "",
-    
+
     idLocal: "not",
 };
 
@@ -87,6 +103,31 @@ export const situUsoUniDefinition: FormConfig = {
             title: "Situação e Uso da Unidade",
             fields: [
                 {
+                    name: "uso_da_unidade",
+                    label: "Uso da unidade",
+                    type: "select" as const,
+                    required: true,
+                    options: [
+                        { label: "Selecione uma opção", value: "select" },
+                        { label: "Residencial", value: "residencial" },
+                        { label: "Comercial", value: "comercial" },
+                        { label: "Institucional", value: "institucional" },
+                        { label: "Industrial", value: "industrial" },
+                        { label: "Serviço", value: "servico" }, // Nova opção
+                        { label: "Uso não identificado", value: "usoNaoIdentificado" }, // Nova opção
+                        { label: "Outros", value: "outros" }
+                    ]
+                },
+                {
+                    name: "detalhamento_uso",
+                    label: "Detalhamento do uso",
+                    type: "text" as const,
+                    required: false,
+                    conditions: [
+                        { field: "uso_da_unidade", operator: "notEquals", value: "usoNaoIdentificado" }
+                    ]
+                },
+                {
                     name: "regime_ocupacao",
                     label: "Regime de Ocupação da Unidade",
                     type: "select" as const,
@@ -97,6 +138,8 @@ export const situUsoUniDefinition: FormConfig = {
                         { label: "Cedida (Emprestada)", value: "cedida" },
                         { label: "Ocupada", value: "ocupada" },
                         { label: "Própria", value: "propria" },
+                        { label: "Terreno cercado", value: "terrenoCercado" }, // Nova opção
+                        { label: "Terreno sem cercamento", value: "terrenoSemCercamento" }, // Nova opção
                         { label: "Não sabe informar", value: "naoSabeInformar" }
                     ]
                 },
@@ -170,7 +213,7 @@ export const situUsoUniDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
+
     // Fields based on regime_ocupacao
     if (formValues.regime_ocupacao === "alugada") {
         conditionalFields.push(
@@ -224,7 +267,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
     // Fields for "própria"
     if (formValues.regime_ocupacao === "propria") {
         conditionalFields.push(
@@ -243,7 +286,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
-        
+
         // If documentoComprovacao is "outro", show descricaoDocumento
         if (formValues.documentoComprovacao === "outro") {
             conditionalFields.push({
@@ -254,7 +297,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     // Fields for "cedida"
     if (formValues.regime_ocupacao === "cedida") {
         conditionalFields.push(
@@ -272,7 +315,43 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
+    // Campos para "terreno cercado" ou "terreno sem cercamento"
+    if (formValues.regime_ocupacao === "terrenoCercado" || formValues.regime_ocupacao === "terrenoSemCercamento") {
+        conditionalFields.push(
+            {
+                name: "nome_responsavel",
+                label: "Nome da pessoa responsável",
+                type: "text" as const,
+                required: false,
+                conditions: [
+                    { field: "responsavel_nao_identificado", operator: "equals", value: false }
+                ]
+            },
+            {
+                name: "telefone_responsavel",
+                label: "Telefone da pessoa responsável",
+                type: "text" as const,
+                required: false,
+                conditions: [
+                    { field: "responsavel_nao_identificado", operator: "equals", value: false }
+                ]
+            },
+            {
+                name: "responsavel_nao_identificado",
+                label: "Responsável não identificado",
+                type: "checkbox" as const,
+                required: false
+            },
+            
+            {
+                name: "uso_terreno",
+                label: "Uso do terreno",
+                type: "text",
+                required: false
+            }
+        );
+    }
     // Fields for separaResiduos = "Sim"
     if (formValues.separaResiduos === "Sim") {
         conditionalFields.push(
@@ -294,7 +373,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
-        
+
         // If destinoReciclavel includes "Outros", show outroDestinoReciclavel
         if (formValues.destinoReciclavel === "Outros") {
             conditionalFields.push({
@@ -304,7 +383,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false
             });
         }
-        
+
         conditionalFields.push({
             name: "destinoOrganico",
             label: "Qual a destinação do resíduo orgânico?",
@@ -319,7 +398,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 { label: "Outros", value: "Outros" }
             ]
         });
-        
+
         // If destinoOrganico includes "Outros", show outroDestinoOrganico
         if (formValues.destinoOrganico === "Outros") {
             conditionalFields.push({
@@ -330,7 +409,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     // Fields for separaResiduos = "Não"
     if (formValues.separaResiduos === "Não") {
         conditionalFields.push({
@@ -350,7 +429,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 { label: "Outros", value: "Outros" }
             ]
         });
-        
+
         // If destinoDomestico includes "Outros", show outroDestinoDomestico
         if (formValues.destinoDomestico === "Outros") {
             conditionalFields.push({
@@ -361,7 +440,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     return conditionalFields;
 }
 

@@ -21,12 +21,12 @@ export const defaultValues: Partial<FormValues> = {
 };
 
 // Base form structure
-export const identEticRacGeneDefinition: FormConfig = {
-    title: "Identidade Étnico-Racial e de Gênero",
+export const CaracInfraUrbUnidDefinition: FormConfig = {
+    title: "Caracterização da Infraestrutura Urbana e da Unidade",
     sections: [
         {
-            id: "identidadeEtnicoRacialGenero",
-            title: "Identidade Étnico-Racial e de Gênero",
+            id: "CaracterizaçãoInfraestruturaUrbanaUnidade",
+            title: "Caracterização da Infraestrutura Urbana e da Unidade",
             fields: [
                 {
                     name: "etnicoRacial",
@@ -101,9 +101,9 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
     // Create and return a merged form structure with base fields and conditional fields
     return [
         {
-            ...identEticRacGeneDefinition.sections[0],
+            ...CaracInfraUrbUnidDefinition.sections[0],
             fields: [
-                ...identEticRacGeneDefinition.sections[0].fields,
+                ...CaracInfraUrbUnidDefinition.sections[0].fields,
                 ...conditionalFields
             ]
         }
