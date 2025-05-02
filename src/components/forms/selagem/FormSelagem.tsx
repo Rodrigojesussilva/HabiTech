@@ -23,7 +23,7 @@ import IdentRespForm from "./formSections/IdentResp.form"
 import InfoContatoForm from "./formSections/InfoContato.form"
 import SituUsoUniForm from "./formSections/SituUsoUni.form"
 import DocsForm from "./formSections/Docs.form"
-import IdentEtiRacGeneForm from "./formSections/IdentEticRacGene.form"
+import CaracInfraUrbUnidForm from "./formSections/CaracInfraUrbUnid.form"
 import NupcidadeForm from "./formSections/Nupcidade.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 import PessoaDefForm from "./formSections/PessoaDef.form"
@@ -32,15 +32,15 @@ import OutrasInfosForm from "./formSections/OutrasInfos.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
-import { identRespSchema } from "@/components/forms/arrolamento/definitions/identResp.definition";
-import { infoContatoSchema } from "@/components/forms/arrolamento/definitions/infoContato.definition";
-import { situUsoUniSchema } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
-import { docsSchema } from "@/components/forms/arrolamento/definitions/docs.definition";
-import { identEticRacGeneSchema } from "@/components/forms/arrolamento/definitions/identEticRacGene.definition";
-import { nupcidadeSchema } from "@/components/forms/arrolamento/definitions/nupcidade.definition";
-import { pessoaDefSchema } from "@/components/forms/arrolamento/definitions/pessoaDef.definition";
-import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
-import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
+import { identRespSchema } from "@/components/forms/selagem/definitions/identResp.definition";
+import { infoContatoSchema } from "@/components/forms/selagem/definitions/infoContato.definition";
+import { situUsoUniSchema } from "@/components/forms/selagem/definitions/situUsoUni.definition";
+import { docsSchema } from "@/components/forms/selagem/definitions/docs.definition";
+import { identEticRacGeneSchema } from "@/components/forms/selagem/definitions/CaracInfraUrbUnid.definition";
+import { nupcidadeSchema } from "@/components/forms/selagem/definitions/nupcidade.definition";
+import { pessoaDefSchema } from "@/components/forms/selagem/definitions/pessoaDef.definition";
+import { infoFamiliaSchema } from "@/components/forms/selagem/definitions/infoFamilia.definition";
+import { outrasInfosSchema } from "@/components/forms/selagem/definitions/outrasInfos.definition";
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
@@ -92,21 +92,21 @@ const FormSelagem = ({
 	setIsMetadataModalOpen,
 	activeFamilyIndex
 }: FormArrolamentoProps) => {
-	// Initialize the form with react-hook-form
+	const interviewerNameFromStorage = localStorage.getItem('userEmail') || '';
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
-			interviewerName: "",
+			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
 			endTime: "",
 			timeElapsed: "",
 			sealNumber: "",
 			numberFamilies: 1,
-			firstVisitStart: new Date().toLocaleString('pt-BR', { 
+			firstVisitStart: new Date().toLocaleString('pt-BR', {
 				day: '2-digit',
 				month: '2-digit',
 				year: 'numeric',
@@ -172,7 +172,7 @@ const FormSelagem = ({
 			}
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
- 
+
 // Lidar com o envio do formulário para FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
@@ -214,7 +214,7 @@ const FormSelagem = ({
 					type: "text",
 					readonly: true,
 					required: true,
-					sidebarform: false,
+					sidebarform: true,
 					showinmodal: false,
 					sidebarlabel: "Término"
 				} as FormFieldType,
@@ -239,9 +239,10 @@ const FormSelagem = ({
 					name: "interviewerName",
 					label: "Nome completo da(o) Entrevistador(a)",
 					type: "text",
+					readonly: true,
 					required: true,
-					sidebarform: false,
-					showinmodal: false
+					sidebarform: true,
+					showinmodal: true
 				} as FormFieldType,
 				{
 					name: "interviewDate",
@@ -330,7 +331,7 @@ const FormSelagem = ({
 						<DialogContent
 							className="max-h-[90vh] overflow-y-auto "
 						>
-						
+
 							<DialogHeader>
 								<DialogTitle>Selagem</DialogTitle>
 								<DialogDescription>
@@ -354,43 +355,46 @@ const FormSelagem = ({
 
 							<Button
 								type="button"
-								onClick={() => setIsMetadataModalOpen(false)}
+								onClick={() => {
+									handleSetEndTime(); // Atualiza o valor de firstVisitEnd antes de fechar
+									setIsMetadataModalOpen(false);
+								}}
 								className="mt-4"
 							>
 								Concluir
 							</Button>
-					
-					</DialogContent>
-				</Dialog>
 
-				<div className="flex flex-row justify-between gap-2">
-					<div className="text-left text-lg font-bold">
-						Selagem
+						</DialogContent>
+					</Dialog>
+
+					<div className="flex flex-row justify-between gap-2">
+						<div className="text-left text-lg font-bold">
+							Selagem
+						</div>
+						<div className="text-right flex flex-row gap-2">
+							<h3>Preenchimento:</h3>
+							<p className="text-primary">
+								0%
+							</p>
+						</div>
 					</div>
-					<div className="text-right flex flex-row gap-2">
-						<h3>Preenchimento:</h3>
-						<p className="text-primary">
-							0%
-						</p>
-					</div>
-				</div>
-				<div className="w-full border-t border-gray-300 my-4"></div>
-				{/* Always render the IdentRespForm */}
-				{familyFields.map((field, index) => (
-					<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
-						<IdentRespForm sectionIndex={0} familyIndex={index} />
-						<InfoContatoForm sectionIndex={1} familyIndex={index} />
-						<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-						<DocsForm sectionIndex={3} familyIndex={index} />
-						<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
-						<NupcidadeForm sectionIndex={5} familyIndex={index} />
-						<PessoaDefForm sectionIndex={6} familyIndex={index} />
-						<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
-						<OutrasInfosForm sectionIndex={8} familyIndex={index} />
-					</div>
-				))}
-			</form>
-		</Form>
+					<div className="w-full border-t border-gray-300 my-4"></div>
+					{/* Always render the IdentRespForm */}
+					{familyFields.map((field, index) => (
+						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
+							<IdentRespForm sectionIndex={0} familyIndex={index} />
+							<InfoContatoForm sectionIndex={1} familyIndex={index} />
+							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
+							<DocsForm sectionIndex={3} familyIndex={index} />
+							<CaracInfraUrbUnidForm sectionIndex={4} familyIndex={index} />
+							<NupcidadeForm sectionIndex={5} familyIndex={index} />
+							<PessoaDefForm sectionIndex={6} familyIndex={index} />
+							<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
+							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
+						</div>
+					))}
+				</form>
+			</Form>
 		</div >
 	)
 };

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import Cleave from "cleave.js"; // <-- versão pura do Cleave.js
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
@@ -53,38 +52,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         formValues.telefoneResidencial,
         formValues.telefoneRecado,
         formValues.telefoneComercial
-    ]);
-
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            const phoneFields = [
-                "telefone1",
-                "telefone2",
-                "telefone3",
-                "telefoneResidencial",
-                "telefoneRecado",
-                "telefoneComercial"
-            ];
-    
-            const instances: Cleave[] = [];
-    
-            phoneFields.forEach((field) => {
-                const selector = `input[name="families[${familyIndex}].${field}"]`;
-                const input = document.querySelector(selector) as HTMLInputElement | null;
-    
-                if (input && !input.dataset.cleaveAttached) {
-                    const cleave = new Cleave(input, {
-                        phone: true,
-                        phoneRegionCode: "BR",
-                    });
-                    input.dataset.cleaveAttached = "true";
-                    instances.push(cleave);
-                }
-            });
-        }, 100); // Aguarda 100ms para garantir que os inputs renderizaram
-    
-        return () => clearTimeout(timeout);
-    }, [mostrarContato, familyIndex]);
+    ]);   
 
     const formSections = getMergedFormSections(formValues);
 

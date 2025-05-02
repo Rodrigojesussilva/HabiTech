@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections, situUsoUniDefinition
 } from "@/components/forms/selagem/definitions/situUsoUni.definition";
-import { formatCurrency, ensureValidSelectValue } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
+import { formatCurrency, ensureValidSelectValue, formatarTelefone } from "@/components/forms/selagem/helpers/situUsoUni.helper";
 
 
 // Import FormSectionRenderer
@@ -30,8 +30,57 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             return {};
         }
     })();
+    // Formata apenas o campo telefone_responsavel com helper
+useEffect(() => {
+    if (formValues.telefone_responsavel) {
+        const formatted = formatarTelefone(formValues.telefone_responsavel);
+        if (formatted !== formValues.telefone_responsavel) {
+            form.setValue(`families[${familyIndex}].telefone_responsavel`, formatted);
+        }
+    }
+}, [formValues.telefone_responsavel]);
 
+useEffect(() => {
+    // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+    if (formValues.responsavel_nao_identificado === undefined) {
+        form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
+    }
 
+    // Garante valor inicial do checkbox 'tempoMoradiaNaoSabe'
+    if (formValues.tempoMoradiaNaoSabe === undefined) {
+        form.setValue(`families[${familyIndex}].tempoMoradiaNaoSabe`, false);
+    }
+
+    // Garante valor inicial do checkbox 'nsi_valor_locacao'
+    if (formValues.nsi_valor_locacao === undefined) {
+        form.setValue(`families[${familyIndex}].nsi_valor_locacao`, false);
+    }
+
+    // Garante valor inicial do checkbox 'nsi_contato_proprietario'
+    if (formValues.nsi_contato_proprietario === undefined) {
+        form.setValue(`families[${familyIndex}].nsi_contato_proprietario`, false);
+    }
+}, [
+    formValues.responsavel_nao_identificado,
+    formValues.tempoMoradiaNaoSabe,
+    formValues.nsi_valor_locacao,
+    formValues.nsi_contato_proprietario,
+    form,
+    familyIndex
+]);
+
+    useEffect(() => {
+        if (formValues.responsavel_nao_identificado) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const nomeResponsavel = form.getValues(`families[${familyIndex}].nome_responsavel`);
+            const telefoneResponsavel = form.getValues(`families[${familyIndex}].telefone_responsavel`);
+    
+            if (nomeResponsavel || telefoneResponsavel) {
+                form.setValue(`families[${familyIndex}].nome_responsavel`, "");
+                form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
+            }
+        }
+    }, [formValues.responsavel_nao_identificado, form, familyIndex]);
 
     // Format values when they change
     useEffect(() => {

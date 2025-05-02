@@ -52,3 +52,14 @@ export function ensureValidSelectValue(value: any, defaultValue: string = "selec
     // Caso contrário, retornar o valor original
     return value;
 } 
+export function formatarTelefone(value: string): string {
+    if (!value) return "";
+    
+    const cleaned = value.replace(/\D/g, '');
+    const limited = cleaned.slice(0, 12);
+
+    if (limited.length <= 2) return `(${limited}`;
+    if (limited.length <= 6) return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+    if (limited.length <= 7) return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+    return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7, 12)}`;
+} 
