@@ -172,7 +172,7 @@ const FormSelagem = ({
 			}
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
-
+ 
 // Lidar com o envio do formulário para FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
