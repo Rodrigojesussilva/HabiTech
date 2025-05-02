@@ -33,6 +33,15 @@ npm install
 
 # Rodar o projeto localmente
 npm run dev
+## # Garantir que está na branch correta
+git checkout feature/formulario-selagem
+
+# Puxar as últimas atualizações do repositório remoto
+git pull origin feature/formulario-selagem
+# Após fazer alterações:
+git add .
+git commit -m "feat(selagem): [descrição do que foi feito]"
+git push origin feature/formulario-selagem
 ```
 New-Item -Path . -Name "columns.tsx" -ItemType "File"
 New-Item -Path . -Name "data-table.tsx" -ItemType "File"
