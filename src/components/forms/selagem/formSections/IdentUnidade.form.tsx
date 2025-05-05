@@ -3,8 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/selagem/definitions/infoContato.definition";
-import { formatarTelefone } from "@/components/forms/selagem/helpers/infoContato.helper";
+} from "@/components/forms/selagem/definitions/identUnidade.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 interface InfoContatoFormProps {
@@ -18,42 +17,36 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
-    // Inicializa o array de telefones, se não existir
     useEffect(() => {
-        const currentTelefones = form.getValues(`families[${familyIndex}].telefones`);
-        if (!currentTelefones || !Array.isArray(currentTelefones) || currentTelefones.length === 0) {
-            form.setValue(`families[${familyIndex}].telefones`, [{ numero: "", isWhatsApp: false }]);
+        const currentUf = form.getValues(`families[${familyIndex}].uf`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].uf`, "SP");
         }
     }, []);
 
-    // Formata os telefones existentes com helper
     useEffect(() => {
-        const phoneFields = [
-            "telefone1",
-            "telefone2",
-            "telefone3",
-            "telefoneResidencial",
-            "telefoneRecado",
-            "telefoneComercial"
-        ];
+        const currentUf = form.getValues(`families[${familyIndex}].uf`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].cidade`, "SP");
+        }
+    }, []);
 
-        phoneFields.forEach((field) => {
-            if (formValues[field]) {
-                const formatted = formatarTelefone(formValues[field]);
-                if (formatted !== formValues[field]) {
-                    form.setValue(`families[${familyIndex}].${field}`, formatted);
-                }
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cep`);
+
+        if (cep) {
+            // Remove todos os caracteres não numéricos
+            let cepMasked = cep.replace(/\D/g, "").slice(0, 8); // Limita a 8 dígitos
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`; // Aplica a máscara
             }
-        });
-    }, [
-        formValues.telefone1,
-        formValues.telefone2,
-        formValues.telefone3,
-        formValues.telefoneResidencial,
-        formValues.telefoneRecado,
-        formValues.telefoneComercial
-    ]);   
 
+            // Atualiza o valor do campo no formulário
+            form.setValue(`families[${familyIndex}].cep`, cepMasked);
+        }
+    }, [form.watch(`families[${familyIndex}].cep`)]); // Executa sempre que o valor do CEP mudar
+
+    
     const formSections = getMergedFormSections(formValues);
 
     return (

@@ -1,5 +1,5 @@
 import { isValid, parse, differenceInYears } from 'date-fns';
-import { FormValues } from "../definitions/docs.definition";
+import { FormValues } from "../definitions/caractUnidade.definition";
 import { countries } from "countries-list";
 
 // Import estados and cidadesPorEstado from a utility file

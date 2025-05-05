@@ -43,15 +43,15 @@ export const FormSectionRenderer = ({
 
                     const key = familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
                     const name = familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
-                    
+
                     // Check if this field should be disabled by a checkbox
                     let isDisabled = field.readonly || false;
-                    
+
                     // Find if this field is controlled by any checkbox in the section
-                    const controllingCheckbox = section.fields.find(f => 
+                    const controllingCheckbox = section.fields.find(f =>
                         f.type === 'checkbox' && f.disableField === field.name
                     );
-                    
+
                     if (controllingCheckbox) {
                         isDisabled = !!formValues[controllingCheckbox.name];
                     }
@@ -76,7 +76,7 @@ export const FormSectionRenderer = ({
                                         </FormControl>
                                         <div className="space-y-1 leading-none">
                                             <FormLabel>
-                                                {!isDependent && getFieldNumber(sectionIndex, fieldIndex) && 
+                                                {!isDependent && getFieldNumber(sectionIndex, fieldIndex) &&
                                                     <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
                                                 }
                                                 {field.label}
@@ -123,6 +123,54 @@ export const FormSectionRenderer = ({
 // Helper function to render different field types
 function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>) {
     switch (field.type) {
+
+        case "numberSpinner":
+            return (
+                <Input
+                    type="number"
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    min={field.min || undefined}
+                    max={field.max || undefined}
+                    step={field.step || 1}
+                    value={formField.value ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value === "" ? "" : Number(e.target.value);
+                        formField.onChange(value);
+                    }}
+                    className="flex w-80 rounded-md border border-input bg-background px-3 py-2 text-sm" // Aumentando a largura para 16rem (w-64)
+                />
+            );
+
+        case "textarea":
+
+            return (
+                <textarea
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                        formField.onChange(e.target.value);
+                    }}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "file":
+            return (
+                <Input
+                    type="file"
+                    disabled={formField.disabled}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const file = e.target.files?.[0];
+                        formField.onChange(file);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
         case "text":
             if (field.mask) {
                 return (

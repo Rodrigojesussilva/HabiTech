@@ -2,26 +2,44 @@ import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
-export const identEticRacGeneSchema = z.object({
-    etnicoRacial: z.string().optional(),
-    genero: z.string().optional(),
-    generoOutro: z.string().optional(),
-    idLocal: z.string().optional(),
-    arrolamento_id: z.string().optional(),
+export const caracInfraUrbUnidSchema = z.object({
+    materialPredominante: z.string().optional(),
+    unidadeInsalubre: z.string().optional(),
+    peDireitoAtendente230: z.string().optional(),
+    iluminicaoNatural: z.string().optional(),
+    areaVentilacao: z.string().optional(),
+    infiltracaoMofo: z.string().optional(),
+    cozinhaVentilacaoNatural: z.string().optional(),
+    banheiroVentilacaoNatural: z.string().optional(),
+    demaisComodosVentilacaoNatural: z.string().optional(),
+    abastecimentoAgua: z.string().optional(),
+    esgotamentoSanitario: z.string().optional(),
+    ligacaoEletrica: z.string().optional(),
+    residuosDomesticos: z.string().optional()
+
 });
 
-export type FormValues = z.infer<typeof identEticRacGeneSchema>;
+export type FormValues = z.infer<typeof caracInfraUrbUnidSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
-    etnicoRacial: "",
-    genero: "",
-    generoOutro: "",
-    idLocal: "not",
+    materialPredominante: "",
+    unidadeInsalubre: "",
+    peDireitoAtendente230: "",
+    iluminicaoNatural: "",
+    areaVentilacao: "",
+    infiltracaoMofo: "",
+    cozinhaVentilacaoNatural: "",
+    banheiroVentilacaoNatural: "",
+    demaisComodosVentilacaoNatural: "",
+    abastecimentoAgua: "",
+    esgotamentoSanitario: "",
+    ligacaoEletrica: "",
+    residuosDomesticos:""
 };
 
 // Base form structure
-export const CaracInfraUrbUnidDefinition: FormConfig = {
+export const caracInfraUrbUnidDefinition: FormConfig = {
     title: "Caracterização da Infraestrutura Urbana e da Unidade",
     sections: [
         {
@@ -29,63 +47,180 @@ export const CaracInfraUrbUnidDefinition: FormConfig = {
             title: "Caracterização da Infraestrutura Urbana e da Unidade",
             fields: [
                 {
-                    name: "etnicoRacial",
-                    label: "Identidade Étnico-Racial",
+                    name: "materialPredominante",
+                    label: "Material predominante nas paredes externas",
                     type: "select" as const,
                     required: false,
                     options: [
-                        { label: "Amarela", value: "amarela" },
-                        { label: "Branca", value: "branca" },
-                        { label: "Indígena", value: "indigena" },
-                        { label: "Parda/Negra", value: "parda" },
-                        { label: "Preta/Negra", value: "preta" }
+                        { label: "Alvenaria", value: "Alvenaria" },
+                        { label: "Madeira", value: "Madeira" },
+                        { label: "Misto Madeira/Alvenaria", value: "Misto Madeira/Alvenaria" },
+                        { label: "Material Reaproveitado", value: "Matrial Reaproiveitado" },
+                        { label: "Outros", value: "Outros" }
                     ]
                 },
                 {
-                    name: "genero",
-                    label: "Identidade de Gênero",
+                    name: "unidadeInsalubre",
+                    label: "Unidade apresenta condições de insalubridade?",
                     type: "select" as const,
                     required: false,
                     options: [
-                        { label: "Agênero", value: "agenero" },
-                        { label: "Gênero Fluido", value: "generoFluido" },
-                        { label: "Homem Cisgênero", value: "homemCis" },
-                        { label: "Homem Transexual", value: "homemTrans" },
-                        { label: "Mulher Cisgênero", value: "mulherCis" },
-                        { label: "Mulher Transexual", value: "mulherTrans" },
-                        { label: "Intersexo", value: "intersexo" },
-                        { label: "Não Binarie", value: "naoBinarie" },
-                        { label: "Travesti", value: "travesti" },
-                        { label: "Não sabe informar", value: "naoSabeInformar" },
-                        { label: "Não respondeu", value: "naoRespondeu" },
-                        { label: "Outros", value: "outros" }
+                        { label: "Sim", value: "Sim" },
+                        { label: "Não", value: "Nao" }
+                    ]
+                },
+                {
+                    name: "abastecimentoAgua",
+                    label: "Abastecimento de Água",
+                    type: "select" as const,
+                    required: false,
+                    options: [
+                        { label: "Rede Publica/ligação individual(oficial)", value: "RedePublicaLigacaoIndividual" },
+                        { label: "Rede Publica/ligação coletiva(oficial)", value: "RedePublicaLigacaoColetiva" },
+                        { label: "Poço Artesiano", value: "PocoArtesiano" },
+                        { label: "Instalação de água não oficial", value: "InstalacaoNaoOficial" },
+                        { label: "Não possui", value: "NaoPossui" },
+                        { label: "Não identificado", value: "NaoIdentificado" },
+                        { label: "Outros", value: "Outros" },
+
+                    ]
+                },
+                {
+                    name: "esgotamentoSanitario",
+                    label: "Esgotamento sanitário",
+                    type: "select" as const,
+                    required: false,
+                    options: [
+                        { label: "Rede Publica/ligação individual(oficial)", value: "RedePublicaLigacaoIndividual" },
+                        { label: "Rede Publica/ligação coletiva(oficial)", value: "RedePublicaLigacaoColetiva" },
+                        { label: "Rede de esgotamento sanitário não oficial", value: "EsgotamentoSanitarioNaoOficial" },
+                        { label: "Esgotamento Sanitário conectado água pluvial", value: "EsgotamentoSanitarioAguaPluvial" },
+                        { label: "Instalação de água não oficial", value: "InstalacaoAguaNaoOficial" },
+                        { label: "A céu aberto córrego/encosta", value: "CeuAbertoCorregoEncosta" },
+                        { label: "Fossa séptica", value: "FossaSéptica" },
+                        { label: "Fossa rudimentar", value: "FossaRudimentar" },
+                        { label: "Sistema individualizado de tratamento de esgoto(área mananciais)", value: "SistemaIndividualizadoTratamentoEsgoto" },
+                        { label: "Não Possui", value: "NaoPossui" },
+                        { label: "Não identificado", value: "NaoIdentificado" },
+                        { label: "Outros", value: "Outros" },
+
+                    ]
+                },
+                {
+                    name: "ligacaoEletrica",
+                    label: "Ligação Elétrica",
+                    type: "select" as const,
+                    required: false,
+                    options: [
+                        { label: "Relógio próprio/modidor individual", value: "RologioProprioMedidorIndividual" },
+                        { label: "Instalação de energia Elétrica não oficial", value: "InstalacaoEnergiaNaoOficial" },
+                        { label: "Relógio comunitário/medidor coletivo", value: "RelogioComunitario" },
+                        { label: "Não possui", value: "NaoPossui" },
+                        { label: "Não identificado", value: "NaoIdentificado" },
+                        { label: "Outros", value: "Outros" },
+
+                    ]
+                },
+                {
+                    name: "residuosDomesticos",
+                    label: "Você separa os resíduos domêsticos?",
+                    type: "select" as const,
+                    required: false,
+                    options: [
+                        { label: "Sim", value: "Sim" },
+                        { label: "Não", value: "Nao" },
+                        { label: "Não sabe informar", value: "NaoSabeInformar" },
+                        { label: "Não respondeu", value: "NaoRespondeu" }
+
                     ]
                 }
             ]
+
         }
     ]
 };
-
 /**
  * Get additional conditional fields based on form values for IdentEticRacGene form
  * @param formValues Current form values from IdentEticRacGene form
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
-    // Conditionally add fields based on "genero" value
-    if (formValues.genero === "outros") {
-        conditionalFields.push({
-            name: "generoOutro",
-            label: "Especifique o Gênero",
-            type: "text",
-            required: false,
-            conditions: [
-                { field: "genero", operator: "equals", value: "outros" }
-            ]
-        });
+    // Fields based on regime_ocupacao
+    if (formValues.unidadeInsalubre === "Sim") {
+        conditionalFields.push(
+            {
+                name: "peDireitoAtendente230",
+                label: "O pe direito da unidade atende ao mínimo de 2,30m?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "iluminacaoNatural",
+                label: "Possui iluminação natural na unidade?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "areaVetilacao",
+                label: "A área de ventilação transmite sensação de salubridade?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "infiltracaoMofo",
+                label: "Há infiltração e/ou mofo na unidade?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "cozinhaVentilacaoNatural",
+                label: "Cozinha: Possui ventilação natural?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "banheiroVentilacaoNatural",
+                label: "Banheiro: Possui ventilação natural?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            },
+            {
+                name: "demaisComodosVentilacaoNatural",
+                label: "Demais cômodos: Possui ventilação natural?",
+                type: "select" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "Sim" },
+                    { label: "Não", value: "Nao" }
+                ]
+            }
+        );
     }
-    
+
     return conditionalFields;
 }
 
@@ -95,16 +230,25 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
  * @returns Array of form sections with merged fields
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    // Get conditional fields based on current form values
     const conditionalFields = getConditionalFields(formValues);
 
-    // Create and return a merged form structure with base fields and conditional fields
+    // Campos fixos
+    const allFields = caracInfraUrbUnidDefinition.sections[0].fields;
+
+    // Encontrar o índice do campo abastecimentoAgua
+    const indexAbastecimento = allFields.findIndex(field => field.name === "abastecimentoAgua");
+
+    // Dividir os campos fixos
+    const beforeAbastecimento = allFields.slice(0, indexAbastecimento);
+    const afterAbastecimento = allFields.slice(indexAbastecimento);
+
     return [
         {
-            ...CaracInfraUrbUnidDefinition.sections[0],
+            ...caracInfraUrbUnidDefinition.sections[0],
             fields: [
-                ...CaracInfraUrbUnidDefinition.sections[0].fields,
-                ...conditionalFields
+                ...beforeAbastecimento,
+                ...conditionalFields,
+                ...afterAbastecimento
             ]
         }
     ];

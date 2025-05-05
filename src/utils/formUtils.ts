@@ -13,11 +13,13 @@ export type FormCondition = {
 export type FormField = {
     name: string;
     label: string;
-    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number';
+    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'textarea' | 'file' | 'numberSpinner';
     required: boolean;
     readonly?: boolean;
     options?: { label: string; value: string }[];
-    mask?: string;
+    mask?: string;    
+    max?: number;
+    step?: number;
     placeholder?: string;
     dependent?: boolean;
     disableField?: string;

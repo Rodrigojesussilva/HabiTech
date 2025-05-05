@@ -1,62 +1,31 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/selagem/definitions/identResp.definition";
-import {  calcularIdade, formatDate } from "@/components/forms/selagem/helpers/identResp.helper";
+} from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
 
-// Import your FormSectionRenderer
+// Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
-interface IdentRespFormProps {
+interface outrasInfoRelevantesFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
 }
 
-const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
-    const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
+const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: outrasInfoRelevantesFormProps) => {
+    const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
 
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
-    const formSections = getMergedFormSections(formValues);
-    // Update age when date of birth changes
-    useEffect(() => {
-        const dataNascimento = formValues.dataNascimentoResp;
-        if (dataNascimento) {
-            const idade = calcularIdade(dataNascimento);
-            form.setValue(`families[${familyIndex}].idadeResp`, idade);
-        }
-    }, [formValues.dataNascimentoResp]);
-   
-
-    useEffect(() => {
-      const fieldToFormat = 'dataNascimentoResp';
-  
-      if (formValues[fieldToFormat]) {
-          // Formata o valor do campo dataNascimentoResp
-          const formattedDate = formatDate(formValues[fieldToFormat]);
-  
-          // Se o valor formatado for diferente do valor original no form, atualize
-          if (formattedDate !== formValues[fieldToFormat]) {
-              form.setValue(`families[${familyIndex}].${fieldToFormat}`, formattedDate);
-          }
-      }
-  }, [
-      formValues.dataNascimentoResp,
-      familyIndex,
-      form
-  ]);
     // Get merged form sections with conditional fields included
-   
+    const formSections = getMergedFormSections(formValues);
 
     return (
         <div className="text-left">
-
-           
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
@@ -82,4 +51,4 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
     );
 };
 
-export default IdentRespForm; 
+export default outrasInfoRelevantesForm; 

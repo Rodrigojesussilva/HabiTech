@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
 	getMergedFormSections,
-} from "@/components/forms/selagem/definitions/docs.definition";
+} from "@/components/forms/selagem/definitions/caractUnidade.definition";
 import {
 	getCountryOptions,
 	getStateOptions,
@@ -12,12 +12,12 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 
-interface DocsFormProps {
+interface CaractUnidadeFormProps {
 	sectionIndex?: number;
 	familyIndex: number;
 }
 
-const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
+const CaractUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: CaractUnidadeFormProps) => {
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
 	const [ok, setOk] = useState(false);
 
@@ -92,4 +92,4 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	);
 };
 
-export default DocsForm; 
+export default CaractUnidadeForm; 

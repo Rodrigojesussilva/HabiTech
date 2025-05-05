@@ -19,40 +19,38 @@ import {
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
-import IdentRespForm from "./formSections/IdentResp.form"
-import InfoContatoForm from "./formSections/InfoContato.form"
+import IdentEspacoHabitado from "./formSections/IdentEspacoHabitado.form"
+import InfoContatoForm from "./formSections/IdentUnidade.form"
 import SituUsoUniForm from "./formSections/SituUsoUni.form"
-import DocsForm from "./formSections/Docs.form"
+import CaractUnidadeForm from "./formSections/CaractUnidade.form"
 import CaracInfraUrbUnidForm from "./formSections/CaracInfraUrbUnid.form"
-import NupcidadeForm from "./formSections/Nupcidade.form"
+import OutrasInfoRelevantesForm from "./formSections/OutrasInfoRelevantes.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
-import PessoaDefForm from "./formSections/PessoaDef.form"
-import InfoFamiliaForm from "./formSections/InfoFamilia.form"
-import OutrasInfosForm from "./formSections/OutrasInfos.form"
+import StatusNotasForm from "./formSections/StatusNotas.form"
+import AnexosForm from "./formSections/anexos.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
-import { identRespSchema } from "@/components/forms/selagem/definitions/identResp.definition";
-import { infoContatoSchema } from "@/components/forms/selagem/definitions/infoContato.definition";
+import { identEspacoHabitadoSchema } from "@/components/forms/selagem/definitions/identEspacoHabitado.definition";
+import { identUnidadeSchema } from "@/components/forms/selagem/definitions/identUnidade.definition";
 import { situUsoUniSchema } from "@/components/forms/selagem/definitions/situUsoUni.definition";
-import { docsSchema } from "@/components/forms/selagem/definitions/docs.definition";
-import { identEticRacGeneSchema } from "@/components/forms/selagem/definitions/CaracInfraUrbUnid.definition";
-import { nupcidadeSchema } from "@/components/forms/selagem/definitions/nupcidade.definition";
-import { pessoaDefSchema } from "@/components/forms/selagem/definitions/pessoaDef.definition";
-import { infoFamiliaSchema } from "@/components/forms/selagem/definitions/infoFamilia.definition";
-import { outrasInfosSchema } from "@/components/forms/selagem/definitions/outrasInfos.definition";
+import { caractUnidadeSchema } from "@/components/forms/selagem/definitions/caractUnidade.definition";
+import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/caracInfraUrbUnid.definition";
+import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
+import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
+import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
-	...identRespSchema.shape,
-	...infoContatoSchema.shape,
+	...identEspacoHabitadoSchema.shape,
+	...identUnidadeSchema.shape,
 	...situUsoUniSchema.shape,
-	...docsSchema.shape,
-	...identEticRacGeneSchema.shape,
-	...nupcidadeSchema.shape,
-	...pessoaDefSchema.shape,
-	...infoFamiliaSchema.shape,
-	...outrasInfosSchema.shape,
+	...caractUnidadeSchema.shape,
+	...caracInfraUrbUnidSchema.shape,
+	...outrasInfoRelevantesSchema.shape,
+	...statusNotasSchema.shape,
+	...anexosSchema.shape,
+
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -146,15 +144,15 @@ const FormSelagem = ({
 	});
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
-		...getDefaultValuesFromSchema(identRespSchema),
-		...getDefaultValuesFromSchema(docsSchema),
-		...getDefaultValuesFromSchema(infoContatoSchema),
+		...getDefaultValuesFromSchema(identEspacoHabitadoSchema),
+		...getDefaultValuesFromSchema(caractUnidadeSchema),
+		...getDefaultValuesFromSchema(identUnidadeSchema),
 		...getDefaultValuesFromSchema(situUsoUniSchema),
-		...getDefaultValuesFromSchema(identEticRacGeneSchema),
-		...getDefaultValuesFromSchema(nupcidadeSchema),
-		...getDefaultValuesFromSchema(pessoaDefSchema),
-		...getDefaultValuesFromSchema(infoFamiliaSchema),
-		...getDefaultValuesFromSchema(outrasInfosSchema),
+		...getDefaultValuesFromSchema(caracInfraUrbUnidSchema),
+		...getDefaultValuesFromSchema(outrasInfoRelevantesSchema),
+		...getDefaultValuesFromSchema(statusNotasSchema),
+		...getDefaultValuesFromSchema(anexosSchema),
+
 	} as const;
 
 	useEffect(() => {
@@ -172,8 +170,22 @@ const FormSelagem = ({
 			}
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
+	const formatDate = () => {
+		return new Date().toLocaleString('pt-BR', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		}).replace(',', ' -');
+	};
 
-// Lidar com o envio do formulário para FormArrolamento
+	// Função para definir o valor de firstVisitEnd
+	const handleSetEndTime = () => {
+		const formattedDate = formatDate();
+		form.setValue("firstVisitEnd", formattedDate);
+	};
+	// Lidar com o envio do formulário para FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
 			onSubmit(data);
@@ -382,15 +394,14 @@ const FormSelagem = ({
 					{/* Always render the IdentRespForm */}
 					{familyFields.map((field, index) => (
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
-							<IdentRespForm sectionIndex={0} familyIndex={index} />
+							<IdentEspacoHabitado sectionIndex={0} familyIndex={index} />
 							<InfoContatoForm sectionIndex={1} familyIndex={index} />
 							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-							<DocsForm sectionIndex={3} familyIndex={index} />
+							<CaractUnidadeForm sectionIndex={3} familyIndex={index} />
 							<CaracInfraUrbUnidForm sectionIndex={4} familyIndex={index} />
-							<NupcidadeForm sectionIndex={5} familyIndex={index} />
-							<PessoaDefForm sectionIndex={6} familyIndex={index} />
-							<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
-							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
+							<OutrasInfoRelevantesForm sectionIndex={5} familyIndex={index} />
+							<StatusNotasForm sectionIndex={6} familyIndex={index} />
+							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
 				</form>

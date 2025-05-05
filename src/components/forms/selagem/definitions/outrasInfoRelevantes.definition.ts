@@ -2,41 +2,43 @@ import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
-export const outrasInfosSchema = z.object({
-    texto: z.string().optional(),
+export const outrasInfoRelevantesSchema = z.object({
+    outrasInformacoes: z.string().optional(),
     idLocal: z.string().optional(),
-    arrolamento_id: z.string().optional(),
+    selagem_id: z.string().optional(),
+    
 });
 
-// Type for form values based on schema
-export type FormValues = z.infer<typeof outrasInfosSchema>;
+export type FormValues = z.infer<typeof outrasInfoRelevantesSchema>;
 
-// Default values for the form
+// Default values
 export const defaultValues: Partial<FormValues> = {
-    texto: "",
+    outrasInformacoes: "",
     idLocal: "",
-    arrolamento_id: "",
+    selagem_id: ""
+  
 };
 
 // Base form structure
-export const outrasInfosDefinition: FormConfig = {
+export const outrasInfoRelevantesDefinition: FormConfig = {
     title: "OUTRAS INFORMAÇÕES RELEVANTES",
     sections: [
         {
-            id: "outrasInfos",
-            title: "Outras informações relevantes",
+            id: "outrasInfoRelevantes",
+            title: "Outras Informações Relevantes ",
             fields: [
                 {
-                    name: "texto",
+                    name: "outrasInformacoes",
                     label: "Descreva outras informações relevantes",
-                    type: "text",
-                    placeholder: "Digite aqui informações adicionais relevantes",
-                    required: false,
-                },
+                    type: "textarea", 
+                    required: false
+                }
             ]
-        }
+        },
+        
     ]
 };
+
 
 // No conditional fields for this simple form
 export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
@@ -45,5 +47,5 @@ export function getConditionalFields(_formValues: Partial<FormValues>): FormFiel
 
 // Function to get merged form sections
 export function getMergedFormSections(_formValues: Partial<FormValues>) {
-    return outrasInfosDefinition.sections;
+    return outrasInfoRelevantesDefinition.sections;
 } 
