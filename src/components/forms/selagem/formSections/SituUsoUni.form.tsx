@@ -45,26 +45,9 @@ useEffect(() => {
     if (formValues.responsavel_nao_identificado === undefined) {
         form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
     }
-
-    // Garante valor inicial do checkbox 'tempoMoradiaNaoSabe'
-    if (formValues.tempoMoradiaNaoSabe === undefined) {
-        form.setValue(`families[${familyIndex}].tempoMoradiaNaoSabe`, false);
-    }
-
-    // Garante valor inicial do checkbox 'nsi_valor_locacao'
-    if (formValues.nsi_valor_locacao === undefined) {
-        form.setValue(`families[${familyIndex}].nsi_valor_locacao`, false);
-    }
-
-    // Garante valor inicial do checkbox 'nsi_contato_proprietario'
-    if (formValues.nsi_contato_proprietario === undefined) {
-        form.setValue(`families[${familyIndex}].nsi_contato_proprietario`, false);
-    }
+    
 }, [
-    formValues.responsavel_nao_identificado,
-    formValues.tempoMoradiaNaoSabe,
-    formValues.nsi_valor_locacao,
-    formValues.nsi_contato_proprietario,
+    formValues.responsavel_nao_identificado,   
     form,
     familyIndex
 ]);
@@ -146,6 +129,17 @@ useEffect(() => {
                             />
                         ))
                     )}
+                      <div className="mt-4 w-full flex justify-start">
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                            onClick={() => {
+                                console.log("Botão clicado!");
+                            }}
+                        >
+                            Salvar
+                        </button>
+                    </div>
                 </CollapsibleContent>
             </Collapsible>
         </div>
