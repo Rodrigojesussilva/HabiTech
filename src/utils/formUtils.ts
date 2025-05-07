@@ -29,6 +29,7 @@ export type FormField = {
 	sidebarlabel?: string;
 	showinmodal?: boolean;
     min?: number;
+    insertAfterField?: string; // Campo após o qual este campo deve ser inserido
 };
 
 // Generic form section type
