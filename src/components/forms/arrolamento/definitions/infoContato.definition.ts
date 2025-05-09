@@ -12,12 +12,12 @@ export const infoContatoSchema = z.object({
     telefone3WhatsApp: z.boolean().optional(),
     ativarTelefone2: z.boolean().optional(),
     ativarTelefone3: z.boolean().optional(),
-    
+
     telefoneResidencial: z.string().optional(),
     recado: z.boolean().optional(),
     telefoneRecado: z.string().optional(),
     nomeRecado: z.string().optional(),
-    parentesco: z.string().optional(),
+    parente: z.string().optional(),
     escrevParentesco: z.string().optional(),
     telefoneComercial: z.string().optional(),
     email: z.string().optional(),
@@ -39,12 +39,12 @@ export const defaultValues: Partial<FormValues> = {
     telefone3WhatsApp: false,
     ativarTelefone2: false,
     ativarTelefone3: false,
-    
+
     telefoneResidencial: "",
     recado: false,
     telefoneRecado: "",
     nomeRecado: "",
-    parentesco: "",
+    parente: "",
     escrevParentesco: "",
     telefoneComercial: "",
     email: "",
@@ -91,7 +91,7 @@ export const infoContatoDefinition: FormConfig = {
                 },
                 {
                     name: "recado",
-                    label: "Telefone para Recado?",
+                    label: "Telefone para recado",
                     type: "checkbox" as const,
                     required: false
                 },
@@ -114,23 +114,31 @@ export const infoContatoDefinition: FormConfig = {
                 {
                     name: "email",
                     label: "Email",
-                    type: "text" as const,
+                    type: "email",
                     required: false,
-                    conditions: [
-                        { field: "naoSabeEmail", operator: "equals", value: false }
-                    ]
+                    
                 },
                 {
                     name: "naoSabeEmail",
                     label: "Não se aplica",
                     type: "checkbox" as const,
-                    required: false
+                    required: false,
+
                 }
             ]
         }
     ]
 };
-
+// Utilitário para inserir campos após um campo específico
+function insertAfter(fields: FormField[], targetName: string, toInsert: FormField[]) {
+    const index = fields.findIndex(f => f.name === targetName);
+    if (index === -1) return [...fields, ...toInsert];
+    return [
+        ...fields.slice(0, index + 1),
+        ...toInsert,
+        ...fields.slice(index + 1)
+    ];
+}
 /**
  * Get additional conditional fields based on form values for InfoContato form
  * This centralizes all conditional field logic specific to InfoContato in one place
@@ -138,7 +146,7 @@ export const infoContatoDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
+
     // Add telefone2 fields if ativarTelefone2 is checked
     if (formValues.ativarTelefone2 === true) {
         conditionalFields.push(
@@ -163,9 +171,9 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
     // Add telefone3 fields if ativarTelefone3 is checked
-    if (formValues.ativarTelefone3 === true && formValues.ativarTelefone2 === true) {
+    if (formValues.ativarTelefone3 === true) {
         conditionalFields.push(
             {
                 name: "telefone3",
@@ -182,7 +190,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
     // Conditionally add fields based on "recado" value
     if (formValues.recado === true) {
         conditionalFields.push(
@@ -200,13 +208,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false
             },
             {
-                name: "parentesco",
+                name: "parente",
                 label: "Relação de Parentesco",
-                type: "select",
-                required: false,
+                type: "select" as const,
+                required: true,
                 options: [
-                    { label: "Selecione uma opção", value: "" },
-                    { label: "Cônjuge/Campanheiro", value: "conjuge_campanheiro" },
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Cônjuge/Campanheiro", value: "conjuge_companheiro" },
                     { label: "Filha", value: "filha" },
                     { label: "Filho", value: "filho" },
                     { label: "Enteada", value: "enteada" },
@@ -217,24 +225,26 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Pai", value: "pai" },
                     { label: "Sogra", value: "sogra" },
                     { label: "Sogro", value: "sogro" },
+                    { label: "Sogra", value: "sogra" },
                     { label: "Neta", value: "neta" },
                     { label: "Neto", value: "neto" },
-                    { label: "Nora", value: "Nora" },
+                    { label: "Nora", value: "nora" },
                     { label: "Genro", value: "genro" },
-                    { label: "Madrasta", value: "madrasta" },
-                    { label: "Padrasto", value: "Padrasto" },
+                    { label: "Madastra", value: "madastra" },
+                    { label: "Padastro", value: "padastro" },
                     { label: "Sobrinha", value: "sobrinha" },
                     { label: "Sobrinho", value: "sobrinho" },
-                    { label: "Sem Relação de Parentesco", value: "sem_relacao" },
-                    { label: "Não Sabe Informar", value: "nao_sabe" },
-                    { label: "Outra Relação de Parentesco", value: "outro" }
+                    { label: "Sem Relação de Parentesco", value: "sem_relação" },
+                    { label: "Não sabe informar", value: "nao_sabe" },
+                    { label: "Outra Relação de Parentesco", value: "outro" },
+
                 ]
-            }
+            },
         );
     }
-    
+
     // Add escrevParentesco field only when parentesco is "outro"
-    if (formValues.parentesco === "outro") {
+    if (formValues.parente === "outro") {
         conditionalFields.push({
             name: "escrevParentesco",
             label: "Descreva o parentesco",
@@ -245,7 +255,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             ]
         });
     }
-    
+
     return conditionalFields;
 }
 
@@ -256,17 +266,58 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
  * @returns Array of form sections with merged fields
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    // Get conditional fields based on current form values
-    const conditionalFields = getConditionalFields(formValues);
+    try {
+        const conditionalFields = getConditionalFields(formValues);
 
-    // Create and return a merged form structure with base fields and conditional fields
-    return [
-        {
-            ...infoContatoDefinition.sections[0],
-            fields: [
-                ...infoContatoDefinition.sections[0].fields,
-                ...conditionalFields
-            ]
+        // Clonar os campos base
+        let fields = [...infoContatoDefinition.sections[0].fields];
+
+        // ----------- TELEFONE 2 -----------
+        const telefone2Fields = conditionalFields.filter(f => f.name?.startsWith("telefone2"));
+        fields = insertAfter(fields, "ativarTelefone2", telefone2Fields);
+
+        // ----------- TELEFONE 3 -----------
+        const telefone3Fields = conditionalFields.filter(f => f.name?.startsWith("telefone3"));
+        const ativarTelefone3Field = conditionalFields.find(f => f.name === "ativarTelefone3");
+        if (ativarTelefone3Field) {
+            fields = insertAfter(fields, "telefone2WhatsApp", [ativarTelefone3Field]);
         }
-    ];
-} 
+        if (formValues.ativarTelefone3 === true) {
+            fields = insertAfter(fields, "ativarTelefone3", telefone3Fields);
+        }
+
+        // ----------- TELEFONE PARA RECADO -----------
+        const recadoFields = conditionalFields.filter(f =>
+            ["telefoneRecado", "nomeRecado", "parente"].includes(f.name ?? "")
+        );
+        const escrevParentescoField = conditionalFields.find(f => f.name === "escrevParentesco");
+
+        // Inserir os campos de recado após o checkbox "recado"
+        fields = insertAfter(fields, "recado", recadoFields);
+
+        // Inserir o campo "escrevParentesco" após "parente", se necessário
+        if (escrevParentescoField) {
+            fields = insertAfter(fields, "parente", [escrevParentescoField]);
+        }
+
+        return [
+            {
+                ...infoContatoDefinition.sections[0],
+                fields
+            }
+        ];
+    } catch (error) {
+        console.error("Error in getMergedFormSections:", error);
+        return [infoContatoDefinition.sections[0]];
+    }
+}
+
+
+
+
+
+
+
+
+
+

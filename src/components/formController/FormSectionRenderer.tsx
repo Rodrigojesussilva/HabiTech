@@ -43,7 +43,6 @@ export const FormSectionRenderer = ({
 
                     const key = familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
                     const name = familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
-
                     // Check if this field should be disabled by a checkbox
                     let isDisabled = field.readonly || false;
 
@@ -139,12 +138,11 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                         const value = e.target.value === "" ? "" : Number(e.target.value);
                         formField.onChange(value);
                     }}
-                    className="flex w-80 rounded-md border border-input bg-background px-3 py-2 text-sm" // Aumentando a largura para 16rem (w-64)
+                    className="flex w-80 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
             );
 
         case "textarea":
-
             return (
                 <textarea
                     {...formField}
@@ -219,7 +217,21 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             );
 
         case "checkbox":
-            return null;
+            return (
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id={field.name}
+                        checked={formField.value || false}  // O valor pode ser um booleano
+                        disabled={formField.disabled}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            formField.onChange(e.target.checked);  // Retorna um valor booleano (checked)
+                        }}
+                        className="h-4 w-4 rounded border border-input bg-background"
+                    />
+                    <label htmlFor={field.name} className="text-sm">{field.placeholder}</label>
+                </div>
+            );
 
         case "radio":
             return (
@@ -261,9 +273,47 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                 />
             );
 
+        case "email":
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Regex simples para validar o email
+
+            // Função para verificar se o email é válido
+            const isValidEmail = (email: string) => emailPattern.test(email);
+
+            return (
+                <div>
+                    <Input
+                        {...formField}
+                        type="email"
+                        placeholder={field.placeholder}
+                        disabled={formField.disabled}
+                        value={formField.value ?? ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const email = e.target.value;
+                            formField.onChange(email);
+                        }}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                            // Aqui você pode implementar alguma ação quando o campo perde o foco
+                            if (!isValidEmail(e.target.value) && e.target.value !== "") {
+                                // Exibir algum erro se o email não for válido
+                                alert("Por favor, insira um email válido.");
+                            }
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        autoComplete="email"  // Ajuda no preenchimento automático
+                    />
+                    {/* Mensagem de erro se o email não for válido */}
+                    {formField.value && !isValidEmail(formField.value) && (
+                        <div className="text-red-600 text-xs mt-1">
+                            Por favor, insira um email válido.
+                        </div>
+                    )}
+                </div>
+            );
+
         default:
             return null;
     }
 }
+
 
 export default FormSectionRenderer; 

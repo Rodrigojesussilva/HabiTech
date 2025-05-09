@@ -44,8 +44,19 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             // Atualiza o valor do campo no formulário
             form.setValue(`families[${familyIndex}].cep`, cepMasked);
         }
-    }, [form.watch(`families[${familyIndex}].cep`)]); // Executa sempre que o valor do CEP mudar
+    }, [form.watch(`families[${familyIndex}].cep`)]); 
 
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoAplica === undefined) {
+            form.setValue(`families[${familyIndex}].naoAplica`, false);
+        }
+        
+    }, [
+        formValues.naoAplica,   
+        form,
+        familyIndex
+    ]);
 
     const formSections = getMergedFormSections(formValues);
 

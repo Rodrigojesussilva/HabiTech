@@ -139,7 +139,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         situacaoUsoUnidadeConditionals.push(
             {
                 name: "nome_responsavel",
-                label: "Nome da pessoa responsável",
+                label: "Nome da pessoa responsável pelo terreno",
                 type: "text" as const,
                 required: false,
                 conditions: [
@@ -148,7 +148,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
             },
             {
                 name: "telefone_responsavel",
-                label: "Telefone da pessoa responsável",
+                label: "Telefone da pessoa responsável pelo terreno",
                 type: "text" as const,
                 required: false,
                 conditions: [

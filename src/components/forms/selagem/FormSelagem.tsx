@@ -56,6 +56,7 @@ const familySchema = z.object({
 const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
+	naoAplica: z.string(),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
 	interviewDate: z.string(),
 	startTime: z.string(),
@@ -97,6 +98,7 @@ const FormSelagem = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
+			naoAplica: "",
 			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
@@ -236,6 +238,14 @@ const FormSelagem = ({
 					type: "text",
 					required: true,
 					sidebarform: true,
+					showinmodal: true
+				} as FormFieldType,
+				{
+					name: "naoAplica",
+					label: "Não se aplica",
+					type: "checkbox",
+					required: true,
+					sidebarform: false,
 					showinmodal: true
 				} as FormFieldType,
 				{

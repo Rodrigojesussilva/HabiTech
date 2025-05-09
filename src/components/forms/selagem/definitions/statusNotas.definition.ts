@@ -18,11 +18,11 @@ export type FormValues = z.infer<typeof statusNotasSchema>;
 
 // Base form structure
 export const statusNotasDefinition: FormConfig = {
-    title: "Status e Notas",
+    title: "Status e Notas do Formulário",
     sections: [
         {
             id: "status",
-            title: "Status e Notas",
+            title: "Status e Notas do Formulário",
             fields: [
                 {
                     name: "status",
