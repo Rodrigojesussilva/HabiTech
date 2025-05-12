@@ -23,7 +23,20 @@ const IdentRespForm = ({  sectionIndex: sectionNumber, familyIndex }: IdentRespF
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
     const formSections = getMergedFormSections(formValues);
-    // Update age when date of birth changes
+    
+     useEffect(() => {
+        if (formValues.naoSeAplicaEntrevistado) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
+           
+    
+            if (nomeResponsavel) {
+                form.setValue(`families[${familyIndex}].nomeSocialEntrevistado`, "");
+               
+            }
+        }
+    }, [formValues.naoSeAplicaEntrevistado, form, familyIndex]);
+    
     useEffect(() => {
         const dataNascimento = formValues.dataNascimentoResp;
         if (dataNascimento) {

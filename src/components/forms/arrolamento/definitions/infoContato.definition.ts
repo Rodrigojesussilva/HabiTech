@@ -5,26 +5,49 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 export const infoContatoSchema = z.object({
     // Instead of an array, we'll define individual telefone fields that can be enabled/disabled
     telefone1: z.string().optional(),
-    telefone1WhatsApp: z.boolean().optional(),
+    tipoTelefone1: z.string().optional(),
     telefone2: z.string().optional(),
-    telefone2WhatsApp: z.boolean().optional(),
+    tipoTelefone2: z.string().optional(),
     telefone3: z.string().optional(),
+    tipoTelefone3: z.string().optional(),
+    telefone4: z.string().optional(),
+    tipoTelefone4: z.string().optional(),
+
+    telefone1WhatsApp: z.boolean().optional(),
+    telefone2WhatsApp: z.boolean().optional(),
     telefone3WhatsApp: z.boolean().optional(),
+    telefone4WhatsApp: z.boolean().optional(),
+
     ativarTelefone2: z.boolean().optional(),
     ativarTelefone3: z.boolean().optional(),
+    ativarTelefone4: z.boolean().optional(),
 
-    telefoneResidencial: z.string().optional(),
-    recado: z.boolean().optional(),
     telefoneRecado: z.string().optional(),
     nomeRecado: z.string().optional(),
     parente: z.string().optional(),
     escrevParentesco: z.string().optional(),
-    telefoneComercial: z.string().optional(),
+
+
+
+    nomeRecado2: z.string().optional(),
+    parente2: z.string().optional(),
+    escrevParentesco2: z.string().optional(),
+
+
+
+    nomeRecado3: z.string().optional(),
+    parente3: z.string().optional(),
+    escrevParentesco3: z.string().optional(),
+
+    nomeRecado4: z.string().optional(),
+    parente4: z.string().optional(),
+    escrevParentesco4: z.string().optional(),
+
     email: z.string().optional(),
-    naoSabeTelefoneComercial: z.boolean().optional(),
     naoSabeEmail: z.boolean().optional(),
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
+
 });
 
 export type FormValues = z.infer<typeof infoContatoSchema>;
@@ -32,23 +55,42 @@ export type FormValues = z.infer<typeof infoContatoSchema>;
 // Default values
 export const defaultValues: Partial<FormValues> = {
     telefone1: "",
-    telefone1WhatsApp: false,
+    tipoTelefone1: "",
     telefone2: "",
-    telefone2WhatsApp: false,
+    tipoTelefone2: "",
     telefone3: "",
-    telefone3WhatsApp: false,
+    tipoTelefone3: "",
+    telefone4: "",
+    tipoTelefone4: "",
+
     ativarTelefone2: false,
     ativarTelefone3: false,
+    ativarTelefone4: false,
 
-    telefoneResidencial: "",
-    recado: false,
-    telefoneRecado: "",
+    telefone1WhatsApp: false,
+    telefone2WhatsApp: false,
+    telefone3WhatsApp: false,
+    telefone4WhatsApp: false,
+
     nomeRecado: "",
     parente: "",
     escrevParentesco: "",
-    telefoneComercial: "",
+
+
+    nomeRecado2: "",
+    parente2: "",
+    escrevParentesco2: "",
+
+
+    nomeRecado3: "",
+    parente3: "",
+    escrevParentesco3: "",
+
+    nomeRecado4: "",
+    parente4: "",
+    escrevParentesco4: "",
+
     email: "",
-    naoSabeTelefoneComercial: false,
     naoSabeEmail: false,
     idLocal: "not",
 };
@@ -61,84 +103,61 @@ export const infoContatoDefinition: FormConfig = {
             id: "informacoesContato",
             title: "Informações para Contato",
             fields: [
-                // First telefone is always shown
                 {
                     name: "telefone1",
-                    label: "Telefone Celular 1",
+                    label: "Telefone 1",
                     type: "text" as const,
                     required: false,
-                    mask: "(99) 99999-9999"
+                    mask: "(99) 99999-9999",
+                    placeholder: "Digite o 1º telefone"
                 },
                 {
-                    name: "telefone1WhatsApp",
-                    label: "Este celular tem WhatsApp?",
-                    type: "checkbox" as const,
-                    required: false
+                    name: "tipoTelefone1",
+                    label: "Tipo de telefone 1",
+                    type: "select" as const,
+                    required: true,
+
+                    options: [
+
+                        { label: "Selecione uma opção", value: "select" },
+                        { label: "Celular", value: "celular" },
+                        { label: "Residencial", value: "residencial" },
+                        { label: "Comercial", value: "comercial" },
+                        { label: "Recado", value: "recado" },
+
+                    ]
                 },
+
                 // Option to add second telefone
                 {
                     name: "ativarTelefone2",
-                    label: "Adicionar segundo telefone celular",
+                    label: "Adicionar segundo telefone",
                     type: "checkbox" as const,
                     required: false
                 },
-                {
-                    name: "telefoneResidencial",
-                    label: "Telefone Residencial",
-                    type: "text" as const,
-                    required: false,
-                    mask: "(99) 9999-9999"
-                },
-                {
-                    name: "recado",
-                    label: "Telefone para recado",
-                    type: "checkbox" as const,
-                    required: false
-                },
-                {
-                    name: "telefoneComercial",
-                    label: "Telefone Comercial",
-                    type: "text" as const,
-                    required: false,
-                    mask: "(99) 9999-9999",
-                    conditions: [
-                        { field: "naoSabeTelefoneComercial", operator: "equals", value: false }
-                    ]
-                },
-                {
-                    name: "naoSabeTelefoneComercial",
-                    label: "Não se aplica",
-                    type: "checkbox" as const,
-                    required: false
-                },
+
                 {
                     name: "email",
                     label: "Email",
                     type: "email",
                     required: false,
-                    
+                    placeholder: "Digite o email"
+
                 },
                 {
                     name: "naoSabeEmail",
                     label: "Não se aplica",
                     type: "checkbox" as const,
                     required: false,
+                    disableField: "email",
+                    dependent: true,
 
                 }
             ]
         }
     ]
 };
-// Utilitário para inserir campos após um campo específico
-function insertAfter(fields: FormField[], targetName: string, toInsert: FormField[]) {
-    const index = fields.findIndex(f => f.name === targetName);
-    if (index === -1) return [...fields, ...toInsert];
-    return [
-        ...fields.slice(0, index + 1),
-        ...toInsert,
-        ...fields.slice(index + 1)
-    ];
-}
+
 /**
  * Get additional conditional fields based on form values for InfoContato form
  * This centralizes all conditional field logic specific to InfoContato in one place
@@ -147,65 +166,24 @@ function insertAfter(fields: FormField[], targetName: string, toInsert: FormFiel
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
 
-    // Add telefone2 fields if ativarTelefone2 is checked
-    if (formValues.ativarTelefone2 === true) {
-        conditionalFields.push(
-            {
-                name: "telefone2",
-                label: "Telefone Celular 2",
-                type: "text",
-                required: false,
-                mask: "(99) 99999-9999"
-            },
-            {
-                name: "telefone2WhatsApp",
-                label: "Este celular tem WhatsApp?",
-                type: "checkbox",
-                required: false
-            },
-            {
-                name: "ativarTelefone3",
-                label: "Adicionar terceiro telefone celular",
-                type: "checkbox",
-                required: false
-            }
-        );
+    // Se tipoTelefone1 for "celular", exibe checkbox de WhatsApp
+    if (formValues.tipoTelefone1 === "celular") {
+        conditionalFields.push({
+            name: "telefone1WhatsApp",
+            label: "Este celular tem WhatsApp?",
+            type: "checkbox",
+            required: false
+        });
     }
-
-    // Add telefone3 fields if ativarTelefone3 is checked
-    if (formValues.ativarTelefone3 === true) {
+    // Se tipoTelefone1 for "recado", exibe campos adicionais para recado
+    if (formValues.tipoTelefone1 === "recado") {
         conditionalFields.push(
-            {
-                name: "telefone3",
-                label: "Telefone Celular 3",
-                type: "text",
-                required: false,
-                mask: "(99) 99999-9999"
-            },
-            {
-                name: "telefone3WhatsApp",
-                label: "Este celular tem WhatsApp?",
-                type: "checkbox",
-                required: false
-            }
-        );
-    }
-
-    // Conditionally add fields based on "recado" value
-    if (formValues.recado === true) {
-        conditionalFields.push(
-            {
-                name: "telefoneRecado",
-                label: "Telefone para Recado",
-                type: "text",
-                required: false,
-                mask: "(99) 99999-9999"
-            },
             {
                 name: "nomeRecado",
                 label: "Nome da Pessoa para Recado",
                 type: "text",
-                required: false
+                required: false,
+                placeholder: "Digite o nome da pessoa para recado"
             },
             {
                 name: "parente",
@@ -214,7 +192,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: true,
                 options: [
                     { label: "Selecione uma opção", value: "select" },
-                    { label: "Cônjuge/Campanheiro", value: "conjuge_companheiro" },
+                    { label: "Cônjuge/Companheiro", value: "conjuge_companheiro" },
                     { label: "Filha", value: "filha" },
                     { label: "Filho", value: "filho" },
                     { label: "Enteada", value: "enteada" },
@@ -225,7 +203,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Pai", value: "pai" },
                     { label: "Sogra", value: "sogra" },
                     { label: "Sogro", value: "sogro" },
-                    { label: "Sogra", value: "sogra" },
                     { label: "Neta", value: "neta" },
                     { label: "Neto", value: "neto" },
                     { label: "Nora", value: "nora" },
@@ -236,27 +213,284 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Sobrinho", value: "sobrinho" },
                     { label: "Sem Relação de Parentesco", value: "sem_relação" },
                     { label: "Não sabe informar", value: "nao_sabe" },
-                    { label: "Outra Relação de Parentesco", value: "outro" },
-
+                    { label: "Outra Relação de Parentesco", value: "outro" }
                 ]
-            },
+            }
         );
     }
+    // Se tipoTelefone2 for "celular", exibe checkbox de WhatsApp
+    if (formValues.tipoTelefone2 === "celular") {
+        conditionalFields.push({
+            name: "telefone2WhatsApp",
+            label: "Este celular tem WhatsApp?",
+            type: "checkbox",
+            required: false
+        });
+    }
+    // Se tipoTelefone2 for "recado", exibe campos adicionais para recado
+    if (formValues.tipoTelefone2 === "recado") {
+        conditionalFields.push(
+            {
+                name: "nomeRecado2",
+                label: "Nome da Pessoa para Recado",
+                type: "text",
+                required: false,
+                placeholder: "Digite o nome da pessoa para recado"
+            },
+            {
+                name: "parente2",
+                label: "Relação de Parentesco",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Cônjuge/Companheiro", value: "conjuge_companheiro" },
+                    { label: "Filha", value: "filha" },
+                    { label: "Filho", value: "filho" },
+                    { label: "Enteada", value: "enteada" },
+                    { label: "Enteado", value: "enteado" },
+                    { label: "Irmã", value: "irma" },
+                    { label: "Irmão", value: "irmao" },
+                    { label: "Mãe", value: "mae" },
+                    { label: "Pai", value: "pai" },
+                    { label: "Sogra", value: "sogra" },
+                    { label: "Sogro", value: "sogro" },
+                    { label: "Neta", value: "neta" },
+                    { label: "Neto", value: "neto" },
+                    { label: "Nora", value: "nora" },
+                    { label: "Genro", value: "genro" },
+                    { label: "Madastra", value: "madastra" },
+                    { label: "Padastro", value: "padastro" },
+                    { label: "Sobrinha", value: "sobrinha" },
+                    { label: "Sobrinho", value: "sobrinho" },
+                    { label: "Sem Relação de Parentesco", value: "sem_relação" },
+                    { label: "Não sabe informar", value: "nao_sabe" },
+                    { label: "Outra Relação de Parentesco", value: "outro" }
+                ]
+            }
+        );
+    }
+    // Se tipoTelefone3 for "celular", exibe checkbox de WhatsApp
+    if (formValues.tipoTelefone3 === "celular") {
+        conditionalFields.push({
+            name: "telefone3WhatsApp",
+            label: "Este celular tem WhatsApp?",
+            type: "checkbox",
+            required: false
+        });
+    }
+    // Se tipoTelefone3 for "recado", exibe campos adicionais para recado
+    if (formValues.tipoTelefone3 === "recado") {
+        conditionalFields.push(
 
-    // Add escrevParentesco field only when parentesco is "outro"
+            {
+                name: "nomeRecado3",
+                label: "Nome da Pessoa para Recado",
+                type: "text",
+                required: false,
+                placeholder: "Digite o nome da pessoa para recado"
+            },
+            {
+                name: "parente3",
+                label: "Relação de Parentesco",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Cônjuge/Companheiro", value: "conjuge_companheiro" },
+                    { label: "Filha", value: "filha" },
+                    { label: "Filho", value: "filho" },
+                    { label: "Enteada", value: "enteada" },
+                    { label: "Enteado", value: "enteado" },
+                    { label: "Irmã", value: "irma" },
+                    { label: "Irmão", value: "irmao" },
+                    { label: "Mãe", value: "mae" },
+                    { label: "Pai", value: "pai" },
+                    { label: "Sogra", value: "sogra" },
+                    { label: "Sogro", value: "sogro" },
+                    { label: "Neta", value: "neta" },
+                    { label: "Neto", value: "neto" },
+                    { label: "Nora", value: "nora" },
+                    { label: "Genro", value: "genro" },
+                    { label: "Madastra", value: "madastra" },
+                    { label: "Padastro", value: "padastro" },
+                    { label: "Sobrinha", value: "sobrinha" },
+                    { label: "Sobrinho", value: "sobrinho" },
+                    { label: "Sem Relação de Parentesco", value: "sem_relação" },
+                    { label: "Não sabe informar", value: "nao_sabe" },
+                    { label: "Outra Relação de Parentesco", value: "outro" }
+                ]
+            }
+        );
+    }
+    // Se tipoTelefone4 for "celular", exibe checkbox de WhatsApp
+    if (formValues.tipoTelefone4 === "celular") {
+        conditionalFields.push({
+            name: "telefone4WhatsApp",
+            label: "Este celular tem WhatsApp?",
+            type: "checkbox",
+            required: false
+        });
+    }
+    // Se tipoTelefone4 for "recado", exibe campos adicionais para recado
+    if (formValues.tipoTelefone4 === "recado") {
+        conditionalFields.push(
+
+            {
+                name: "nomeRecado4",
+                label: "Nome da Pessoa para Recado",
+                type: "text",
+                required: false,
+                placeholder: "Digite o nome da pessoa para recado"
+            },
+            {
+                name: "parente4",
+                label: "Relação de Parentesco",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Cônjuge/Companheiro", value: "conjuge_companheiro" },
+                    { label: "Filha", value: "filha" },
+                    { label: "Filho", value: "filho" },
+                    { label: "Enteada", value: "enteada" },
+                    { label: "Enteado", value: "enteado" },
+                    { label: "Irmã", value: "irma" },
+                    { label: "Irmão", value: "irmao" },
+                    { label: "Mãe", value: "mae" },
+                    { label: "Pai", value: "pai" },
+                    { label: "Sogra", value: "sogra" },
+                    { label: "Sogro", value: "sogro" },
+                    { label: "Neta", value: "neta" },
+                    { label: "Neto", value: "neto" },
+                    { label: "Nora", value: "nora" },
+                    { label: "Genro", value: "genro" },
+                    { label: "Madastra", value: "madastra" },
+                    { label: "Padastro", value: "padastro" },
+                    { label: "Sobrinha", value: "sobrinha" },
+                    { label: "Sobrinho", value: "sobrinho" },
+                    { label: "Sem Relação de Parentesco", value: "sem_relação" },
+                    { label: "Não sabe informar", value: "nao_sabe" },
+                    { label: "Outra Relação de Parentesco", value: "outro" }
+                ]
+            }
+        );
+    }
+    // Se telefone 2 estiver ativado, mostra campos relacionados
+    if (formValues.ativarTelefone2 === true) {
+        conditionalFields.push(
+            {
+                name: "telefone2",
+                label: "Telefone 2",
+                type: "text",
+                required: false,
+                mask: "(99) 99999-9999",
+                placeholder: "Digite o 2º telefone"
+            },
+            {
+                name: "tipoTelefone2",
+                label: "Tipo de telefone 2",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Celular", value: "celular" },
+                    { label: "Residencial", value: "residencial" },
+                    { label: "Comercial", value: "comercial" },
+                    { label: "Recado", value: "recado" }
+                ]
+            },
+            {
+                name: "ativarTelefone3",
+                label: "Adicionar terceiro telefone",
+                type: "checkbox",
+                required: false
+            }
+        );
+    }
+    // Se telefone 3 estiver ativado, mostra campos relacionados
+    if (formValues.ativarTelefone3 === true) {
+        conditionalFields.push(
+            {
+                name: "telefone3",
+                label: "Telefone 3",
+                type: "text",
+                required: false,
+                mask: "(99) 99999-9999",
+                placeholder: "Digite o 3º telefone"
+            },
+            {
+                name: "tipoTelefone3",
+                label: "Tipo de telefone 3",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Celular", value: "celular" },
+                    { label: "Residencial", value: "residencial" },
+                    { label: "Comercial", value: "comercial" },
+                    { label: "Recado", value: "recado" }
+                ]
+            },
+            {
+                name: "ativarTelefone4",
+                label: "Adicionar quarto telefone",
+                type: "checkbox",
+                required: false
+            }
+        );
+    }
+    // Se telefone 4 estiver ativado, mostra campos relacionados
+    if (formValues.ativarTelefone4 === true) {
+        conditionalFields.push(
+            {
+                name: "telefone4",
+                label: "Telefone 4",
+                type: "text",
+                required: false,
+                mask: "(99) 99999-9999",
+                placeholder: "Digite o 4º telefone"
+            },
+            {
+                name: "tipoTelefone4",
+                label: "Tipo de telefone 4",
+                type: "select" as const,
+                required: true,
+                options: [
+                    { label: "Selecione uma opção", value: "select" },
+                    { label: "Celular", value: "celular" },
+                    { label: "Residencial", value: "residencial" },
+                    { label: "Comercial", value: "comercial" },
+                    { label: "Recado", value: "recado" }
+                ]
+            },
+
+        );
+    }
+    // Se parente for "outro", exibe campo para escrever o parentesco
     if (formValues.parente === "outro") {
         conditionalFields.push({
             name: "escrevParentesco",
             label: "Descreva o parentesco",
             type: "text",
-            required: false,
-            conditions: [
-                { field: "parentesco", operator: "equals", value: "outro" }
-            ]
+            required: false
         });
     }
 
     return conditionalFields;
+}
+
+function afterInsert(
+    baseFields: any[],
+    conditionalFields: any[],
+    campoBase: string,
+    nomesCondicionais: string[]
+) {
+    const extras = conditionalFields.filter(field => nomesCondicionais.includes(field.name));
+    const indexBase = baseFields.findIndex(f => f.name === campoBase);
+    if (indexBase !== -1 && extras.length) {
+        baseFields.splice(indexBase + 1, 0, ...extras);
+    }
 }
 
 /**
@@ -266,51 +500,42 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
  * @returns Array of form sections with merged fields
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    try {
-        const conditionalFields = getConditionalFields(formValues);
+    const conditionalFields = getConditionalFields(formValues);
+    const baseFields = [...infoContatoDefinition.sections[0].fields];
 
-        // Clonar os campos base
-        let fields = [...infoContatoDefinition.sections[0].fields];
+    afterInsert(baseFields, conditionalFields, "ativarTelefone2", [
+        "telefone2", "tipoTelefone2", "ativarTelefone3"
+    ]);
+    afterInsert(baseFields, conditionalFields, "ativarTelefone3", [
+        "telefone3", "tipoTelefone3", "telefoneRecado3", "ativarTelefone4"
+    ]);
+    afterInsert(baseFields, conditionalFields, "ativarTelefone4", [
+        "telefone4", "tipoTelefone4", "telefoneRecado4"
+    ]);
+    afterInsert(baseFields, conditionalFields, "tipoTelefone1", [
+        "telefone1WhatsApp", "telefoneRecado", "nomeRecado", "parente"
+    ]);
+    afterInsert(baseFields, conditionalFields, "tipoTelefone2", [
+        "telefone2WhatsApp", "telefoneRecado2", "nomeRecado2", "parente2"
+    ]);
+    afterInsert(baseFields, conditionalFields, "tipoTelefone3", [
+        "telefone3WhatsApp", "telefoneRecado3", "nomeRecado3", "parente3"
+    ]);
+    afterInsert(baseFields, conditionalFields, "tipoTelefone4", [
+        "telefone4WhatsApp", "telefoneRecado4", "nomeRecado4", "parente4"
+    ]);
 
-        // ----------- TELEFONE 2 -----------
-        const telefone2Fields = conditionalFields.filter(f => f.name?.startsWith("telefone2"));
-        fields = insertAfter(fields, "ativarTelefone2", telefone2Fields);
-
-        // ----------- TELEFONE 3 -----------
-        const telefone3Fields = conditionalFields.filter(f => f.name?.startsWith("telefone3"));
-        const ativarTelefone3Field = conditionalFields.find(f => f.name === "ativarTelefone3");
-        if (ativarTelefone3Field) {
-            fields = insertAfter(fields, "telefone2WhatsApp", [ativarTelefone3Field]);
+    return [
+        {
+            ...infoContatoDefinition.sections[0],
+            fields: baseFields
         }
-        if (formValues.ativarTelefone3 === true) {
-            fields = insertAfter(fields, "ativarTelefone3", telefone3Fields);
-        }
-
-        // ----------- TELEFONE PARA RECADO -----------
-        const recadoFields = conditionalFields.filter(f =>
-            ["telefoneRecado", "nomeRecado", "parente"].includes(f.name ?? "")
-        );
-        const escrevParentescoField = conditionalFields.find(f => f.name === "escrevParentesco");
-
-        // Inserir os campos de recado após o checkbox "recado"
-        fields = insertAfter(fields, "recado", recadoFields);
-
-        // Inserir o campo "escrevParentesco" após "parente", se necessário
-        if (escrevParentescoField) {
-            fields = insertAfter(fields, "parente", [escrevParentescoField]);
-        }
-
-        return [
-            {
-                ...infoContatoDefinition.sections[0],
-                fields
-            }
-        ];
-    } catch (error) {
-        console.error("Error in getMergedFormSections:", error);
-        return [infoContatoDefinition.sections[0]];
-    }
+    ];
 }
+
+
+
+
 
 
 

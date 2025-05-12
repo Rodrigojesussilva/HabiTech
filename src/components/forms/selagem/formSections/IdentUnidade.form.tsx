@@ -58,6 +58,19 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         familyIndex
     ]);
 
+    useEffect(() => {
+        if (formValues.naoAplica) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const nomeResponsavel = form.getValues(`families[${familyIndex}].cep`);
+           
+    
+            if (nomeResponsavel) {
+                form.setValue(`families[${familyIndex}].cep`, "");
+               
+            }
+        }
+    }, [formValues.naoAplica, form, familyIndex]);
+
     const formSections = getMergedFormSections(formValues);
 
     return (

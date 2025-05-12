@@ -4,7 +4,7 @@ import { estados } from '../estadosCidades';
 // Form validation schema
 export const identUnidadeSchema = z.object({
     cep: z.string().optional(),
-    naoAplica: z.string().optional(), 
+    naoAplica: z.string().optional(),
     logradouro: z.string().optional(),
     numero: z.string().optional(),
     bairro: z.string().optional(),
@@ -30,7 +30,7 @@ export const defaultValues: Partial<FormValues> = {
     uf: "",
     cidade: "",
     subPrefeitura: "",
-    distrito:"",
+    distrito: "",
     idLocal: "not",
 };
 
@@ -50,15 +50,15 @@ export const identUnidadeDefinition: FormConfig = {
                     required: false,
                     mask: "9999-999",
                     placeholder: "0000-000",
-                    conditions: [
-                        { field: "naoAplica", operator: "equals", value: false }
-                    ]
+
                 },
                 {
                     name: "naoAplica",
                     label: "Não se aplica",
                     type: "checkbox" as const,
-                    required: false
+                    required: false,
+                    disableField: "cep",
+                    dependent: true
                 },
                 {
                     name: "logradouro",
@@ -118,7 +118,7 @@ export const identUnidadeDefinition: FormConfig = {
                     required: false,
                     options: [
                         { label: "Obter opções para Subprefeitura", value: "#" },
-                       
+
                     ]
                 },
                 {
@@ -128,7 +128,7 @@ export const identUnidadeDefinition: FormConfig = {
                     required: false,
                     options: [
                         { label: "Obter opções para Distrito", value: "#" },
-                       
+
                     ]
                 },
 
