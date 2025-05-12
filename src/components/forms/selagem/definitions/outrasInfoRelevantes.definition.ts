@@ -29,7 +29,7 @@ export const outrasInfoRelevantesDefinition: FormConfig = {
             fields: [
                 {
                     name: "outrasInformacoes",
-                    label: "Descreva outras informações relevantes",
+                    label: "Especifique outras informações relevantes",
                     type: "textarea", 
                     required: false
                 }

@@ -28,7 +28,7 @@ export const outrasInfosDefinition: FormConfig = {
             fields: [
                 {
                     name: "texto",
-                    label: "Descreva outras informações relevantes",
+                    label: "Especifique outras informações relevantes",
                     type: "text",
                     placeholder: "Digite aqui informações adicionais relevantes",
                     required: false,

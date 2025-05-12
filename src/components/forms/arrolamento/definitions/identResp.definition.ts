@@ -147,7 +147,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     if (formValues.relacaoResponsavel === "outro") {
         conditionalFields.push({
             name: "DescrevParentesco",
-            label: "Descreva a Relação de Parentesco",
+            label: "Especifique a Relação de Parentesco",
             type: "text",
             required: false,
             conditions: [

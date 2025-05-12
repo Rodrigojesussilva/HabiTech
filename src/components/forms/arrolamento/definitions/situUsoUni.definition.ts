@@ -248,9 +248,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         if (formValues.documentoComprovacao === "outro") {
             conditionalFields.push({
                 name: "descricaoDocumento",
-                label: "Descreva o documento",
+                label: "Especifique o documento",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "documentoComprovacao"
             });
         }
     }
@@ -301,7 +302,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoReciclavel",
                 label: "Especifique o destino do resíduo reciclável",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoReciclavel"
             });
         }
         
@@ -326,7 +328,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoOrganico",
                 label: "Especifique o destino do resíduo orgânico",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoOrganico"
             });
         }
     }
@@ -357,7 +360,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoDomestico",
                 label: "Especifique o destino dos resíduos domésticos",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoDomestico"
             });
         }
     }

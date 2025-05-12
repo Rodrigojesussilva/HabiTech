@@ -237,7 +237,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     if (formValues.parentesco === "outro") {
         conditionalFields.push({
             name: "escrevParentesco",
-            label: "Descreva o parentesco",
+            label: "Especifique o parentesco",
             type: "text",
             required: false,
             conditions: [
