@@ -1,11 +1,14 @@
 import * as React from "react"
 import {
+  Fingerprint,
+  Stamp,
+  House,
+  Factory,
+  Building,
   Frame,
   Building2,
   Map,
   PieChart,
-  Handshake,
-  LayoutDashboard,
 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { NavMain } from "@/components/navigation/sidebar/NavMain"
@@ -33,22 +36,102 @@ const data = {
   ],
   navMain: [
     {
-      title: "Dashboards",
-      url: "/chart",
-      icon: LayoutDashboard,
+      title: "Selagem",
+      url: "/lista-selagens",
+      icon: Stamp,
       isActive: true,
       items: [
 
       ],
     },
-    
     {
-      title: "Regularização Fundiária",
-      url: "/lista-reg-fundiaria",
-      icon: Handshake,
-      items: [],
+      title: "Arrolamento",
+      url: "/lista-arrolamentos",
+      icon: Fingerprint,
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
     },
-    
+    {
+      title: "Residencial",
+      url: "#",
+      icon: House,
+      items: [
+        {
+          title: "Introduction",
+          url: "#",
+        },
+        {
+          title: "Get Started",
+          url: "#",
+        },
+        {
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Não Residencial",
+      url: "#",
+      icon: Factory,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Ocupação Predial",
+      url: "#",
+      icon: Building,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
   ],
   projects: [
     {

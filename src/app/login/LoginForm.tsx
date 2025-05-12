@@ -73,6 +73,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
  
         // Store authentication state
         localStorage.setItem('isAuthenticated', 'true');
+        //localStorage.setItem('userEmail', userEmail); 
         setIsLoginDone(true);
         navigate("/home");
       } catch (error) {

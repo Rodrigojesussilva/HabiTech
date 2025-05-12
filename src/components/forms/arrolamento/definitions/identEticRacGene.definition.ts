@@ -80,6 +80,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             label: "Especifique o Gênero",
             type: "text",
             required: false,
+            insertAfterField: "genero",
             conditions: [
                 { field: "genero", operator: "equals", value: "outros" }
             ]

@@ -27,7 +27,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup className="-ml-2">
-      <SidebarGroupLabel>Seções</SidebarGroupLabel>
+      <SidebarGroupLabel>Formulários</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.url}>

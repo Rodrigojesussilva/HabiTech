@@ -34,15 +34,45 @@ export default function DemoPage() {
 
 	return (
 		<>
-			<div className="flex flex-col text-left ml-10 mt-10 gap-4">
-				<h1 className="text-2xl font-bold">Regularização Fundiária</h1>
-				<p className="text-sm text-gray-500">
-					Visualize ou modifique os dados de Regularização Fundiária.
-				</p>
-			</div>
-			<div className="container mx-auto p-10">
-				<DataTable columns={columns} data={data} />
-			</div>
+			<>
+				  <div className="flex flex-col text-left ml-10 mt-10 gap-4">
+					<h1 className="text-2xl font-bold">Listagem de Fomulários de Arrolamento</h1>
+			
+					{/* Campos de data para pesquisa */}
+					<div className="flex flex-row gap-4 items-center">
+					  <div className="flex flex-col">
+						<label htmlFor="data-inicial" className="text-sm font-medium text-gray-700">
+						  Data inicial
+						</label>
+						<input
+						  type="date"
+						  id="data-inicial"
+						  name="data-inicial"
+						  className="border border-gray-300 rounded px-3 py-1 mt-1"
+						/>
+					  </div>
+					  <div className="flex flex-col">
+						<label htmlFor="data-final" className="text-sm font-medium text-gray-700">
+						  Data final
+						</label>
+						<input
+						  type="date"
+						  id="data-final"
+						  name="data-final"
+						  className="border border-gray-300 rounded px-3 py-1 mt-1"
+						/>
+					  </div>
+					</div>
+			
+					<p className="text-sm text-gray-500">
+					  Visualize ou modifique os dados de arrolamento.
+					</p>
+				  </div>
+			
+				  <div className="container mx-auto p-10">
+					<DataTable columns={columns} data={data} />
+				  </div>
+				</>
 		</>
 	)
 }

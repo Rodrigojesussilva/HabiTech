@@ -23,7 +23,22 @@ export function formatCurrency(value: string | number): string {
         minimumFractionDigits: 2
     }).format(numValue);
 }
+export function formatInteger(value: string | number): string {
+    if (!value) return "0";
 
+    // Converte para número, removendo tudo que não for dígito
+    let numValue = typeof value === 'string'
+        ? parseInt(value.replace(/[^\d]/g, ''), 10)
+        : Math.floor(value); // Garante que seja inteiro
+
+    // Verifica se é um número válido
+    if (isNaN(numValue)) return "0";
+
+    // Formata com separadores de milhar no padrão brasileiro
+    return new Intl.NumberFormat('pt-BR', {
+        maximumFractionDigits: 0,
+    }).format(numValue);
+}
 /**
  * Calculate the total number of people from age groups
  * @param data Form data containing age group counts

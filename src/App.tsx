@@ -6,11 +6,13 @@ import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
 
 import { Routes, Route } from "react-router-dom";
+import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
+import FormSelagem from './components/forms/selagem/FormSelagem'
 import { useState, useEffect } from 'react'
 import DemoPage from './components/formDataTables/arrolamento/list'
+import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'
-import FormRegFundiaria from './components/forms/regFundiaria/FormRegFundiaria'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -52,13 +54,14 @@ function App() {
             <Header />
             <ContentController>
               <Routes>
-                <Route path="/" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
-                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
+                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
-                <Route path="/lista-reg-fundiaria" element={<DemoPage />} />
+                <Route path="/lista-arrolamentos" element={<DemoPage />} />
+                <Route path="/lista-selagens" element={<DemoPageS />} />
                 <Route path="/chart" element={<ChartAreaInteractive />} />
-                <Route path="/create-reg-fundiaria" element={<FormularioContainer FormComponent={FormRegFundiaria} />} />
               </Routes>
             </ContentController>
           </>

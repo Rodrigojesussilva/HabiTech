@@ -21,7 +21,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
-    
+
     // Initialize telefones array if it doesn't exist
     useEffect(() => {
         const currentTelefones = form.getValues(`families[${familyIndex}].telefones`);
@@ -29,7 +29,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].telefones`, [{ numero: "", isWhatsApp: false }]);
         }
     }, []);
-
     // Format telefone fields when they change
     useEffect(() => {
         // Format all possible phone fields
@@ -57,6 +56,28 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         formValues.telefoneResidencial,
         formValues.telefoneRecado,
         formValues.telefoneComercial
+    ]);
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoSabeEmail === undefined) {
+            form.setValue(`families[${familyIndex}].naoSabeEmail`, false);
+        }
+
+    }, [
+        formValues.naoSabeEmail,
+        form,
+        familyIndex
+    ]);
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoSabeTelefoneComercial === undefined) {
+            form.setValue(`families[${familyIndex}].naoSabeTelefoneComercial`, false);
+        }
+
+    }, [
+        formValues.naoSabeTelefoneComercial,
+        form,
+        familyIndex
     ]);
 
     // Get merged form sections with conditional fields included

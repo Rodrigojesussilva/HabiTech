@@ -17,7 +17,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 	}
 	return (
 		<>
-			<div className="flex gap-4">
+			<div className="flex flex-wrap lg:flex-nowrap md:flex-nowrap gap-0">
 				{/* Sidebar controlando as famílias e as seções */}
 				<FormSidebar
 					formRef={formRef}
@@ -27,7 +27,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 					setIsMetadataModalOpen={setIsMetadataModalOpen}
 				/>
 				{/* Card com o formulário */}
-				<Card className="w-full md:w-3/4 lg:w-3/4 h-full p-4 lg:ml-94 md:ml-70 m-4">
+				<Card className="flex-1 min-w-[60%] h-full p-4 my-4 mr-4 ml-4">
 					<FormComponent
 						ref={formRef}
 						isMetadataModalOpen={isMetadataModalOpen}

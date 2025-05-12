@@ -13,11 +13,13 @@ export type FormCondition = {
 export type FormField = {
     name: string;
     label: string;
-    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'label';
+    type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'label' | 'textarea' | 'file' | 'numberSpinner' | 'email';
     required: boolean;
     readonly?: boolean;
     options?: { label: string; value: string }[];
-    mask?: string;
+    mask?: string;    
+    max?: number;
+    step?: number;
     placeholder?: string;
     dependent?: boolean;
     disableField?: string;
@@ -27,6 +29,7 @@ export type FormField = {
 	sidebarlabel?: string;
 	showinmodal?: boolean;
     min?: number;
+    insertAfterField?: string; // Campo após o qual este campo deve ser inserido
 };
 
 // Generic form section type

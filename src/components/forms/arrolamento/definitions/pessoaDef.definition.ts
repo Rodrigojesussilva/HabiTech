@@ -113,7 +113,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false,
                 // Use mask for number input with min value instead of inputType
                 mask: "9999",
-                placeholder: "Quantidade (mínimo 1)"
+                placeholder: "Quantidade (mínimo 1)",
+                insertAfterField: "temPessoaDeficienciaFam"
             },
             {
                 name: "responsavelTemDeficiencia",
@@ -123,7 +124,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 options: [
                     { label: "Sim", value: "sim" },
                     { label: "Não", value: "nao" }
-                ]
+                ],
+                insertAfterField: "qtdPessoasComDefFam"
             },
             // Note: For complex checkboxes, we may need a custom renderer component
             {
@@ -134,7 +136,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 options: deficienciasList.map(def => ({
                     label: def.deficiencia,
                     value: JSON.stringify(def)
-                }))
+                })),
+                insertAfterField: "responsavelTemDeficiencia"
             },
             {
                 name: "utilizaTecnologiaAssistida",
@@ -144,7 +147,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 options: [
                     { label: "Sim", value: "sim" },
                     { label: "Não", value: "nao" }
-                ]
+                ],
+                insertAfterField: "tiposDeficiencia"
             }
         );
     }
@@ -159,7 +163,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             options: [
                 { label: "Sim", value: "sim" },
                 { label: "Não", value: "nao" }
-            ]
+            ],
+            insertAfterField: "responsavelTemDeficiencia"
         });
     }
     
@@ -169,7 +174,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             name: "deficienciaEspecifica",
             label: "Especificar outro tipo de deficiência",
             type: "text" as const,
-            required: false
+            required: false,
+            insertAfterField: "tiposDeficiencia"
         });
     }
     
@@ -183,7 +189,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             options: tecnologiasList.map(tec => ({
                 label: tec.tecnologia,
                 value: JSON.stringify(tec)
-            }))
+            })),
+            insertAfterField: "utilizaTecnologiaAssistida"
         });
     }
     
@@ -193,7 +200,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             name: "tecnologiaEspecifica",
             label: "Especificar outro tipo de tecnologia assistiva",
             type: "text" as const,
-            required: false
+            required: false,
+            insertAfterField: "tecnologiasAssistivas"
         });
     }
     
@@ -209,14 +217,33 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
     // Get conditional fields based on current form values
     const conditionalFields = getConditionalFields(formValues);
 
-    // Create and return a merged form structure with base fields and conditional fields
+    // Começar com os campos base da seção
+    const baseFields = [...pessoaDefDefinition.sections[0].fields];
+    
+    // Para cada campo condicional, determinar onde inserir
+    conditionalFields.forEach(conditionalField => {
+        if (conditionalField.insertAfterField) {
+            // Se tiver insertAfterField, encontrar este campo na lista
+            const targetIndex = baseFields.findIndex(field => field.name === conditionalField.insertAfterField);
+            
+            if (targetIndex !== -1) {
+                // Inserir após o campo de referência
+                baseFields.splice(targetIndex + 1, 0, conditionalField);
+            } else {
+                // Se o campo referenciado não for encontrado, adicionar ao final
+                baseFields.push(conditionalField);
+            }
+        } else {
+            // Se não tiver insertAfterField, adicionar ao final (comportamento padrão)
+            baseFields.push(conditionalField);
+        }
+    });
+
+    // Create and return a merged form structure
     return [
         {
             ...pessoaDefDefinition.sections[0],
-            fields: [
-                ...pessoaDefDefinition.sections[0].fields,
-                ...conditionalFields
-            ]
+            fields: baseFields
         }
     ];
 } 
