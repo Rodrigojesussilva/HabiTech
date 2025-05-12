@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
-// Form validation schema
+
 // Form validation schema
 export const anexosSchema = z.object({
     anexoSelo: z.string().optional(), 
@@ -14,7 +14,7 @@ export const anexosSchema = z.object({
 
 export type FormValues = z.infer<typeof anexosSchema>;
 
-// Default values
+
 // Default values
 export const defaultValues: Partial<FormValues> = {
     anexoSelo: "",

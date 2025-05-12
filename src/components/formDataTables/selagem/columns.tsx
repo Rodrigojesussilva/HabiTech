@@ -5,52 +5,52 @@ import { ArrowUpDown } from "lucide-react"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-export type Arrolamento = {
-	questionario: string
-	sei: number
-	selo: number
+export type Selagem = {
+	Data: string
+	numeroFormulario: number
+	numeroSelo: number
 	status: "pendente" | "finalizado"
-	dataVisita: string
+	nomeEspacoHabitado: string
 }
 
-export const columns: ColumnDef<Arrolamento>[] = [
+export const columns: ColumnDef<Selagem>[] = [
 	{
-		accessorKey: "questionario",
+		accessorKey: "Data",
 		header: ({ column }) => {
 			return (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
-					Questionário
+					Data
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			)
 		},
 	},
 	{
-		accessorKey: "sei",
+		accessorKey: "numeroFormulario",
 		header: ({ column }) => {
 			return (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
-					SEI
+					Nº do Formulário
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			)
 		},
 	},
 	{
-		accessorKey: "selo",
+		accessorKey: "numeroSelo",
 		header: ({ column }) => {
 			return (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
-					Selo
+					Número do Selo
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			)
@@ -71,14 +71,14 @@ export const columns: ColumnDef<Arrolamento>[] = [
 		},
 	},
 	{
-		accessorKey: "dataVisita",
+		accessorKey: "nomeEspacoHabitado",
 		header: ({ column }) => {
 			return (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 				>
-					Data da Visita
+					Nome Espaço Habitado
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			)

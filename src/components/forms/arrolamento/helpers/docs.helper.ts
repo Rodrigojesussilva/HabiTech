@@ -184,3 +184,17 @@ export function getCityOptions(uf: Estado | string) {
         value: cidade
     }));
 }
+
+// Função de formatação de data
+export function formatarData(value: string): string {
+    if (!value) return "";
+
+    // Remove todos os caracteres não numéricos
+    const cleaned = value.replace(/\D/g, '');
+    const limited = cleaned.slice(0, 8); // Limita o número de caracteres para 8 (DDMMYYYY)
+
+    // Formata conforme a quantidade de caracteres digitados
+    if (limited.length <= 2) return `${limited}`;
+    if (limited.length <= 4) return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+    return `${limited.slice(0, 2)}/${limited.slice(2, 4)}/${limited.slice(4, 8)}`;
+}

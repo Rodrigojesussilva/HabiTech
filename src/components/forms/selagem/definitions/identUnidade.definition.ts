@@ -4,6 +4,7 @@ import { estados } from '../estadosCidades';
 // Form validation schema
 export const identUnidadeSchema = z.object({
     cep: z.string().optional(),
+    naoAplica: z.string().optional(), 
     logradouro: z.string().optional(),
     numero: z.string().optional(),
     bairro: z.string().optional(),
@@ -21,6 +22,7 @@ export type FormValues = z.infer<typeof identUnidadeSchema>;
 // Default values
 export const defaultValues: Partial<FormValues> = {
     cep: "",
+    naoAplica: "",
     logradouro: "",
     numero: "",
     bairro: "",
@@ -47,7 +49,16 @@ export const identUnidadeDefinition: FormConfig = {
                     type: "text" as const,
                     required: false,
                     mask: "9999-999",
-                    placeholder: "0000-000"
+                    placeholder: "0000-000",
+                    conditions: [
+                        { field: "naoAplica", operator: "equals", value: false }
+                    ]
+                },
+                {
+                    name: "naoAplica",
+                    label: "Não se aplica",
+                    type: "checkbox" as const,
+                    required: false
                 },
                 {
                     name: "logradouro",

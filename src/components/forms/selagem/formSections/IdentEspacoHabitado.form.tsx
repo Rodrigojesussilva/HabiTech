@@ -17,7 +17,7 @@ interface IdentRespFormProps {
 
 const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
-const { watch, setValue } = useFormContext();
+    const { watch, setValue } = useFormContext();
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -59,12 +59,12 @@ const { watch, setValue } = useFormContext();
         }
 
     }, [seloSetor, seloLote, seloUnidade, seloComplemento, numeroSelo, familyIndex, setValue]);
-   
+
     useEffect(() => {
         if (seloSetor === undefined || seloSetor === null) return;
-    
+
         const formatado = formatarNumeroComTresDecimais(seloSetor);
-    
+
         // Só atualiza se for diferente para evitar loop
         if (seloSetor !== formatado) {
             setValue(`families[${familyIndex}].identificacaoSeloSetor`, formatado, { shouldDirty: true });
@@ -73,9 +73,9 @@ const { watch, setValue } = useFormContext();
 
     useEffect(() => {
         if (seloLote === undefined || seloLote === null) return;
-    
+
         const formatado = formatarNumeroComQuatroDecimais(seloLote);
-    
+
         // Só atualiza se for diferente para evitar loop
         if (seloLote !== formatado) {
             setValue(`families[${familyIndex}].identificacaoSeloLote`, formatado, { shouldDirty: true });
@@ -84,16 +84,16 @@ const { watch, setValue } = useFormContext();
 
     useEffect(() => {
         if (seloUnidade === undefined || seloUnidade === null) return;
-    
+
         const formatado = formatarNumeroComDoisDecimais(seloUnidade);
-    
+
         // Só atualiza se for diferente para evitar loop
         if (seloUnidade !== formatado) {
             setValue(`families[${familyIndex}].identificacaoSeloUnidade`, formatado, { shouldDirty: true });
         }
     }, [seloUnidade, familyIndex, setValue]);
 
-   
+
     return (
         <div className="text-left">
 
@@ -117,6 +117,18 @@ const { watch, setValue } = useFormContext();
                             familyIndex={familyIndex}
                         />
                     ))}
+                    
+                    <div className="mt-4 w-full flex justify-start">
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                            onClick={() => {
+                                console.log("Botão clicado!");
+                            }}
+                        >
+                            Salvar
+                        </button>
+                    </div>
                 </CollapsibleContent>
             </Collapsible>
         </div>

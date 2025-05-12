@@ -44,9 +44,20 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             // Atualiza o valor do campo no formulário
             form.setValue(`families[${familyIndex}].cep`, cepMasked);
         }
-    }, [form.watch(`families[${familyIndex}].cep`)]); // Executa sempre que o valor do CEP mudar
+    }, [form.watch(`families[${familyIndex}].cep`)]); 
 
-    
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoAplica === undefined) {
+            form.setValue(`families[${familyIndex}].naoAplica`, false);
+        }
+        
+    }, [
+        formValues.naoAplica,   
+        form,
+        familyIndex
+    ]);
+
     const formSections = getMergedFormSections(formValues);
 
     return (
@@ -72,6 +83,18 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                             familyIndex={familyIndex}
                         />
                     ))}
+                     
+                     <div className="mt-4 w-full flex justify-start">
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                            onClick={() => {
+                                console.log("Botão clicado!");
+                            }}
+                        >
+                            Salvar
+                        </button>
+                    </div>
                 </CollapsibleContent>
             </Collapsible>
         </div>

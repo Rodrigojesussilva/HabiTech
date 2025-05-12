@@ -56,6 +56,7 @@ const familySchema = z.object({
 const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
+	naoAplica: z.string(),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
 	interviewDate: z.string(),
 	startTime: z.string(),
@@ -97,6 +98,7 @@ const FormSelagem = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
+			naoAplica: "",
 			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
@@ -236,6 +238,14 @@ const FormSelagem = ({
 					type: "text",
 					required: true,
 					sidebarform: true,
+					showinmodal: true
+				} as FormFieldType,
+				{
+					name: "naoAplica",
+					label: "Não se aplica",
+					type: "checkbox",
+					required: true,
+					sidebarform: false,
 					showinmodal: true
 				} as FormFieldType,
 				{
@@ -403,8 +413,21 @@ const FormSelagem = ({
 							<StatusNotasForm sectionIndex={6} familyIndex={index} />
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
+						
 					))}
 				</form>
+				<div className="w-full border-t border-gray-300 my-4"></div>
+				<div className="mt-4 w-full flex justify-start">
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                            onClick={() => {
+                                console.log("Botão clicado!");
+                            }}
+                        >
+                            Encerrar formulário
+                        </button>
+                    </div>
 			</Form>
 		</div >
 	)

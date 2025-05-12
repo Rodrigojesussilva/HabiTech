@@ -4,11 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
 	getMergedFormSections,
 } from "@/components/forms/selagem/definitions/caractUnidade.definition";
-import {
-	getCountryOptions,
-	getStateOptions,
-	getCityOptions,
-} from "@/components/forms/selagem/helpers/docs.helper";
+
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 
@@ -24,43 +20,9 @@ const CaractUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: CaractU
 	const form = useFormContext();
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
 
-	const [formSections, setFormSections] = useState(getMergedFormSections(formValues));
+	const [formSections] = useState(getMergedFormSections(formValues));
 
-	useEffect(() => {
-
-
-		const updatedSectionsWithoutOptions = getMergedFormSections(formValues);
 	
-		const updatedSections = updatedSectionsWithoutOptions.map(section => {			
-			const updatedFields = section.fields.map(field => {
-		
-				let updatedField = field;
-				
-				if (field.name === "paisOrigem") {
-					updatedField = { ...field, options: getCountryOptions() };
-					console.log("Updated paisOrigem field with countryOptions");
-				} else if (field.name === "uf") {
-					updatedField = { ...field, options: getStateOptions() };
-					console.log("Updated uf field with state options");
-				} else if (field.name === "cidade" && formValues.uf) {
-					updatedField = { ...field, options: getCityOptions(formValues.uf) };
-					console.log("Updated cidade field with city options for", formValues.uf);
-				} else if (field.name === "estadoEmissaoRg") {
-					updatedField = { ...field, options: getStateOptions() };
-					console.log("Updated estadoEmissaoRg field with state options");
-				}
-				
-				return updatedField;
-			});
-			
-			return { ...section, fields: updatedFields };
-		});
-		setFormSections(updatedSections);
-	}, [formValues.paisOrigem, formValues.uf]);
-
-
-
-
 	return (
 		<div className="text-left">
 			<Collapsible open={mostrarDocumentacao} onOpenChange={setMostrarDocumentacao}>
@@ -85,7 +47,18 @@ const CaractUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: CaractU
 
 						/>
 					))}
-
+					
+					<div className="mt-4 w-full flex justify-start">
+						<button
+							type="button"
+							className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+							onClick={() => {
+								console.log("Botão clicado!");
+							}}
+						>
+							Salvar
+						</button>
+					</div>
 				</CollapsibleContent>
 			</Collapsible>
 		</div>

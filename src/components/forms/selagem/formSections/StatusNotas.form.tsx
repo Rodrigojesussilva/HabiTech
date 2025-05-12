@@ -45,6 +45,17 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                             familyIndex={familyIndex}
                         />
                     ))}
+                      <div className="mt-4 w-full flex justify-start">
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+                            onClick={() => {
+                                console.log("Botão clicado!");
+                            }}
+                        >
+                            Salvar
+                        </button>
+                    </div>
                 </CollapsibleContent>
             </Collapsible>
         </div>
