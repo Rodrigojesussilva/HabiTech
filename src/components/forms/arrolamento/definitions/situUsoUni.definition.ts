@@ -10,24 +10,25 @@ export const situUsoUniSchema = z.object({
     nome_proprietario: z.string().optional(),
     contato_proprietario: z.string().optional(),
     nsi_contato_proprietario: z.boolean().optional(),
-    
+
     // Própria
     documentoComprovacao: z.string().optional(),
     descricaoDocumento: z.string().optional(),
-    
+
     // Cedida
     nome_proprietario_cedida: z.string().optional(),
     telefone_proprietario_cedida: z.string().optional(),
-    
+
     // Tempo de moradia
     tempoMoradiaAnos: z.string().optional(),
     tempoMoradiaMeses: z.string().optional(),
     tempoMoradiaNaoSabe: z.boolean().optional(),
-    
+    tempoMoradiaNaoSabe1: z.boolean().optional(),
+
     // Compartilhamento
     cozinhaCompartilhada: z.string().optional(),
     banheiroCompartilhado: z.string().optional(),
-    
+
     // Resíduos - simplificados para string
     separaResiduos: z.string().optional(),
     destinoReciclavel: z.string().optional(),
@@ -36,7 +37,7 @@ export const situUsoUniSchema = z.object({
     outroDestinoOrganico: z.string().optional(),
     destinoDomestico: z.string().optional(),
     outroDestinoDomestico: z.string().optional(),
-    
+
     // Identificadores
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
@@ -53,20 +54,21 @@ export const defaultValues: Partial<FormValues> = {
     nome_proprietario: "",
     contato_proprietario: "",
     nsi_contato_proprietario: false,
-    
+
     documentoComprovacao: "select",
     descricaoDocumento: "",
-    
+
     nome_proprietario_cedida: "",
     telefone_proprietario_cedida: "",
-    
+
     tempoMoradiaAnos: "",
     tempoMoradiaMeses: "",
     tempoMoradiaNaoSabe: false,
-    
+    tempoMoradiaNaoSabe1:false,
+
     cozinhaCompartilhada: "select",
     banheiroCompartilhado: "select",
-    
+
     separaResiduos: "select",
     destinoReciclavel: "select",
     outroDestinoReciclavel: "",
@@ -74,7 +76,7 @@ export const defaultValues: Partial<FormValues> = {
     outroDestinoOrganico: "",
     destinoDomestico: "select",
     outroDestinoDomestico: "",
-    
+
     idLocal: "not",
 };
 
@@ -105,24 +107,31 @@ export const situUsoUniDefinition: FormConfig = {
                     label: "Tempo de moradia na Unidade (Anos)",
                     type: "text" as const,
                     required: false,
-                    conditions: [
-                        { field: "tempoMoradiaNaoSabe", operator: "equals", value: false }
-                    ]
+
+                },
+                {
+                    name: "tempoMoradiaNaoSabe",
+                    label: "Não se aplica Moradia Anos",
+                    type: "checkbox" as const,
+                    required: false,
+                    disableField: "tempoMoradiaAnos",
+                    dependent: true,
                 },
                 {
                     name: "tempoMoradiaMeses",
                     label: "Tempo de moradia na Unidade (Meses)",
                     type: "text" as const,
                     required: false,
-                    conditions: [
-                        { field: "tempoMoradiaNaoSabe", operator: "equals", value: false }
-                    ]
+
                 },
-                {
-                    name: "tempoMoradiaNaoSabe",
-                    label: "Não se aplica",
+                
+                 {
+                    name: "tempoMoradiaNaoSabe1",
+                    label: "Não se aplica Moradia Mêses",
                     type: "checkbox" as const,
-                    required: false
+                    required: false,
+                    disableField: "tempoMoradiaMeses",
+                    dependent: true,
                 },
                 {
                     name: "cozinhaCompartilhada",
@@ -170,7 +179,7 @@ export const situUsoUniDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
+
     // Fields based on regime_ocupacao
     if (formValues.regime_ocupacao === "alugada") {
         conditionalFields.push(
@@ -224,7 +233,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
     // Fields for "própria"
     if (formValues.regime_ocupacao === "propria") {
         conditionalFields.push(
@@ -243,7 +252,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
-        
+
         // If documentoComprovacao is "outro", show descricaoDocumento
         if (formValues.documentoComprovacao === "outro") {
             conditionalFields.push({
@@ -255,7 +264,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     // Fields for "cedida"
     if (formValues.regime_ocupacao === "cedida") {
         conditionalFields.push(
@@ -273,7 +282,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
         );
     }
-    
+
     // Fields for separaResiduos = "Sim"
     if (formValues.separaResiduos === "Sim") {
         conditionalFields.push(
@@ -295,7 +304,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
-        
+
         // If destinoReciclavel includes "Outros", show outroDestinoReciclavel
         if (formValues.destinoReciclavel === "Outros") {
             conditionalFields.push({
@@ -306,7 +315,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 insertAfterField: "destinoReciclavel"
             });
         }
-        
+
         conditionalFields.push({
             name: "destinoOrganico",
             label: "Qual a destinação do resíduo orgânico?",
@@ -321,7 +330,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 { label: "Outros", value: "Outros" }
             ]
         });
-        
+
         // If destinoOrganico includes "Outros", show outroDestinoOrganico
         if (formValues.destinoOrganico === "Outros") {
             conditionalFields.push({
@@ -333,7 +342,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     // Fields for separaResiduos = "Não"
     if (formValues.separaResiduos === "Não") {
         conditionalFields.push({
@@ -353,7 +362,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 { label: "Outros", value: "Outros" }
             ]
         });
-        
+
         // If destinoDomestico includes "Outros", show outroDestinoDomestico
         if (formValues.destinoDomestico === "Outros") {
             conditionalFields.push({
@@ -365,7 +374,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             });
         }
     }
-    
+
     return conditionalFields;
 }
 

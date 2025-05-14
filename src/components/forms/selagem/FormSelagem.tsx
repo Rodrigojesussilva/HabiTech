@@ -119,7 +119,18 @@ const FormSelagem = ({
 			families: [{}],
 		},
 	});
+	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
+	const { register, setValue, watch } = useForm();
+	// Acessa os valores dos campos
+	const naoAplica = watch("naoAplica");  // Assumindo que 'naoAplica' é o campo que será monitorado
 
+	useEffect(() => {
+		// Verifica se o campo 'naoAplica' está marcado como verdadeiro
+		if (naoAplica) {
+			// Limpa o campo 'seiNumber' se a condição for atendida
+			setValue("seiNumber", "");
+		}
+	}, [naoAplica, setValue]);
 	const { setForm, setMetadata } = useFormMetadata();
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -132,8 +143,6 @@ const FormSelagem = ({
 		};
 	}, []);
 
-
-
 	const { fields: familyFields, append, remove } = useFieldArray({
 		control: form.control,
 		name: "families",
@@ -143,6 +152,10 @@ const FormSelagem = ({
 	const numberFamilies = useWatch({
 		control: form.control,
 		name: "numberFamilies",
+	});
+	const disableSeiNumber = useWatch({
+		control: form.control,
+		name: "naoAplica",
 	});
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
@@ -172,6 +185,14 @@ const FormSelagem = ({
 			}
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
+	// Dentro do seu componente
+	useEffect(() => {
+		if (form.watch("naoAplica")) {
+			// Quando "naoAplica" estiver marcado como verdadeiro, limpar o campo "seiNumber"
+			form.setValue("seiNumber", "");
+		}
+	}, [form.watch("naoAplica")]);
+
 	const formatDate = () => {
 		return new Date().toLocaleString('pt-BR', {
 			day: '2-digit',
@@ -246,7 +267,11 @@ const FormSelagem = ({
 					type: "checkbox",
 					required: true,
 					sidebarform: false,
-					showinmodal: true
+					showinmodal: true,
+					disableField: "seiNumber",
+					dependent: true
+
+
 				} as FormFieldType,
 				{
 					name: "sealNumber",
@@ -361,20 +386,25 @@ const FormSelagem = ({
 								</DialogDescription>
 							</DialogHeader>
 
-							{/* Render metaDataSections inside the Dialog */}
 							{metaDataSections.map((section, sectionIndex) => (
 								<div key={section.id} data-secao={section.id} data-label={section.title}>
+									{/* Verificar se a seção contém o campo "Número SEI" e o estado de "Não se aplica" */}
 									<FormSectionRenderer
-										section={section}
+										section={{
+											...section,
+											fields: section.fields.map(field => {
+												return field;
+											})
+										}}
 										formControl={form.control}
 										getFieldNumber={getFieldNumber}
 										sectionIndex={sectionIndex}
 										handleModalFields={true}
 										showSectionLabel={false}
+										formValues={{ ...form.getValues(), naoAplica: disableSeiNumber }}
 									/>
 								</div>
 							))}
-
 							<Button
 								type="button"
 								onClick={() => {
@@ -413,21 +443,22 @@ const FormSelagem = ({
 							<StatusNotasForm sectionIndex={6} familyIndex={index} />
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
-						
+
 					))}
 				</form>
 				<div className="w-full border-t border-gray-300 my-4"></div>
 				<div className="mt-4 w-full flex justify-start">
-                        <button
-                            type="button"
-                            className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-                            onClick={() => {
-                                console.log("Botão clicado!");
-                            }}
-                        >
-                            Encerrar formulário
-                        </button>
-                    </div>
+
+					<button
+						type="button"
+						className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
+						onClick={() => {
+							console.log("Botão clicado!");
+						}}
+					>
+						Encerrar formulário
+					</button>
+				</div>
 			</Form>
 		</div >
 	)
