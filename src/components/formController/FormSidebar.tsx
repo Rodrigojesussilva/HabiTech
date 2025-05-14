@@ -12,9 +12,10 @@ interface FormSidebarProps {
 	activeFamilyIndex: number;
 	isMetadataModalOpen: boolean;
 	setIsMetadataModalOpen: (open: boolean) => void;
+	mostrarSecoes: boolean;
 }
 
-export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFamilyIndex, isMetadataModalOpen, setIsMetadataModalOpen }: FormSidebarProps) {
+export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFamilyIndex, isMetadataModalOpen, setIsMetadataModalOpen, mostrarSecoes }: FormSidebarProps) {
 	const { form, metadata } = useFormMetadata();
 	const [nomeForm, setNomeForm] = useState("");
 	const [formDomSections, setFormDomSections] = useState<{
@@ -48,7 +49,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 				setActiveSection(detectedDomSections[0].id);
 			}
 		}
-	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen]);
+	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen, mostrarSecoes]);
 
 	function sectIsChecked(secao: string): boolean {
 		return secoesConcluidas.includes(secao);

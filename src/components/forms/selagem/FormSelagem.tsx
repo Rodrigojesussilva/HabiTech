@@ -35,7 +35,7 @@ import { identEspacoHabitadoSchema } from "@/components/forms/selagem/definition
 import { identUnidadeSchema } from "@/components/forms/selagem/definitions/identUnidade.definition";
 import { situUsoUniSchema } from "@/components/forms/selagem/definitions/situUsoUni.definition";
 import { caractUnidadeSchema } from "@/components/forms/selagem/definitions/caractUnidade.definition";
-import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/caracInfraUrbUnid.definition";
+import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/CaracInfraUrbUnid.definition";
 import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
 import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";

@@ -82,6 +82,8 @@ interface FormArrolamentoProps {
 	isMetadataModalOpen: boolean;
 	setIsMetadataModalOpen: (open: boolean) => void;
 	activeFamilyIndex: number;
+	mostrarSecoes: boolean;
+	onChangeMostrarSecoes: (value: boolean) => void;
 }
 
 const FormArrolamento = ({
@@ -90,14 +92,11 @@ const FormArrolamento = ({
 	onSubmit,
 	isMetadataModalOpen,
 	setIsMetadataModalOpen,
-	activeFamilyIndex
+	activeFamilyIndex,
+	mostrarSecoes,
+	onChangeMostrarSecoes
 }: FormArrolamentoProps) => {
 	// Initialize the form with react-hook-form
-	const [mostrarSecoes, setMostrarSecoes] = useState(true);
-
-	const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setMostrarSecoes(e.target.value === 'sim');
-	};
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: defaultValues || {
@@ -321,6 +320,10 @@ const FormArrolamento = ({
 	// Function to generate section and field numbers based on position
 	const getFieldNumber = (sectionIndex: number, fieldIndex: number) => {
 		return `${sectionIndex + 1}.${fieldIndex + 1}`;
+	};
+
+	const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		onChangeMostrarSecoes(e.target.value === 'sim');
 	};
 
 	return (
