@@ -66,7 +66,7 @@ export const statusNotasDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    
+    console.log(formValues);
     // Add fields that appear when a person in the family has disabilities
    
     

@@ -14,11 +14,11 @@ export default function Header({ children }: HeaderProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  /*const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     navigate('/login');
     window.location.reload(); // This will force a re-render and reset the isLoginDone state
-  };
+  };*/
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -120,7 +120,7 @@ const FormSelagem = ({
 		},
 	});
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
-	const { register, setValue, watch } = useForm();
+	const { setValue, watch } = useForm();
 	// Acessa os valores dos campos
 	const naoAplica = watch("naoAplica");  // Assumindo que 'naoAplica' é o campo que será monitorado
 
@@ -270,8 +270,6 @@ const FormSelagem = ({
 					showinmodal: true,
 					disableField: "seiNumber",
 					dependent: true
-
-
 				} as FormFieldType,
 				{
 					name: "sealNumber",
@@ -401,7 +399,7 @@ const FormSelagem = ({
 										sectionIndex={sectionIndex}
 										handleModalFields={true}
 										showSectionLabel={false}
-										formValues={{ ...form.getValues(), naoAplica: disableSeiNumber }}
+										formValues={{ ...formValues, naoAplica: disableSeiNumber }}
 									/>
 								</div>
 							))}
@@ -443,7 +441,6 @@ const FormSelagem = ({
 							<StatusNotasForm sectionIndex={6} familyIndex={index} />
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
-
 					))}
 				</form>
 				<div className="w-full border-t border-gray-300 my-4"></div>

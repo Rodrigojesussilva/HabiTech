@@ -54,7 +54,7 @@ function App() {
             <Header />
             <ContentController>
               <Routes>
-                <Route path="/" element={<FormularioContainer FormComponent={FormArrolamento} />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />

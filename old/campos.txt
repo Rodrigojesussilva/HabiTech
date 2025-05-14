@@ -1,0 +1,216 @@
+IDENTIFICAÇÃO DO DOMICÍLIO
+
+Núcleo Urbano: texto
+
+Quadra: número
+
+Lote: número
+
+Domicílio: número
+
+Empreendimentos - Bloco: número
+
+Empreendimentos - Pavimento: número
+
+Empreendimentos - Complemento: texto
+
+Endereço: texto
+
+Nº: número
+
+Complemento: texto
+
+Telefones Residencial: número
+
+Telefones Celular 1: número
+
+Telefones Celular 2: número
+
+Telefones Recado: número
+
+Email: texto
+
+DADOS DO IMÓVEL
+
+Quantidade de domicílios no lote: número
+
+Situação do imóvel: select (Ocupado, Em Construção, Vazio)
+
+Uso do imóvel: select (Exclusivamente Residencial, Comercial, Serviços, Residencial Misto, Institucional, Industrial, Outros)
+
+Atividade: texto
+
+REGIME DE OCUPAÇÃO DA MORADIA
+
+Tipo de ocupação: select (Próprio, Alugado, Cedido, Herdado, Emprestado)
+
+Documentos Comprobatórios: checkbox (Termo de Permissão de Uso - TPU, Contrato de Compra e Venda, Concessão de Uso (CUEM/CDRU), Autorização de Uso, Escritura, Outro)
+
+Outro documento: texto
+
+Não Possui Documento: checkbox
+
+Não sabe informar: checkbox
+
+É proprietário exclusivo de outro imóvel urbano ou rural com matrícula? radio (Sim, Não)
+
+FAMÍLIA
+
+Tempo de moradia no imóvel: número (anos)
+
+Número de moradores: número
+
+Já recebeu atendimento habitacional? checkbox (PMSP, CDHU, COHAB, Verba de Atendimento Habitacional, Não recebeu, Outro)
+
+Outro atendimento habitacional: texto
+
+Existe ação de despejo contra a família? radio (Sim, Não)
+
+Renda Familiar: select (Não possui, até 3 S.M., de 3 a 6 S.M., acima de 6 S.M.)
+
+RESPONSÁVEL/TITULAR 1
+
+Nome Completo: texto
+
+Nome Social: texto
+
+Data de nascimento: número
+
+Naturalidade: texto
+
+U.F: texto
+
+País: texto
+
+Nome do Pai: texto
+
+Não consta paternidade: checkbox
+
+Nome da Mãe: texto
+
+Não consta maternidade: checkbox
+
+Identidade étnico-racial: select (Amarela, Branca, Indígena, Parda, Preta)
+
+Identidade de Gênero: select (Feminino, Masculino, Agênero, Gênero fluído, Homem Cisgênero, Homem Transexual, Mulher Cisgênero, Mulher Transexual, Intersexo, Não binárie, Travesti, Outros)
+
+Deficiência: radio (Sim, Não)
+
+Tipo de deficiência: checkbox (Auditivo, Visual, Motora, Mental, Múltipla)
+
+Titularidade: select (Titular 1, Titular 2)
+
+Parentesco com chefe: select (Chefe, Cônjuge, Filho, Irmão, Outros)
+
+RG: texto
+
+Órgão Expedidor: texto
+
+U.F.: texto
+
+Data de Expedição: número
+
+Não possui RG: checkbox
+
+Não sabe RG: checkbox
+
+Recusa informar RG: checkbox
+
+CPF: texto
+
+RNE: texto
+
+RNE Tipo: select (Definitivo, Provisório)
+
+Não possui CPF: checkbox
+
+Não sabe CPF: checkbox
+
+Recusa informar CPF: checkbox
+
+NIS: texto
+
+Não possui NIS: checkbox
+
+Estado Civil: select (Solteiro, Divorciado(a), Viúvo(a), Separado(a) Judicialmente, Casado(a))
+
+Data do casamento: número
+
+Nome do Cônjuge: texto
+
+Regime de Bens: select (Comunhão Parcial, Comunhão Universal, Separação Total)
+
+Situação de Fato: select (União Estável com escritura, União Estável sem escritura, Separado Judicialmente)
+
+Vive com companheiro legal? radio (Sim, Não)
+
+Vive em união consensual? radio (Sim, Não)
+
+Exerce atividade remunerada? radio (Sim, Não)
+
+Relação de trabalho: select (Formal, Informal, Autônomo, Outros)
+
+Motivo de não trabalhar: select (Aposentado, Pensionista, Desempregado, Estudante, Outros)
+
+Profissão: texto
+
+RESPONSÁVEL/TITULAR 2
+(Mesmos campos de RESPONSÁVEL/TITULAR 1)
+
+DECLARAÇÕES
+
+Local: texto
+
+Data: número
+
+Assinatura do ocupante: texto
+
+DADOS DE CONTROLE
+
+Cadastrador: texto
+
+REGISTRO DE VISITAS
+
+1ª Visita: número (Data)
+
+Concluída: checkbox
+
+Incompleta: checkbox
+
+2ª Visita: número (Data)
+
+Concluída: checkbox
+
+Incompleta: checkbox
+
+Morador ausente: checkbox
+
+3ª Visita: número (Data)
+
+Concluída: checkbox
+
+Morador ausente: checkbox
+
+Recusa: checkbox
+
+Entrevistado: texto
+
+Concluída: checkbox
+
+Recusa: checkbox
+
+Posição na família/domicílio: select (Cônjuge, Filho, Irmão, Outros)
+
+Observações: texto
+
+DOCUMENTAÇÃO RECOLHIDA
+
+Cópias recolhidas do 1º Responsável: checkbox (RG, CPF, Certidão de Nascimento, Certidão de Casamento/Óbito, Outro)
+
+Cópias recolhidas do 2º Responsável: checkbox (RG, CPF, Certidão de Nascimento, Certidão de Casamento/Óbito, Outro)
+
+Documentação do Imóvel: checkbox (Contrato de Venda e Compra, Contrato de Doação, TPU, Compromisso de Venda e Compra, Contrato de Locação, Concessão de Uso, Contrato de Cessão de Direitos, Contrato de Comodato, Autorização de Uso, Recibos de Compra, Outros)
+
+Nº da Matrícula do Lote: número
+
+SRI: texto

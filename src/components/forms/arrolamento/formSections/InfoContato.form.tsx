@@ -29,7 +29,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].telefones`, [{ numero: "", isWhatsApp: false }]);
         }
     }, []);
-
     useEffect(() => {
         const phoneFields = [
             'telefone1',
@@ -56,6 +55,28 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         formValues.telefoneComercial,
         familyIndex,
         form
+    ]);
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoSabeEmail === undefined) {
+            form.setValue(`families[${familyIndex}].naoSabeEmail`, false);
+        }
+
+    }, [
+        formValues.naoSabeEmail,
+        form,
+        familyIndex
+    ]);
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.naoSabeTelefoneComercial === undefined) {
+            form.setValue(`families[${familyIndex}].naoSabeTelefoneComercial`, false);
+        }
+
+    }, [
+        formValues.naoSabeTelefoneComercial,
+        form,
+        familyIndex
     ]);
 
 

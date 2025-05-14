@@ -17,7 +17,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import { EyeIcon, PencilIcon, TrashIcon } from "lucide-react"
+import {PencilIcon, TrashIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface DataTableProps<TData, TValue> {

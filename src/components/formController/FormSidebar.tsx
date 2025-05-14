@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { SquareCheckBig, Square } from "lucide-react"
 import { useState, useEffect } from "react";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
@@ -23,11 +22,13 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		label: string
 	}[]>([]);
 	const [activeSection, setActiveSection] = useState<string | null>(null);
-	const [secoesConcluidas, setSecoesConcluidas] = useState<string[]>([]);
+	
 
 	// Quando o formulário for montado, ele vai nos dizer quais seções existem
 	useEffect(() => {
 		const form = formRef?.current || null;
+		console.log(nomeForm);
+		
 		if (form) {
 			const nomeForm = form.getAttribute("nome-form");
 			setNomeForm(nomeForm || "");
@@ -51,9 +52,6 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		}
 	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen, mostrarSecoes]);
 
-	function sectIsChecked(secao: string): boolean {
-		return secoesConcluidas.includes(secao);
-	}
 
 	function handleSectionClick(secaoId: string) {
 		setActiveSection(secaoId);
@@ -68,7 +66,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		}
 	}
 	return (
-		<Card className="hidden lg:block md:block w-1/4 h-4/5 fixed px-4 m-4 overflow-y-auto">
+		<Card className="hidden lg:block md:block min-w-[250px] max-w-[350px] w-auto h-4/5 sticky top-20 px-2 m-4 overflow-y-auto">
 			<h4 className="text-primary text-sm pt-4 pl-2 pb-2  font-bold text-left"> Dados de controle</h4>
 			{metadata && form && (
 				<div className="mb-2 px-4">

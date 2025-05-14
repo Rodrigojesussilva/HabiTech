@@ -257,9 +257,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         if (formValues.documentoComprovacao === "outro") {
             conditionalFields.push({
                 name: "descricaoDocumento",
-                label: "Descreva o documento",
+                label: "Especifique o documento",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "documentoComprovacao"
             });
         }
     }
@@ -310,7 +311,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoReciclavel",
                 label: "Especifique o destino do resíduo reciclável",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoReciclavel"
             });
         }
 
@@ -335,7 +337,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoOrganico",
                 label: "Especifique o destino do resíduo orgânico",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoOrganico"
             });
         }
     }
@@ -366,7 +369,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "outroDestinoDomestico",
                 label: "Especifique o destino dos resíduos domésticos",
                 type: "text",
-                required: false
+                required: false,
+                insertAfterField: "destinoDomestico"
             });
         }
     }
@@ -384,14 +388,33 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         // Get conditional fields based on current form values
         const conditionalFields = getConditionalFields(formValues);
 
-        // Create and return a merged form structure with base fields and conditional fields
+        // Começar com os campos base da seção
+        const baseFields = [...situUsoUniDefinition.sections[0].fields];
+        
+        // Para cada campo condicional, determinar onde inserir
+        conditionalFields.forEach(conditionalField => {
+            if (conditionalField.insertAfterField) {
+                // Se tiver insertAfterField, encontrar este campo na lista
+                const targetIndex = baseFields.findIndex(field => field.name === conditionalField.insertAfterField);
+                
+                if (targetIndex !== -1) {
+                    // Inserir após o campo de referência
+                    baseFields.splice(targetIndex + 1, 0, conditionalField);
+                } else {
+                    // Se o campo referenciado não for encontrado, adicionar ao final
+                    baseFields.push(conditionalField);
+                }
+            } else {
+                // Se não tiver insertAfterField, adicionar ao final (comportamento padrão)
+                baseFields.push(conditionalField);
+            }
+        });
+
+        // Create and return a merged form structure
         return [
             {
                 ...situUsoUniDefinition.sections[0],
-                fields: [
-                    ...situUsoUniDefinition.sections[0].fields,
-                    ...conditionalFields
-                ]
+                fields: baseFields
             }
         ];
     } catch (error) {

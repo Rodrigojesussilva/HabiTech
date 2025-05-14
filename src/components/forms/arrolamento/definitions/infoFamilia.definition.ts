@@ -157,6 +157,7 @@ export const infoFamiliaDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
+    console.log(formValues);
     
     // Add a field for nationality selection (this would need a custom renderer component)
     conditionalFields.push({

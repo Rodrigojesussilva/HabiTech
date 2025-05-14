@@ -20,7 +20,7 @@ interface DocsFormProps {
 
 const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
-	const [ok, setOk] = useState(false);
+	
 
 	const form = useFormContext();
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -107,7 +107,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				<CollapsibleTrigger asChild>
 					<div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
 						<h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>
-							{`Seção ${sectionNumber ? sectionNumber + 1 : 3} - ${formSections[0].title}${ok ? " ✅" : ""}`}
+							{`Seção ${sectionNumber ? sectionNumber + 1 : 3} - ${formSections[0].title}`}
 						</h4>
 					</div>
 				</CollapsibleTrigger>

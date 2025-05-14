@@ -88,6 +88,18 @@ export const FormSectionRenderer = ({
                         );
                     }
 
+                    // Special handling for label fields
+                    if (field.type === 'label') {
+                        return (
+                            <FormItem key={key}>
+                                <FormLabel className="flex items-center">
+                                    <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
+                                    {field.label}
+                                </FormLabel>
+                            </FormItem>
+                        );
+                    }
+
                     return (
                         <FormField
                             key={key}
@@ -122,6 +134,9 @@ export const FormSectionRenderer = ({
 // Helper function to render different field types
 function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>) {
     switch (field.type) {
+
+        case "label":
+            return null; // Label fields are rendered directly in the form item, not in the form control
 
         case "numberSpinner":
             return (

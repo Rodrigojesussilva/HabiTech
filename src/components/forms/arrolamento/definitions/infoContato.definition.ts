@@ -142,7 +142,6 @@ export const infoContatoDefinition: FormConfig = {
                     type: "email",
                     required: false,
                     placeholder: "Digite o email"
-
                 },
                 {
                     name: "naoSabeEmail",
@@ -157,7 +156,6 @@ export const infoContatoDefinition: FormConfig = {
         }
     ]
 };
-
 /**
  * Get additional conditional fields based on form values for InfoContato form
  * This centralizes all conditional field logic specific to InfoContato in one place
@@ -203,6 +201,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Pai", value: "pai" },
                     { label: "Sogra", value: "sogra" },
                     { label: "Sogro", value: "sogro" },
+                    { label: "Sogra", value: "sogra" },
                     { label: "Neta", value: "neta" },
                     { label: "Neto", value: "neto" },
                     { label: "Nora", value: "nora" },
@@ -215,7 +214,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Não sabe informar", value: "nao_sabe" },
                     { label: "Outra Relação de Parentesco", value: "outro" }
                 ]
-            }
+            },
         );
     }
     // Se tipoTelefone2 for "celular", exibe checkbox de WhatsApp
@@ -471,7 +470,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     if (formValues.parente === "outro") {
         conditionalFields.push({
             name: "escrevParentesco",
-            label: "Descreva o parentesco",
+            label: "Especifique o parentesco",
             type: "text",
             required: false
         });
@@ -500,49 +499,42 @@ function afterInsert(
  * @returns Array of form sections with merged fields
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    const conditionalFields = getConditionalFields(formValues);
-    const baseFields = [...infoContatoDefinition.sections[0].fields];
 
-    afterInsert(baseFields, conditionalFields, "ativarTelefone2", [
-        "telefone2", "tipoTelefone2", "ativarTelefone3"
-    ]);
-    afterInsert(baseFields, conditionalFields, "ativarTelefone3", [
-        "telefone3", "tipoTelefone3", "telefoneRecado3", "ativarTelefone4"
-    ]);
-    afterInsert(baseFields, conditionalFields, "ativarTelefone4", [
-        "telefone4", "tipoTelefone4", "telefoneRecado4"
-    ]);
-    afterInsert(baseFields, conditionalFields, "tipoTelefone1", [
-        "telefone1WhatsApp", "telefoneRecado", "nomeRecado", "parente"
-    ]);
-    afterInsert(baseFields, conditionalFields, "tipoTelefone2", [
-        "telefone2WhatsApp", "telefoneRecado2", "nomeRecado2", "parente2"
-    ]);
-    afterInsert(baseFields, conditionalFields, "tipoTelefone3", [
-        "telefone3WhatsApp", "telefoneRecado3", "nomeRecado3", "parente3"
-    ]);
-    afterInsert(baseFields, conditionalFields, "tipoTelefone4", [
-        "telefone4WhatsApp", "telefoneRecado4", "nomeRecado4", "parente4"
-    ]);
+    try {
+        const conditionalFields = getConditionalFields(formValues);
+        const baseFields = [...infoContatoDefinition.sections[0].fields];
 
-    return [
-        {
-            ...infoContatoDefinition.sections[0],
-            fields: baseFields
-        }
-    ];
+        afterInsert(baseFields, conditionalFields, "ativarTelefone2", [
+            "telefone2", "tipoTelefone2", "ativarTelefone3"
+        ]);
+        afterInsert(baseFields, conditionalFields, "ativarTelefone3", [
+            "telefone3", "tipoTelefone3", "telefoneRecado3", "ativarTelefone4"
+        ]);
+        afterInsert(baseFields, conditionalFields, "ativarTelefone4", [
+            "telefone4", "tipoTelefone4", "telefoneRecado4"
+        ]);
+        afterInsert(baseFields, conditionalFields, "tipoTelefone1", [
+            "telefone1WhatsApp", "telefoneRecado", "nomeRecado", "parente"
+        ]);
+        afterInsert(baseFields, conditionalFields, "tipoTelefone2", [
+            "telefone2WhatsApp", "telefoneRecado2", "nomeRecado2", "parente2"
+        ]);
+        afterInsert(baseFields, conditionalFields, "tipoTelefone3", [
+            "telefone3WhatsApp", "telefoneRecado3", "nomeRecado3", "parente3"
+        ]);
+        afterInsert(baseFields, conditionalFields, "tipoTelefone4", [
+            "telefone4WhatsApp", "telefoneRecado4", "nomeRecado4", "parente4"
+        ]);
+
+        return [
+            {
+                ...infoContatoDefinition.sections[0],
+                fields: baseFields
+            }
+        ];
+    } catch (error) {
+        console.error("Error in getMergedFormSections:", error);
+        return [infoContatoDefinition.sections[0]];
+    }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
