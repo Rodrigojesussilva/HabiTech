@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections, situUsoUniDefinition
 } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
-import { formatCurrency, ensureValidSelectValue } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
+import { ensureValidSelectValue } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
 
 
 // Import FormSectionRenderer
@@ -20,7 +20,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
 
     const form = useFormContext();
-    
+
     // Get form values for conditional logic
     const formValues = (() => {
         try {
@@ -31,38 +31,49 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
 
-
-
-    // Format values when they change
     useEffect(() => {
-        // Format currency field (only if it exists and needs formatting)
-        try {
-            if (formValues.valor_locacao && typeof formValues.valor_locacao === 'string' && !formValues.valor_locacao.startsWith('R$')) {
-                const formatted = formatCurrency(formValues.valor_locacao);
-                form.setValue(`families[${familyIndex}].valor_locacao`, formatted);
+        if (formValues.tempoMoradiaNaoSabe) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const email = form.getValues(`families[${familyIndex}].tempoMoradiaAnos`);
+
+
+            if (email) {
+                form.setValue(`families[${familyIndex}].tempoMoradiaAnos`, "");
+
             }
-        } catch (error) {
-            console.error("Error formatting currency:", error);
         }
-    }, [formValues.valor_locacao, form, familyIndex]);
+    }, [formValues.tempoMoradiaNaoSabe, form, familyIndex]);
+
+     useEffect(() => {
+        if (formValues.tempoMoradiaNaoSabe1) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const email = form.getValues(`families[${familyIndex}].tempoMoradiaMeses`);
+
+
+            if (email) {
+                form.setValue(`families[${familyIndex}].tempoMoradiaMeses`, "");
+
+            }
+        }
+    }, [formValues.tempoMoradiaNaoSabe1, form, familyIndex]);
 
     // Get merged form sections with conditional fields included
     const formSections = (() => {
         try {
             // Certifique-se de que os valores passados para getMergedFormSections são válidos
             const safeFormValues = { ...formValues };
-            
+
             // Garantir que todos os campos select tenham valores válidos
-            const selectFields = ['regime_ocupacao', 'separaResiduos', 'cozinhaCompartilhada', 
-                                'banheiroCompartilhado', 'contrato_locacao', 'documentoComprovacao', 
-                                'destinoReciclavel', 'destinoOrganico', 'destinoDomestico'];
-            
+            const selectFields = ['regime_ocupacao', 'separaResiduos', 'cozinhaCompartilhada',
+                'banheiroCompartilhado', 'contrato_locacao', 'documentoComprovacao',
+                'destinoReciclavel', 'destinoOrganico', 'destinoDomestico'];
+
             selectFields.forEach(field => {
                 if (field in safeFormValues) {
                     safeFormValues[field] = ensureValidSelectValue(safeFormValues[field]);
                 }
             });
-            
+
             const sections = getMergedFormSections(safeFormValues);
             return sections;
         } catch (err) {

@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/infoContato.definition";
-import { formatarTelefone } from "@/components/forms/arrolamento/helpers/infoContato.helper";
+import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/infoContato.helper";
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -29,22 +29,19 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].telefones`, [{ numero: "", isWhatsApp: false }]);
         }
     }, []);
-    // Format telefone fields when they change
     useEffect(() => {
-        // Format all possible phone fields
         const phoneFields = [
             'telefone1',
             'telefone2',
             'telefone3',
-            'telefoneResidencial',
-            'telefoneRecado',
-            'telefoneComercial'
+            'telefone4',          
         ];
 
         phoneFields.forEach(field => {
-            if (formValues[field]) {
-                const formatted = formatarTelefone(formValues[field]);
-                if (formatted !== formValues[field]) {
+            const valor = formValues[field];
+            if (valor) {
+                const formatted = formatarTelefoneAuto(valor);
+                if (formatted !== valor) {
                     form.setValue(`families[${familyIndex}].${field}`, formatted);
                 }
             }
@@ -55,7 +52,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         formValues.telefone3,
         formValues.telefoneResidencial,
         formValues.telefoneRecado,
-        formValues.telefoneComercial
+        formValues.telefoneComercial,
+        familyIndex,
+        form
     ]);
     useEffect(() => {
         // Garante valor inicial do checkbox 'responsavel_nao_identificado'
@@ -79,6 +78,21 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         form,
         familyIndex
     ]);
+
+
+    useEffect(() => {
+        if (formValues.naoSabeEmail) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const email = form.getValues(`families[${familyIndex}].email`);
+
+
+            if (email) {
+                form.setValue(`families[${familyIndex}].email`, "");
+
+            }
+        }
+    }, [formValues.naoSabeEmail, form, familyIndex]);
+
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);

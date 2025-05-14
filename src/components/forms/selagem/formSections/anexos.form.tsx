@@ -1,8 +1,8 @@
-import { useState} from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-    getMergedFormSections
+    getMergedFormSections,
 } from "@/components/forms/selagem/definitions/anexos.definition";
 
 
@@ -19,7 +19,6 @@ interface AnexosFormProps {
 
 const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
-    
 
     const form = useFormContext();
     // Get form values for conditional logic

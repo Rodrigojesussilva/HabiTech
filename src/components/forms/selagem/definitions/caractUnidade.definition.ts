@@ -71,8 +71,8 @@ export const caractUnidadeDefinition: FormConfig = {
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
+
     console.log(formValues);
-    
     return conditionalFields;
 }
 

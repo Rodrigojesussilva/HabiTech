@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -15,13 +16,14 @@ interface CaractUnidadeFormProps {
 
 const CaractUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: CaractUnidadeFormProps) => {
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
+
 	//const [ok, setOk] = useState(false);
 	const ok = false;
+
 	const form = useFormContext();
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
 
 	const [formSections] = useState(getMergedFormSections(formValues));
-	
 	
 	return (
 		<div className="text-left">
