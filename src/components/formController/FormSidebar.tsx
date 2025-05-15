@@ -66,7 +66,10 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		}
 	}
 	return (
-		<Card className="hidden lg:block md:block min-w-[250px] max-w-[350px] w-auto h-4/5 sticky top-20 px-2 m-4 overflow-y-auto">
+		
+	
+		
+		<Card className="hidden lg:block md:block min-w-[250px] max-w-[350px] w-auto h-[calc(100vh-6rem)] sticky self-start top-20 px-2 m-4 overflow-y-auto">
 			<h4 className="text-primary text-sm pt-4 pl-2 pb-2  font-bold text-left"> Dados de controle</h4>
 			{metadata && form && (
 				<div className="mb-2 px-4">
