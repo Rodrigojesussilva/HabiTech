@@ -19,7 +19,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const formSections = getMergedFormSections(formValues);
 
     useEffect(() => {
-        const subscription = form.watch((values, { name, type }) => {
+        const subscription = form.watch((values, { name,  }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             if (name === `families[${familyIndex}].responsavel` && typeof responsavel === "string") {
                 const fakeEvent = {
