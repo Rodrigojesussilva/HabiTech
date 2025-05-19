@@ -146,6 +146,14 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 disableField: "nomeSocialEntrevistado",
                 dependent: true,
             },
+             {
+                name: "naoSeAplicaEntrevistado",
+                label: "Não se aplica",
+                type: "checkbox",
+                required: false,
+                disableField: "nomeSocialEntrevistado",
+                dependent: true,
+            },
         );
     }
 
