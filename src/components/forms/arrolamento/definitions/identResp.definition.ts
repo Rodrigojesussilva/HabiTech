@@ -133,6 +133,12 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false
             },
             {
+                name: "nomeSocialEntrevistado",
+                label: "Nome Social Pessoa Entrevistada",
+                type: "text",
+                required: false
+            },
+            {
                 name: "naoSeAplicaEntrevistado",
                 label: "Não se aplica",
                 type: "checkbox",
