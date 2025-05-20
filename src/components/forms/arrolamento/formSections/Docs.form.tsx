@@ -91,16 +91,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	}, [formValues.dataExpedicaoRg]);
 
-	// Apenas aplica a máscara de data ao digitar
-	useEffect(() => {
-		const rawDate = formValues.dataExpedicaoRg;
-		const formattedDate = formatarData(rawDate);
+	
 
-		// Atualiza o valor no formulário apenas se a formatação mudar algo
-		if (rawDate !== formattedDate) {
-			form.setValue(`families[${familyIndex}].dataExpedicaoRg`, formattedDate);
-		}
-	}, [formValues.dataExpedicaoRg, form, familyIndex]);
 	return (
 		<div className="text-left">
 			<Collapsible open={mostrarDocumentacao} onOpenChange={setMostrarDocumentacao}>

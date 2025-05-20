@@ -139,7 +139,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "dataExpedicaoRg",
                 label: "Data de Expedição do RG",
-                type: "text",
+                type: "date",
                 required: true,
                 mask: "99/99/9999",
                 placeholder: "DD/MM/AAAA"

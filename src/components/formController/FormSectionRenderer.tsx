@@ -325,6 +325,20 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                 </div>
             );
 
+        case "date":
+    return (
+        <input
+            type="date"
+            placeholder={field.placeholder || "aaaa-mm-dd"}
+            disabled={formField.disabled}
+            value={formField.value ?? ""}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                formField.onChange(e.target.value);
+            }}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        />
+    );
+
         default:
             return null;
     }

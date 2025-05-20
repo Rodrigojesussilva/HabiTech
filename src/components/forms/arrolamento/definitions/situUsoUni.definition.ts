@@ -64,7 +64,7 @@ export const defaultValues: Partial<FormValues> = {
     tempoMoradiaAnos: "",
     tempoMoradiaMeses: "",
     tempoMoradiaNaoSabe: false,
-    tempoMoradiaNaoSabe1:false,
+    tempoMoradiaNaoSabe1: false,
 
     cozinhaCompartilhada: "select",
     banheiroCompartilhado: "select",
@@ -124,8 +124,8 @@ export const situUsoUniDefinition: FormConfig = {
                     required: false,
 
                 },
-                
-                 {
+
+                {
                     name: "tempoMoradiaNaoSabe1",
                     label: "Não se aplica Moradia Mêses",
                     type: "checkbox" as const,
@@ -188,15 +188,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Informe o valor do aluguel",
                 type: "text",
                 required: false,
-                conditions: [
-                    { field: "nsi_valor_locacao", operator: "equals", value: false }
-                ]
+
             },
             {
                 name: "nsi_valor_locacao",
                 label: "Não sabe informar valor do aluguel",
                 type: "checkbox",
-                required: false
+                required: false,
+                disableField: "valor_locacao",
+                dependent: true,
             },
             {
                 name: "contrato_locacao",
@@ -221,15 +221,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Contato do proprietário da unidade (Celular)",
                 type: "text",
                 required: false,
-                conditions: [
-                    { field: "nsi_contato_proprietario", operator: "equals", value: false }
-                ]
+
             },
             {
                 name: "nsi_contato_proprietario",
                 label: "Não sabe informar",
                 type: "checkbox",
-                required: false
+                required: false,
+                disableField: "contato_proprietario",
+                dependent: true,
             }
         );
     }
@@ -260,7 +260,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Especifique o documento",
                 type: "text",
                 required: false,
-                insertAfterField: "documentoComprovacao"
             });
         }
     }
@@ -312,7 +311,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Especifique o destino do resíduo reciclável",
                 type: "text",
                 required: false,
-                insertAfterField: "destinoReciclavel"
             });
         }
 
@@ -338,7 +336,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Especifique o destino do resíduo orgânico",
                 type: "text",
                 required: false,
-                insertAfterField: "destinoOrganico"
             });
         }
     }
@@ -370,7 +367,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Especifique o destino dos resíduos domésticos",
                 type: "text",
                 required: false,
-                insertAfterField: "destinoDomestico"
             });
         }
     }
@@ -383,32 +379,71 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
  * @param formValues Current form values
  * @returns Array of form sections with merged fields
  */
+function afterInsert(
+    baseFields: any[],
+    conditionalFields: any[],
+    campoBase: string,
+    nomesCondicionais: string[]
+) {
+    const extras = conditionalFields.filter(field => nomesCondicionais.includes(field.name));
+    const indexBase = baseFields.findIndex(f => f.name === campoBase);
+    if (indexBase !== -1 && extras.length) {
+        baseFields.splice(indexBase + 1, 0, ...extras);
+    }
+}
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     try {
+
         // Get conditional fields based on current form values
         const conditionalFields = getConditionalFields(formValues);
-
-        // Começar com os campos base da seção
         const baseFields = [...situUsoUniDefinition.sections[0].fields];
-        
-        // Para cada campo condicional, determinar onde inserir
-        conditionalFields.forEach(conditionalField => {
-            if (conditionalField.insertAfterField) {
-                // Se tiver insertAfterField, encontrar este campo na lista
-                const targetIndex = baseFields.findIndex(field => field.name === conditionalField.insertAfterField);
-                
-                if (targetIndex !== -1) {
-                    // Inserir após o campo de referência
-                    baseFields.splice(targetIndex + 1, 0, conditionalField);
-                } else {
-                    // Se o campo referenciado não for encontrado, adicionar ao final
-                    baseFields.push(conditionalField);
-                }
-            } else {
-                // Se não tiver insertAfterField, adicionar ao final (comportamento padrão)
-                baseFields.push(conditionalField);
+
+        if (formValues.regime_ocupacao === "alugada") {
+            afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
+                "valor_locacao", "nsi_valor_locacao", "contrato_locacao", "nome_proprietario", "contato_proprietario", "nsi_contato_proprietario"
+            ]);
+        }
+        else if (formValues.regime_ocupacao === "propria") {
+            afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
+                "documentoComprovacao"
+            ]);
+            if (formValues.documentoComprovacao === "outro") {
+                afterInsert(baseFields, conditionalFields, "documentoComprovacao", [
+                    "descricaoDocumento"
+                ]);
+
             }
-        });
+        }
+        else if (formValues.regime_ocupacao === "cedida") {
+            afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
+                "nome_proprietario_cedida", "telefone_proprietario_cedida"
+            ]);
+        }
+        if (formValues.separaResiduos === "Sim") {
+            afterInsert(baseFields, conditionalFields, "separaResiduos", [
+                "destinoReciclavel", "destinoOrganico"
+            ]);
+            if (formValues.destinoReciclavel === "Outros") {
+                afterInsert(baseFields, conditionalFields, "destinoReciclavel", [
+                    "outroDestinoReciclavel"
+                ]);
+            }
+            if (formValues.destinoOrganico === "Outros") {
+                afterInsert(baseFields, conditionalFields, "destinoOrganico", [
+                    "outroDestinoDomestico"
+                ]);
+            }
+        }
+        else if (formValues.separaResiduos === "Não") {
+            afterInsert(baseFields, conditionalFields, "separaResiduos", [
+                "destinoDomestico"
+            ]);
+            if (formValues.destinoDomestico === "Outros") {
+                afterInsert(baseFields, conditionalFields, "destinoDomestico", [
+                    "outroDestinoOrganico"
+                ]);
+            }
+        }
 
         // Create and return a merged form structure
         return [
