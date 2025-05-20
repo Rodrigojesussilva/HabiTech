@@ -1,64 +1,101 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
+function validarCpf(cpf: string): boolean {
+  const cpfLimpo = cpf.replace(/\D/g, "");
+
+  if (cpfLimpo.length !== 11 || /^(\d)\1+$/.test(cpfLimpo)) {
+    return false;
+  }
+
+  const calcularDigito = (base: string, pesoInicial: number): number => {
+    const soma = base
+      .split("")
+      .map((num, i) => parseInt(num, 10) * (pesoInicial - i))
+      .reduce((acc, curr) => acc + curr, 0);
+
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+
+  const base = cpfLimpo.slice(0, 9);
+  const digito1 = calcularDigito(base, 10);
+  const digito2 = calcularDigito(base + digito1, 11);
+
+  return cpfLimpo === base + digito1.toString() + digito2.toString();
+}
+
 // Form validation schema
 export const docsSchema = z.object({
-    paisOrigem: z.string().optional(),
-    documentacao: z.string().optional(),
-    numeroProtocolo: z.string().optional(),
-    numeroRnm: z.string().optional(),
-    statusRnm: z.string().optional(),
-    numeroCrnm: z.string().optional(),
-    statusCrnm: z.string().optional(),
-    numeroPassaporte: z.string().optional(),
-    uf: z.string().optional(),
-    cidade: z.string().optional(),
-    fonteRg: z.string().optional(),
-    rg: z.string().optional(),
-    orgaoExpedidor: z.string().optional(),
-    estadoEmissaoRg: z.string().optional(),
-    dataExpedicaoRg: z.string().optional(),
-    cpf: z.string().optional(),
-    fonteCpf: z.string().optional(),
-    arrolamento_id: z.string().optional(),
-    idLocal: z.string().optional(),
-    tempoExpedicao: z.object({
-        anos: z.number(),
-        meses: z.number()
-    }).optional(),
-    dataExpedicaoCpf: z.string().optional(),
-    tempoExpedicaoCpf: z.object({
-        anos: z.number(),
-        meses: z.number()
-    }).optional(),
+  paisOrigem: z.string().optional(),
+  documentacao: z.string().optional(),
+  numeroProtocolo: z.string().optional(),
+  numeroRnm: z.string().optional(),
+  statusRnm: z.string().optional(),
+  numeroCrnm: z.string().optional(),
+  statusCrnm: z.string().optional(),
+  numeroPassaporte: z.string().optional(),
+  uf: z.string().optional(),
+  cidade: z.string().optional(),
+  fonteRg: z.string().optional(),
+  rg: z.string().optional(),
+  orgaoExpedidor: z.string().optional(),
+  estadoEmissaoRg: z.string().optional(),
+  dataExpedicaoRg: z.string().optional(),
+  cpf: z
+    .string()
+    .optional()
+    .refine((cpf) => !cpf || validarCpf(cpf), {
+      message: "CPF inválido",
+    }),
+  fonteCpf: z.string().optional(),
+  arrolamento_id: z.string().optional(),
+  idLocal: z.string().optional(),
+  tempoExpedicao: z.object({
+    anos: z.number(),
+    meses: z.number(),
+  }).optional(),
+  dataExpedicaoCpf: z.string().optional(),
+  tempoExpedicaoCpf: z.object({
+    anos: z.number(),
+    meses: z.number(),
+  }).optional(),
 });
 
 export type FormValues = z.infer<typeof docsSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
-    paisOrigem: "Brazil",
-    documentacao: "",
-    numeroProtocolo: "",
-    numeroRnm: "",
-    statusRnm: "",
-    numeroCrnm: "",
-    statusCrnm: "",
-    numeroPassaporte: "",
-    uf: "",
-    cidade: "",
-    fonteRg: "",
-    rg: "",
-    orgaoExpedidor: "",
-    estadoEmissaoRg: "",
-    dataExpedicaoRg: "",
-    cpf: "",
-    fonteCpf: "",
-    idLocal: "not",
-    tempoExpedicao: { anos: 0, meses: 0 },
-    dataExpedicaoCpf: "",
-    tempoExpedicaoCpf: { anos: 0, meses: 0 },
+  paisOrigem: "Brazil",
+  documentacao: "",
+  numeroProtocolo: "",
+  numeroRnm: "",
+  statusRnm: "",
+  numeroCrnm: "",
+  statusCrnm: "",
+  numeroPassaporte: "",
+  uf: "",
+  cidade: "",
+  fonteRg: "",
+  rg: "",
+  orgaoExpedidor: "",
+  estadoEmissaoRg: "",
+  dataExpedicaoRg: "",
+  cpf: "",
+  fonteCpf: "",
+  idLocal: "not",
+  tempoExpedicao: {
+    anos: 0,
+    meses: 0,
+  },
+  dataExpedicaoCpf: "",
+  tempoExpedicaoCpf: {
+    anos: 0,
+    meses: 0,
+  },
 };
+
+
 
 // Base form structure (without conditional fields)
 export const docsDefinition: FormConfig = {
