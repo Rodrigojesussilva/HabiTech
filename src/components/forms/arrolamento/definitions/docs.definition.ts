@@ -85,158 +85,166 @@ export const docsDefinition: FormConfig = {
  * This centralizes all conditional field logic specific to Docs in one place
  * @param formValues Current form values from Docs form
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
-    const conditionalFields: FormField[] = [];
-    
-    // Conditionally add fields based on "paisOrigem" value
-    if (formValues.paisOrigem === "Brazil") {
-		console.log("Brazil");
-        // Fields for Brazilian documents
-        conditionalFields.push(
-            {
-                name: "uf",
-                label: "Estado (UF)",
-                type: "select",
-                required: true,
-                options: [] // Will be populated from helper function
-            },
-            {
-                name: "cidade",
-                label: "Cidade",
-                type: "select",
-                required: true,
-                options: [] // Will be populated dynamically based on selected UF
-            },
-            {
-                name: "fonteRg",
-                label: "Fonte para RG",
-                type: "select",
-                required: true,
-                options: [
-                    { label: "CNH", value: "CNH" },
-                    { label: "RG", value: "RG" }
-                ]
-            },
-            {
-                name: "rg",
-                label: "Número do RG",
-                type: "text",
-                required: true
-            },
-            {
-                name: "orgaoExpedidor",
-                label: "Órgão Expedidor",
-                type: "text",
-                required: true
-            },
-            {
-                name: "estadoEmissaoRg",
-                label: "Estado de Emissão do RG",
-                type: "select",
-                required: true,
-                options: [] // Will be populated from helper function
-            },
-            {
-                name: "dataExpedicaoRg",
-                label: "Data de Expedição do RG",
-                type: "text",
-                required: true,
-                mask: "99/99/9999",
-                placeholder: "DD/MM/AAAA"
-            },
-            {
-                name: "cpf",
-                label: "CPF",
-                type: "text",
-                required: true,
-                mask: "999.999.999-99"
-            },
-            {
-                name: "fonteCpf",
-                label: "Fonte para CPF",
-                type: "select",
-                required: true,
-                options: [
-                    { label: "CIN", value: "CIN" },
-                    { label: "CPF", value: "CPF" }
-                ]
-            }
-        );
-    } else if (formValues.paisOrigem && formValues.paisOrigem !== "Brazil") {
-        // Fields for immigrants
-        conditionalFields.push({
-            name: "documentacao",
-            label: "Documentação",
-            type: "select",
-            required: true,
-            options: [
-                { label: "Protocolo", value: "Protocolo" },
-                { label: "RNM", value: "RNM" },
-                { label: "CRNM", value: "CRNM" },
-                { label: "Passaporte", value: "Passaporte" }
-            ]
-        });
 
-        // Additional fields based on documentacao selection
-        if (formValues.documentacao === "Protocolo") {
-            conditionalFields.push({
-                name: "numeroProtocolo",
-                label: "Número do Protocolo",
-                type: "text",
-                required: true
-            });
-        } else if (formValues.documentacao === "RNM") {
-            conditionalFields.push(
-                {
-                    name: "numeroRnm",
-                    label: "Número do RNM",
-                    type: "text",
-                    required: true
-                },
-                {
-                    name: "statusRnm",
-                    label: "Status do RNM",
-                    type: "select",
-                    required: true,
-                    options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
-                        { label: "Pendente", value: "Pendente" }
-                    ]
-                }
-            );
-        } else if (formValues.documentacao === "CRNM") {
-            conditionalFields.push(
-                {
-                    name: "numeroCrnm",
-                    label: "Número do CRNM",
-                    type: "text",
-                    required: true
-                },
-                {
-                    name: "statusCrnm",
-                    label: "Status do CRNM",
-                    type: "select",
-                    required: true,
-                    options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
-                        { label: "Pendente", value: "Pendente" }
-                    ]
-                }
-            );
-        } else if (formValues.documentacao === "Passaporte") {
-            conditionalFields.push({
-                name: "numeroPassaporte",
-                label: "Número do Passaporte",
-                type: "text",
-                required: true
-            });
+export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+  const conditionalFields: FormField[] = [];
+
+  const pais = formValues.paisOrigem?.toLowerCase();
+  const doc = formValues.documentacao?.toLowerCase();
+
+  console.log("DEBUG paisOrigem:", formValues.paisOrigem);
+  console.log("DEBUG documentacao:", formValues.documentacao);
+
+  // Campos para cidadãos brasileiros
+  if (pais === "brazil") {
+    conditionalFields.push(
+      {
+        name: "uf",
+        label: "Estado (UF)",
+        type: "select",
+        required: true,
+        options: []
+      },
+      {
+        name: "cidade",
+        label: "Cidade",
+        type: "select",
+        required: true,
+        options: []
+      },
+      {
+        name: "fonteRg",
+        label: "Fonte para RG",
+        type: "select",
+        required: true,
+        options: [
+          { label: "CNH", value: "CNH" },
+          { label: "RG", value: "RG" }
+        ]
+      },
+      {
+        name: "rg",
+        label: "Número do RG",
+        type: "text",
+        required: true
+      },
+      {
+        name: "orgaoExpedidor",
+        label: "Órgão Expedidor",
+        type: "text",
+        required: true
+      },
+      {
+        name: "estadoEmissaoRg",
+        label: "Estado de Emissão do RG",
+        type: "select",
+        required: true,
+        options: []
+      },
+      {
+        name: "dataExpedicaoRg",
+        label: "Data de Expedição do RG",
+        type: "text",
+        required: true,
+        mask: "99/99/9999",
+        placeholder: "DD/MM/AAAA"
+      },
+      {
+        name: "cpf",
+        label: "CPF",
+        type: "text",
+        required: true,
+        mask: "999.999.999-99"
+      },
+      {
+        name: "fonteCpf",
+        label: "Fonte para CPF",
+        type: "select",
+        required: true,
+        options: [
+          { label: "CIN", value: "CIN" },
+          { label: "CPF", value: "CPF" }
+        ]
+      }
+    );
+  }
+
+  // Campos para estrangeiros
+  else if (pais && pais !== "brazil") {
+    conditionalFields.push({
+      name: "documentacao",
+      label: "Documentação",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Protocolo", value: "Protocolo" },
+        { label: "RNM", value: "RNM" },
+        { label: "CRNM", value: "CRNM" },
+        { label: "Passaporte", value: "Passaporte" }
+      ]
+    });
+
+    if (doc === "protocolo") {
+      conditionalFields.push({
+        name: "numeroProtocolo",
+        label: "Número do Protocolo",
+        type: "text",
+        required: true
+      });
+    } else if (doc === "rnm") {
+      conditionalFields.push(
+        {
+          name: "numeroRnm",
+          label: "Número do RNM",
+          type: "text",
+          required: true
+        },
+        {
+          name: "statusRnm",
+          label: "Status do RNM",
+          type: "select",
+          required: true,
+          options: [
+            { label: "Válido", value: "Válido" },
+            { label: "Inválido", value: "Inválido" },
+            { label: "Pendente", value: "Pendente" }
+          ]
         }
+      );
+    } else if (doc === "crnm") {
+      conditionalFields.push(
+        {
+          name: "numeroCrnm",
+          label: "Número do CRNM",
+          type: "text",
+          required: true
+        },
+        {
+          name: "statusCrnm",
+          label: "Status do CRNM",
+          type: "select",
+          required: true,
+          options: [
+            { label: "Válido", value: "Válido" },
+            { label: "Inválido", value: "Inválido" },
+            { label: "Pendente", value: "Pendente" }
+          ]
+        }
+      );
+    } else if (doc === "passaporte") {
+      conditionalFields.push({
+        name: "numeroPassaporte",
+        label: "Número do Passaporte",
+        type: "text",
+        required: true
+      });
     }
-    
-    return conditionalFields;
+  }
+
+  return conditionalFields;
 }
+
+
 
 /**
  * Get complete form sections with merged static and conditional fields
