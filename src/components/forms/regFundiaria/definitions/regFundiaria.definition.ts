@@ -1,6 +1,25 @@
 import { z } from "zod";
 import { FormConfig } from "@/utils/formUtils";
 
+function isValidCPF(cpf: string): boolean {
+  cpf = cpf.replace(/\D/g, "");
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
+  let remainder = 11 - (sum % 11);
+  if (remainder >= 10) remainder = 0;
+  if (remainder !== parseInt(cpf.charAt(9))) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i);
+  remainder = 11 - (sum % 11);
+  if (remainder >= 10) remainder = 0;
+  if (remainder !== parseInt(cpf.charAt(10))) return false;
+
+  return true;
+}
+
 // Form validation schema
 export const regFundiariaSchema = z.object({
 	// IDENTIFICAÇÃO DO DOMICÍLIO
@@ -75,7 +94,12 @@ export const regFundiariaSchema = z.object({
 	naoPossuiRg: z.boolean().optional(),
 	naoSabeRg: z.boolean().optional(),
 	recusaInformarRg: z.boolean().optional(),
-	cpf: z.string().optional(),
+cpf: z
+  .string()
+  .optional()
+  .refine((cpf) => !cpf || isValidCPF(cpf), {
+    message: "CPF inválido",
+  }),
 	rne: z.string().optional(),
 	rneTipo: z.string().optional(),
 	naoPossuiCpf: z.boolean().optional(),
@@ -123,7 +147,12 @@ export const regFundiariaSchema = z.object({
 	naoPossuiRg2: z.boolean().optional(),
 	naoSabeRg2: z.boolean().optional(),
 	recusaInformarRg2: z.boolean().optional(),
-	cpf2: z.string().optional(),
+	cpf2: z
+  .string()
+  .optional()
+  .refine((cpf) => !cpf || isValidCPF(cpf), {
+    message: "CPF inválido",
+  }),
 	rne2: z.string().optional(),
 	rneTipo2: z.string().optional(),
 	naoPossuiCpf2: z.boolean().optional(),
