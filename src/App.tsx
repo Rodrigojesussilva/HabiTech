@@ -14,6 +14,7 @@ import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'
 
+
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
     // Initialize state from localStorage
