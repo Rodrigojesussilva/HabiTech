@@ -43,7 +43,7 @@ export const identRespDefinition: FormConfig = {
                 {
                     name: "responsavel",
                     label: "Você é a pessoa responsável da unidade residencial?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
                         { label: "Sim", value: "sim" },
@@ -158,6 +158,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
     return conditionalFields;
 }
+
 function afterInsert(
     baseFields: any[],
     conditionalFields: any[],
@@ -203,7 +204,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         console.error("Error in getMergedFormSections:", error);
         return [identRespDefinition.sections[0]];
     }
-
-
-
 } 

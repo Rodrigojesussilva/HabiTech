@@ -73,7 +73,7 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                 {
                     name: "unidadeInsalubre",
                     label: "Unidade apresenta condições de insalubridade?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
                         { label: "Sim", value: "Sim" },
@@ -190,7 +190,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "peDireitoAtendente230",
                 label: "O pe direito da unidade atende ao mínimo de 2,30m?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -201,7 +201,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "iluminicaoNatural",
                 label: "Possui iluminação natural na unidade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -212,7 +212,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "areaVentilacao",
                 label: "A área de ventilação da unidade transmite sensação de salubridade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -223,7 +223,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "infiltracaoMofo",
                 label: "Há infiltração e/ou mofo na unidade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -234,7 +234,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "cozinhaVentilacaoNatural",
                 label: "Cozinha: Possui ventilação natural?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -249,7 +249,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             conditionalFields.push({
                 name: "cozinhaSalubridade",
                 label: "Cozinha: A área de ventilação transmite sensação de salubridade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -262,7 +262,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         conditionalFields.push({
             name: "banheiroVentilacaoNatural",
             label: "Banheiro: Possui ventilação natural?",
-            type: "select" as const,
+            type: "radio" as const,
             required: false,
             options: [
                 { label: "Sim", value: "Sim" },
@@ -276,7 +276,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             conditionalFields.push({
                 name: "banheiroSalubridade",
                 label: "Banheiro: A área de ventilação transmite sensação de salubridade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },
@@ -289,7 +289,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         conditionalFields.push({
             name: "demaisComodosVentilacaoNatural",
             label: "Demais cômodos: Possui ventilação natural?",
-            type: "select" as const,
+            type: "radio" as const,
             required: false,
             options: [
                 { label: "Sim", value: "Sim" },
@@ -303,7 +303,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             conditionalFields.push({
                 name: "demaisComodosSalubridade",
                 label: "Demais cômodos: A área de ventilação transmite sensação de salubridade?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "Sim" },

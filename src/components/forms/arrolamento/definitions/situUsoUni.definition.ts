@@ -136,10 +136,9 @@ export const situUsoUniDefinition: FormConfig = {
                 {
                     name: "cozinhaCompartilhada",
                     label: "A cozinha é compartilhada com outras famílias?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: true,
-                    options: [
-                        { label: "Selecione uma opção", value: "select" },
+                    options: [                      
                         { label: "Sim", value: "sim" },
                         { label: "Não", value: "nao" }
                     ]
@@ -147,10 +146,10 @@ export const situUsoUniDefinition: FormConfig = {
                 {
                     name: "banheiroCompartilhado",
                     label: "O banheiro é compartilhado com outras famílias?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: true,
                     options: [
-                        { label: "Selecione uma opção", value: "select" },
+                       
                         { label: "Sim", value: "sim" },
                         { label: "Não", value: "nao" }
                     ]
@@ -158,10 +157,10 @@ export const situUsoUniDefinition: FormConfig = {
                 {
                     name: "separaResiduos",
                     label: "Você separa os resíduos domésticos?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
-                        { label: "Selecione uma opção", value: "select" },
+                       
                         { label: "Sim", value: "Sim" },
                         { label: "Não", value: "Não" },
                         { label: "Não sabe informar", value: "Não sabe informar" },
@@ -201,10 +200,9 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "contrato_locacao",
                 label: "Contrato de locação",
-                type: "select",
+                type: "radio" as const,
                 required: false,
-                options: [
-                    { label: "Selecione uma opção", value: "select" },
+                options: [                   
                     { label: "Sim", value: "sim" },
                     { label: "Não", value: "nao" },
                     { label: "Não sabe informar", value: "naoSabeInformar" }
@@ -221,6 +219,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Contato do proprietário da unidade (Celular)",
                 type: "text",
                 required: false,
+                placeholder:"(00) 00000-0000"
 
             },
             {
