@@ -27,7 +27,7 @@ export const statusNotasDefinition: FormConfig = {
                 {
                     name: "status",
                     label: "Status",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
                         { label: "Concluída", value: "Concluida" },

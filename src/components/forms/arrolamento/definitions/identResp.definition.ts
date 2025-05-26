@@ -43,7 +43,7 @@ export const identRespDefinition: FormConfig = {
                 {
                     name: "responsavel",
                     label: "Você é a pessoa responsável da unidade residencial?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
                         { label: "Sim", value: "sim" },
@@ -59,7 +59,7 @@ export const identRespDefinition: FormConfig = {
                 {
                     name: "dataNascimentoResp",
                     label: "Data de Nascimento",
-                    type: "text" as const,
+                    type: "date" as const,
                     required: false,
                     mask: "99/99/9999",
                     placeholder: "DD/MM/AAAA"
@@ -159,6 +159,18 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     return conditionalFields;
 }
 
+function afterInsert(
+    baseFields: any[],
+    conditionalFields: any[],
+    campoBase: string,
+    nomesCondicionais: string[]
+) {
+    const extras = conditionalFields.filter(field => nomesCondicionais.includes(field.name));
+    const indexBase = baseFields.findIndex(f => f.name === campoBase);
+    if (indexBase !== -1 && extras.length) {
+        baseFields.splice(indexBase + 1, 0, ...extras);
+    }
+}
 /**
  * Get complete form sections with merged static and conditional fields
  * This centralizes the merging logic of base and conditional fields
@@ -166,17 +178,30 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
  * @returns Array of form sections with merged fields
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    // Get conditional fields based on current form values
-    const conditionalFields = getConditionalFields(formValues);
+    try {
+        
+        // Get conditional fields based on current form values
+        const conditionalFields = getConditionalFields(formValues);
+        const baseFields = [...identRespDefinition.sections[0].fields];
 
-    // Create and return a merged form structure with base fields and conditional fields
-    return [
-        {
-            ...identRespDefinition.sections[0],
-            fields: [
-                ...identRespDefinition.sections[0].fields,
-                ...conditionalFields
-            ]
-        }
-    ];
+        afterInsert(baseFields, conditionalFields, "responsavel", [
+            "relacaoResponsavel","nomeCompletoEntrevistado","nomeSocialEntrevistado","naoSeAplicaEntrevistado"
+        ]);
+
+        afterInsert(baseFields, conditionalFields, "relacaoResponsavel", [
+            "DescrevParentesco"
+        ]);
+
+
+        // Create and return a merged form structure with base fields and conditional fields
+        return [
+            {
+                ...identRespDefinition.sections[0],
+                fields: baseFields
+            }
+        ];
+    } catch (error) {
+        console.error("Error in getMergedFormSections:", error);
+        return [identRespDefinition.sections[0]];
+    }
 } 

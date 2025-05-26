@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections, situUsoUniDefinition
 } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
-import { ensureValidSelectValue } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
+import { ensureValidSelectValue, formatCurrency, formatarTelefone } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
 
 
 // Import FormSectionRenderer
@@ -32,6 +32,23 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     })();
 
     useEffect(() => {
+        const valor = formValues?.valor_locacao;
+
+        if (valor) {
+            const formatted = formatCurrency(valor);
+            const current = form.getValues(`families[${familyIndex}].valor_locacao`);
+
+
+            if (formatted !== current) {
+                form.setValue(`families[${familyIndex}].valor_locacao`, formatted, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                });
+            }
+        }
+    }, [formValues?.valor_locacao, familyIndex, form]);
+
+    useEffect(() => {
         if (formValues.tempoMoradiaNaoSabe) {
             // Verifica se os valores já não estão vazios antes de setar
             const email = form.getValues(`families[${familyIndex}].tempoMoradiaAnos`);
@@ -44,7 +61,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     }, [formValues.tempoMoradiaNaoSabe, form, familyIndex]);
 
-     useEffect(() => {
+    useEffect(() => {
         if (formValues.tempoMoradiaNaoSabe1) {
             // Verifica se os valores já não estão vazios antes de setar
             const email = form.getValues(`families[${familyIndex}].tempoMoradiaMeses`);
@@ -57,6 +74,46 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     }, [formValues.tempoMoradiaNaoSabe1, form, familyIndex]);
 
+    useEffect(() => {
+        if (formValues.nsi_valor_locacao) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const email = form.getValues(`families[${familyIndex}].valor_locacao`);
+
+
+            if (email) {
+                form.setValue(`families[${familyIndex}].valor_locacao`, "");
+
+            }
+        }
+    }, [formValues.nsi_valor_locacao, form, familyIndex]);
+
+    useEffect(() => {
+        if (formValues.nsi_contato_proprietario) {
+            // Verifica se os valores já não estão vazios antes de setar
+            const email = form.getValues(`families[${familyIndex}].contato_proprietario`);
+
+
+            if (email) {
+                form.setValue(`families[${familyIndex}].contato_proprietario`, "");
+
+            }
+        }
+    }, [formValues.nsi_contato_proprietario, form, familyIndex]);
+
+    useEffect(() => {
+        const valor = formValues.contato_proprietario;
+        if (valor) {
+            const formatted = formatarTelefone(valor);
+            if (formatted !== valor) {
+                form.setValue(`families[${familyIndex}].contato_proprietario`, formatted);
+            }
+        }
+    }, [
+        formValues.contato_proprietario,
+        familyIndex,
+        form
+    ]);
+    
     // Get merged form sections with conditional fields included
     const formSections = (() => {
         try {

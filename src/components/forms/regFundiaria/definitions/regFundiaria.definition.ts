@@ -507,7 +507,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "situacaoImovel",
 					label: "Situação do imóvel",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Ocupado", value: "ocupado" },
@@ -655,7 +655,7 @@ export const regFundiariaDefinition: FormConfig = {
 				},
 				{
 					name: "numeroMoradores",
-					label: "Número de moradores",
+					label: "Quantidade de moradores",
 					type: "number" as const,
 					required: false
 				},
@@ -731,7 +731,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "rendaFamiliar",
 					label: "Renda Familiar",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Não possui", value: "nao_possui" },
@@ -926,7 +926,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "titularidade",
 					label: "Titularidade",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Titular 1", value: "titular_1" },
@@ -1003,7 +1003,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "rneTipo",
 					label: "RNE Tipo",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Definitivo", value: "definitivo" },
@@ -1078,7 +1078,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "regimeBens",
 					label: "Regime de Bens",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Comunhão Parcial", value: "comunhao_parcial" },
@@ -1094,7 +1094,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "situacaoFato",
 					label: "Situação de Fato",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "União Estável com escritura", value: "uniao_estavel_escritura" },
@@ -1140,7 +1140,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "relacaoTrabalho",
 					label: "Relação de trabalho",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Formal", value: "formal" },
@@ -1366,7 +1366,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "titularidade2",
 					label: "Titularidade",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Titular 1", value: "titular_1" },
@@ -1443,7 +1443,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "rneTipo2",
 					label: "RNE Tipo",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Definitivo", value: "definitivo" },
@@ -1518,7 +1518,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "regimeBens2",
 					label: "Regime de Bens",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Comunhão Parcial", value: "comunhao_parcial" },
@@ -1534,7 +1534,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "situacaoFato2",
 					label: "Situação de Fato",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "União Estável com escritura", value: "uniao_estavel_escritura" },
@@ -1580,7 +1580,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "relacaoTrabalho2",
 					label: "Relação de trabalho",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Formal", value: "formal" },
@@ -1762,7 +1762,7 @@ export const regFundiariaDefinition: FormConfig = {
 				{
 					name: "posicaoFamilia",
 					label: "Posição na família/domicílio",
-					type: "select" as const,
+					type: "radio" as const,
 					required: false,
 					options: [
 						{ label: "Cônjuge", value: "conjuge" },

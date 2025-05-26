@@ -68,7 +68,7 @@ export const identUnidadeDefinition: FormConfig = {
                 {
                     name: "numero",
                     label: "Número",
-                    type: "text" as const,
+                    type: "numberSpinner" as const,
                     required: false,
 
                 },

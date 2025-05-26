@@ -31,10 +31,9 @@ export const nupcidadeDefinition: FormConfig = {
                 {
                     name: "estadoCivil",
                     label: "Qual o estado civil?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
-                        { label: "Solteiro", value: "solteiro" },
                         { label: "Casado(a)", value: "casado" },
                         { label: "Viúvo(a)", value: "viuvo" },
                         { label: "Separado(a) Judicialmente", value: "separado" },
@@ -58,7 +57,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         conditionalFields.push({
             name: "viveComCompanheiro",
             label: "Vive em companhia do(a) cônjuge ou companheiro(a)?",
-            type: "select",
+            type: "radio",
             required: false,
             options: [
                 { label: "Sim", value: "sim" },

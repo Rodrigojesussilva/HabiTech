@@ -3,6 +3,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+
+import { Combobox } from '@/components/ui/combobox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from "@/components/ui/label";
 import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/utils/formUtils";
@@ -145,15 +147,38 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     {...formField}
                     placeholder={field.placeholder}
                     disabled={formField.disabled}
-                    min={field.min || undefined}
+                    min={0}
                     max={field.max || undefined}
-                    step={field.step || 1}
+                    step={field.step || 0.01}
                     value={formField.value ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const value = e.target.value === "" ? "" : Number(e.target.value);
+                        const rawValue = e.target.value;
+
+                        // Permite limpar o campo
+                        if (rawValue === "") {
+                            formField.onChange("");
+                            return;
+                        }
+
+                        // Impede valores negativos e mais de duas casas decimais
+                        const numericRegex = /^(?:\d+|\d+\.\d{0,2})$/;
+
+                        // Se valor inválido (negativo ou mais de 2 decimais), ignora
+                        if (!numericRegex.test(rawValue)) {
+                            return;
+                        }
+
+                        // Converte para número e envia
+                        const value = Number(rawValue);
                         formField.onChange(value);
                     }}
-                    className="flex w-80 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    onKeyDown={(e) => {
+                        // Impede digitação de "-" e "e", que são permitidos por padrão em <input type="number">
+                        if (["-", "e", "E"].includes(e.key)) {
+                            e.preventDefault();
+                        }
+                    }}
+                    className="flex w-[800px] rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
             );
 
@@ -323,6 +348,30 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                         </div>
                     )}
                 </div>
+            );
+
+        case "date":
+            return (
+                <input
+                    type="date"
+                    placeholder={field.placeholder || "aaaa-mm-dd"}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        formField.onChange(e.target.value);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "combobox":
+            return (
+                <Combobox
+                    options={field.options || []}
+                    value={formField.value}
+                    onChange={formField.onChange}
+                    placeholder={field.placeholder || "Selecione uma opção"}
+                />
             );
 
         default:

@@ -6,7 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 import {
     formatCurrency,
-    calculateTotalImmigrants
+    calculateTotalImmigrants, formatarNumeroComDoisDecimais
 } from "@/components/forms/arrolamento/helpers/infoFamilia.helper";
 
 // Import form section renderer
@@ -19,17 +19,17 @@ interface InfoFamiliaFormProps {
     sectionIndex?: number;
     familyIndex: number;
 }
-
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-
+   
+    const [paisOptions, setPaisOptions] = useState<{ label: string; value: string }[]>([]);
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
     // Get merged form sections with conditional fields included
-    const formSections = getMergedFormSections(formValues);
+    let formSections = getMergedFormSections(formValues);
 
     // Update immigrants count when country data changes
     useEffect(() => {
@@ -39,6 +39,41 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         }
     }, [formValues.numerosPorPais, familyIndex, form]);
 
+    useEffect(() => {
+        const campos = [
+            'criancas0a3',
+            'criancas4a6',
+            'criancas7a11',
+            'adolescentes12a18',
+            'adultos19a59',
+            'idosos60',
+            'pessoasComDeficiencia',
+            'pessoasComDoencasCronicas',
+            'gestantes',
+        ];
+
+        campos.forEach(campo => {
+            const valor = formValues[campo];
+            if (valor !== undefined && valor !== null) {
+                const formatado = formatarNumeroComDoisDecimais(valor);
+                if (formatado !== valor) {
+                    form.setValue(`families[${familyIndex}].${campo}`, formatado, { shouldDirty: true });
+                }
+            }
+        });
+    }, [
+        formValues.criancas0a3,
+        formValues.criancas4a6,
+        formValues.criancas7a11,
+        formValues.adolescentes12a18,
+        formValues.adultos19a59,
+        formValues.idosos60,
+        formValues.pessoasComDeficiencia,
+        formValues.pessoasComDoencasCronicas,
+        formValues.gestantes,
+        familyIndex,
+        form
+    ]);
     // Format currency when rendaFamiliar changes
     useEffect(() => {
         if (formValues.rendaFamiliar) {
@@ -48,36 +83,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             }
         }
     }, [formValues.rendaFamiliar, familyIndex, form]);
-
-    // Handle nationality selection changes
-    /*const handleNationalityChange = (selectedOptions: string[]) => {
-        console.log(selectedCountries);
-        setSelectedCountries(selectedOptions);
-        form.setValue(`families[${familyIndex}].nacionalidadesSelecionadas`, selectedOptions);
-        
-        // Initialize country counts for newly selected countries
-        const currentCounts = formValues.numerosPorPais || {};
-        const updatedCounts = { ...currentCounts };
-        
-        // Add new countries with 0 count
-        selectedOptions.forEach(country => {
-            if (!updatedCounts[country]) {
-                updatedCounts[country] = 0;
-            }
-        });
-        
-        // Remove countries that are no longer selected
-        Object.keys(updatedCounts).forEach(country => {
-            if (!selectedOptions.includes(country)) {
-                delete updatedCounts[country];
-            }
-        });
-        
-        form.setValue(`families[${familyIndex}].numerosPorPais`, updatedCounts);
-    };*/
-
-    // Handle change in country-specific person count
-    
+  
     const handleCountryCountChange = (country: string, count: number) => {
         const currentCounts = formValues.numerosPorPais || {};
         form.setValue(`families[${familyIndex}].numerosPorPais`, {
@@ -109,7 +115,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                             familyIndex={familyIndex}
                         />
                     ))}
-                    
+
                     {/* Custom renderer for nationality selection */}
                     {/* Note: This part would need to be implemented using the UI components of your project */}
                     {/* 
