@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
 } from "@/components/forms/selagem/definitions/identUnidade.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import { buscarEnderecoPorCep } from '../api_cep'; // ajuste o path conforme seu projeto
+import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
 
 interface InfoContatoFormProps {
     id?: string;
@@ -14,8 +16,55 @@ interface InfoContatoFormProps {
 
 const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
     const [mostrarContato, setMostrarContato] = useState(false);
+    const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
     const form = useFormContext();
+    const { control, setValue, getValues } = form;
+
     const formValues = form.watch(`families[${familyIndex}]`) || {};
+
+    const cep = useWatch({
+        control,
+        name: `families[${familyIndex}].cep`,
+    });
+
+    // ⬇️ CEP -> busca dados e atualiza os campos
+    const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
+    let formSections = getMergedFormSections(formValues);
+
+    useEffect(() => {
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        // 🔁 Função auxiliar deve vir ANTES de ser usada
+        const limparCamposEndereco = () => {
+            setValue(`families[${familyIndex}].logradouro`, '');
+            setValue(`families[${familyIndex}].bairro`, '');
+            setValue(`families[${familyIndex}].complemento`, '');
+            setValue(`families[${familyIndex}].uf`, '');
+            setValue(`families[${familyIndex}].cidade`, '');
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    console.log('Endereço retornado:', endereco);  // <-- aqui
+                    setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '');
+                    setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');
+                    setValue(`families[${familyIndex}].complemento`, endereco.complemento || '');
+                    setValue(`families[${familyIndex}].uf`, endereco.uf || '');
+                    setValue(`families[${familyIndex}].cidade`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP:', error);
+                    limparCamposEndereco();
+                }
+            };
+
+            buscarEndereco();
+        } else {
+            limparCamposEndereco();
+        }
+    }, [cep, familyIndex, setValue]);
 
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
@@ -44,16 +93,16 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             // Atualiza o valor do campo no formulário
             form.setValue(`families[${familyIndex}].cep`, cepMasked);
         }
-    }, [form.watch(`families[${familyIndex}].cep`)]); 
+    }, [form.watch(`families[${familyIndex}].cep`)]);
 
     useEffect(() => {
         // Garante valor inicial do checkbox 'responsavel_nao_identificado'
         if (formValues.naoAplica === undefined) {
             form.setValue(`families[${familyIndex}].naoAplica`, false);
         }
-        
+
     }, [
-        formValues.naoAplica,   
+        formValues.naoAplica,
         form,
         familyIndex
     ]);
@@ -62,16 +111,62 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         if (formValues.naoAplica) {
             // Verifica se os valores já não estão vazios antes de setar
             const nomeResponsavel = form.getValues(`families[${familyIndex}].cep`);
-           
-    
+
+
             if (nomeResponsavel) {
                 form.setValue(`families[${familyIndex}].cep`, "");
-               
+
             }
         }
     }, [formValues.naoAplica, form, familyIndex]);
 
-    const formSections = getMergedFormSections(formValues);
+    // Atualiza UF
+    useEffect(() => {
+        fetchEstados()
+            .then(list => {
+                const options = list.map(e => ({ label: e.nome, value: e.sigla }));
+
+                // Encontra São Paulo e remove da lista
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1); // remove SP
+                    options.unshift(sp); // adiciona SP no começo
+                }
+
+                setEstadoOptions(options);
+            })
+            .catch(console.error);
+    }, []);
+
+    // Atualiza cidades ao mudar UF
+    useEffect(() => {
+        if (!ufSelecionada) {
+            setCidadeOptions([]);
+            return;
+        }
+        getCidadesOptions(ufSelecionada)
+            .then(setCidadeOptions)
+            .catch(console.error);
+    }, [ufSelecionada]);
+    
+    // Mescla seções e preenche opções dinâmicas
+    formSections = getMergedFormSections(formValues).map(section => ({
+        ...section,
+        fields: section.fields.map(field => {
+            // Preenche campos de estado (UF) com lista de estados
+            if (field.name === 'uf') {
+                return {
+                    ...field,
+                    options: estadoOptions
+                };
+            }
+            if (field.name === 'cidade') {
+                return { ...field, options: cidadeOptions };
+            }
+
+            return field;
+        })
+    }));
 
     return (
         <div className="text-left">
@@ -88,7 +183,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                         <FormSectionRenderer
                             key={section.id}
                             section={section}
-                            formControl={form.control}
+                            formControl={control}
                             getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 2}.${fieldIndex + 1}`}
                             sectionIndex={sectionIndex}
                             formValues={formValues}
@@ -96,8 +191,8 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                             familyIndex={familyIndex}
                         />
                     ))}
-                     
-                     <div className="mt-4 w-full flex justify-start">
+
+                    <div className="mt-4 w-full flex justify-start">
                         <button
                             type="button"
                             className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"

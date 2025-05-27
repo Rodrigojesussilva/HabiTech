@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/identResp.definition";
-import { calcularIdade } from "@/components/forms/arrolamento/helpers/identResp.helper";
+import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 
 interface IdentRespFormProps {
@@ -17,6 +17,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
+    const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
+
 
     useEffect(() => {
         const subscription = form.watch((values, { name, type }) => {
@@ -44,17 +46,24 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [formValues.naoSeAplicaEntrevistado, form, familyIndex]);
 
-    useEffect(() => {
-        const dataNascimento = formValues.dataNascimentoResp;
-        if (dataNascimento) {
+    useEffect(() => {const dataExpedicaoRg = form.watch(`families[${familyIndex}].dataExpedicaoRg`);
+        // Só roda se dataNascimento estiver definida e no formato correto YYYY-MM-DD
+        if (typeof dataNascimento === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
             const idade = calcularIdade(dataNascimento);
-            form.setValue(`families[${familyIndex}].idadeResp`, idade);
+            form.setValue(`families[${familyIndex}].idadeResp`, idade, { shouldValidate: true });
+        } else {
+            form.setValue(`families[${familyIndex}].idadeResp`, "", { shouldValidate: false });
         }
-    }, [formValues.dataNascimentoResp]);
+    }, [dataNascimento, familyIndex, form.setValue]);
+
+
+    useEffect(() => {
+        validarDataNascimento(dataNascimento, familyIndex, form.setValue);
+    }, [dataNascimento, familyIndex, form.setValue]);
+
 
     return (
         <div className="text-left">
-
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">

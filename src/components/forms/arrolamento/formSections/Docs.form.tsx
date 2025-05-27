@@ -5,7 +5,9 @@ import {
 	getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-import { estados as fetchEstados, getCidadesOptions} from '../estadosCidades';
+import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
+import { validarData } from "@/components/forms/arrolamento/helpers/docs.helper";
+
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
@@ -13,7 +15,7 @@ interface DocsFormProps {
 }
 
 const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
-	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);	
+	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
 	const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
 	const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
 
@@ -22,8 +24,13 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	// Observar todos os valores da família
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
 	const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
+	const dataExpedicaoRg = form.watch(`families[${familyIndex}].dataExpedicaoRg`);
 	// Pegar estrutura dos campos dinâmicos
 	let formSections = getMergedFormSections(formValues);
+
+	useEffect(() => {
+		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
+	}, [dataExpedicaoRg, familyIndex, form.setValue]);
 
 	// Validação da data de expedição (mantida como estava)
 	useEffect(() => {
@@ -57,21 +64,21 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	}, [formValues.dataExpedicaoRg]);
 
 	useEffect(() => {
-  fetchEstados()
-    .then(list => {
-      const options = list.map(e => ({ label: e.nome, value: e.sigla }));
+		fetchEstados()
+			.then(list => {
+				const options = list.map(e => ({ label: e.nome, value: e.sigla }));
 
-      // Encontra São Paulo e remove da lista
-      const spIndex = options.findIndex(e => e.label === 'São Paulo');
-      if (spIndex > -1) {
-        const [sp] = options.splice(spIndex, 1); // remove SP
-        options.unshift(sp); // adiciona SP no começo
-      }
+				// Encontra São Paulo e remove da lista
+				const spIndex = options.findIndex(e => e.label === 'São Paulo');
+				if (spIndex > -1) {
+					const [sp] = options.splice(spIndex, 1); // remove SP
+					options.unshift(sp); // adiciona SP no começo
+				}
 
-      setEstadoOptions(options);
-    })
-    .catch(console.error);
-}, []);
+				setEstadoOptions(options);
+			})
+			.catch(console.error);
+	}, []);
 	// Atualiza cidades ao mudar UF
 	useEffect(() => {
 		if (!ufSelecionada) {
@@ -82,19 +89,22 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			.then(setCidadeOptions)
 			.catch(console.error);
 	}, [ufSelecionada]);
-	// Carrega lista de países
-	
+
 	// Mescla seções e preenche opções dinâmicas
 	formSections = getMergedFormSections(formValues).map(section => ({
 		...section,
 		fields: section.fields.map(field => {
-			if (field.name === 'uf') {
-				return { ...field, options: estadoOptions };
+			// Preenche campos de estado (UF) com lista de estados
+			if (field.name === 'uf' || field.name === 'estadoEmissaoRg') {
+				return {
+					...field,
+					options: estadoOptions
+				};
 			}
 			if (field.name === 'cidade') {
 				return { ...field, options: cidadeOptions };
 			}
-		
+
 			return field;
 		})
 	}));

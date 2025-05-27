@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
-import { estados } from '../estadosCidades';
+
 // Form validation schema
 export const identUnidadeSchema = z.object({
     cep: z.string().optional(),
@@ -87,33 +87,25 @@ export const identUnidadeDefinition: FormConfig = {
                 {
                     name: "uf",
                     label: "Uf",
-                    type: "select" as const,
+                    type: "combobox" as const,
                     required: true,
                     options: [
-                        { label: "Selecione uma opção", value: "select" },
-                        ...estados.map((estado) => ({
-                            label: estado.nome,
-                            value: estado.sigla,
-                        }))
+                      
                     ]
                 },
                 {
                     name: "cidade",
                     label: "Cidade",
-                    type: "select" as const,
+                    type: "combobox" as const,
                     required: true,
                     options: [
-                        { label: "Selecione uma opção", value: "select" },
-                        ...estados.map((estado) => ({
-                            label: estado.nome,
-                            value: estado.sigla,
-                        }))
+                    
                     ]
                 },
                 {
                     name: "subPrefeitura",
                     label: "Subprefeitura",
-                    type: "select" as const,
+                    type: "combobox" as const,
                     required: false,
                     options: [
                         { label: "Obter opções para Subprefeitura", value: "#" },
@@ -122,7 +114,7 @@ export const identUnidadeDefinition: FormConfig = {
                 {
                     name: "distrito",
                     label: "Distrito",
-                    type: "select" as const,
+                    type: "combobox" as const,
                     required: false,
                     options: [
                         { label: "Obter opções para Distrito", value: "#" },
