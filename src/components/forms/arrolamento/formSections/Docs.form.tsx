@@ -63,6 +63,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	}, [formValues.dataExpedicaoRg]);
 
+	// Atualiza UF
 	useEffect(() => {
 		fetchEstados()
 			.then(list => {
@@ -79,6 +80,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			})
 			.catch(console.error);
 	}, []);
+	
 	// Atualiza cidades ao mudar UF
 	useEffect(() => {
 		if (!ufSelecionada) {

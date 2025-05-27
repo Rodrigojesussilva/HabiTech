@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
+import { subprefeituras, distritosPorSubprefeitura } from "../subprefeiturasDistritos";
 
 // Form validation schema
 export const identUnidadeSchema = z.object({
     cep: z.string().optional(),
-    naoAplica: z.string().optional(), 
+    naoAplica: z.string().optional(),
     logradouro: z.string().optional(),
     numero: z.string().optional(),
     bairro: z.string().optional(),
@@ -34,6 +35,16 @@ export const defaultValues: Partial<FormValues> = {
     idLocal: "not",
 };
 
+const subPrefeituraOptions = subprefeituras.map((nome) => ({
+    label: nome,
+    value: nome,
+}));
+
+const selectedSub = "Butantã"; // <-- apenas valor fixo
+const distritoOptions = (sub: string) => {
+    const distritos = distritosPorSubprefeitura[sub] || [];
+    return distritos.map((d) => ({ label: d, value: d }));
+};
 // Base form structure (without conditional fields)
 export const identUnidadeDefinition: FormConfig = {
     title: "Identificação da Unidade",
@@ -90,7 +101,7 @@ export const identUnidadeDefinition: FormConfig = {
                     type: "combobox" as const,
                     required: true,
                     options: [
-                      
+
                     ]
                 },
                 {
@@ -99,7 +110,7 @@ export const identUnidadeDefinition: FormConfig = {
                     type: "combobox" as const,
                     required: true,
                     options: [
-                    
+
                     ]
                 },
                 {
@@ -107,18 +118,14 @@ export const identUnidadeDefinition: FormConfig = {
                     label: "Subprefeitura",
                     type: "combobox" as const,
                     required: false,
-                    options: [
-                        { label: "Obter opções para Subprefeitura", value: "#" },
-                    ]
+                    options: subPrefeituraOptions,
                 },
                 {
                     name: "distrito",
                     label: "Distrito",
                     type: "combobox" as const,
                     required: false,
-                    options: [
-                        { label: "Obter opções para Distrito", value: "#" },
-                    ]
+                    options: distritoOptions(selectedSub)
                 },
 
             ]

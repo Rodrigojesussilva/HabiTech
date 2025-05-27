@@ -7,6 +7,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { buscarEnderecoPorCep } from '../api_cep'; // ajuste o path conforme seu projeto
 import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
+import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 
 interface InfoContatoFormProps {
     id?: string;
@@ -18,8 +19,12 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const [mostrarContato, setMostrarContato] = useState(false);
     const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
     const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptions, setSubPrefeituraOptions] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsState, setDistritoOptionsState] = useState<{ label: string; value: string }[]>([]);
+
+
     const form = useFormContext();
-    const { control, setValue, getValues } = form;
+    const { control, setValue, getValues, watch } = form;
 
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
@@ -31,7 +36,31 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     // ⬇️ CEP -> busca dados e atualiza os campos
     const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
     let formSections = getMergedFormSections(formValues);
+    const selectedSubPrefeitura = watch(`families[${familyIndex}].subPrefeitura`);
 
+    // Carrega subprefeituras (pode ser fetch ou lista estática)
+    useEffect(() => {
+        const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+        setSubPrefeituraOptions(options);
+    }, []);
+    // Carrega subprefeituras (pode ser fetch ou lista estática)
+    useEffect(() => {
+        const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+        setSubPrefeituraOptions(options);
+    }, []);
+    // Atualiza distritos ao mudar subPrefeitura
+    useEffect(() => {
+        if (!selectedSubPrefeitura) {
+            setDistritoOptionsState([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeitura] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+
+        setDistritoOptionsState(options);
+    }, [selectedSubPrefeitura]);
+    //carrega api de Cep
     useEffect(() => {
         const cepLimpo = (cep || '').replace(/\D/g, '');
 
@@ -65,21 +94,22 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             limparCamposEndereco();
         }
     }, [cep, familyIndex, setValue]);
-
+    // Torna o SP padrão na UF
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
         if (!currentUf) {
             form.setValue(`families[${familyIndex}].uf`, "SP");
         }
     }, []);
-
+    // Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
-        if (!currentUf) {
-            form.setValue(`families[${familyIndex}].cidade`, "SP");
+        const currentCidade = form.getValues(`families[${familyIndex}].cidade`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidade`, "São Paulo");
         }
-    }, []);
-
+    }, [form.getValues(`families[${familyIndex}].uf`)]);
+    // Formata o campo Cep
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cep`);
 
@@ -94,19 +124,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].cep`, cepMasked);
         }
     }, [form.watch(`families[${familyIndex}].cep`)]);
-
-    useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
-        if (formValues.naoAplica === undefined) {
-            form.setValue(`families[${familyIndex}].naoAplica`, false);
-        }
-
-    }, [
-        formValues.naoAplica,
-        form,
-        familyIndex
-    ]);
-
+    // Limpa o campo Cep
     useEffect(() => {
         if (formValues.naoAplica) {
             // Verifica se os valores já não estão vazios antes de setar
@@ -119,7 +137,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             }
         }
     }, [formValues.naoAplica, form, familyIndex]);
-
     // Atualiza UF
     useEffect(() => {
         fetchEstados()
@@ -137,7 +154,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             })
             .catch(console.error);
     }, []);
-
     // Atualiza cidades ao mudar UF
     useEffect(() => {
         if (!ufSelecionada) {
@@ -145,10 +161,19 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             return;
         }
         getCidadesOptions(ufSelecionada)
-            .then(setCidadeOptions)
+            .then(cidades => {
+                if (ufSelecionada === 'SP') {
+                    // Encontra São Paulo e coloca primeiro
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+                setCidadeOptions(cidades);
+            })
             .catch(console.error);
     }, [ufSelecionada]);
-    
     // Mescla seções e preenche opções dinâmicas
     formSections = getMergedFormSections(formValues).map(section => ({
         ...section,
@@ -163,7 +188,18 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             if (field.name === 'cidade') {
                 return { ...field, options: cidadeOptions };
             }
-
+            if (field.name === "subPrefeitura") {
+                return {
+                    ...field,
+                    options: subPrefeituraOptions,
+                };
+            }
+            if (field.name === "distrito") {
+                return {
+                    ...field,
+                    options: distritoOptionsState,
+                };
+            }
             return field;
         })
     }));
