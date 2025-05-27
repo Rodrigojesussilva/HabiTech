@@ -32,6 +32,7 @@
     "clsx": "^2.1.1",
     "countries-list": "^3.1.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "framer-motion": "^12.5.0",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
