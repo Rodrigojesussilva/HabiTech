@@ -23,7 +23,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
    
-    const [paisOptions, setPaisOptions] = useState<{ label: string; value: string }[]>([]);
+    //const [paisOptions, setPaisOptions] = useState<{ label: string; value: string }[]>([]);
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
