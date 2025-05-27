@@ -57,23 +57,8 @@ export const situUsoUniDefinition: FormConfig = {
                         { label: "Unidade vazia", value: "UnidadeVazia" },
                     ]
                 },
-                {
-                    name: "usoUnidade",
-                    label: "Uso da unidade",
-                    type: "select" as const,
-                    required: true,
-                    options: [
-                        { label: "Selecione uma opção", value: "select" },
-                        { label: "Residencial", value: "Residencial" },
-                        { label: "Comercial", value: "Comercial" },
-                        { label: "Uso Misto", value: "UsoMisto" },
-                        { label: "Institucional", value: "Institucional" },
-                        { label: "Serviço", value: "Servico" },
-                        { label: "Industrial", value: "Industrial" },
-                        { label: "Uso não Identificado", value: "UsoNaoIdentificado" },
-                        { label: "Outros", value: "Outros" }
-                    ]
-                },
+
+// uso removido//
             ]
         }
     ]
@@ -92,86 +77,114 @@ function insertAfter(fields: FormField[], targetName: string, toInsert: FormFiel
 
 // Retorna campos condicionais baseados nos valores do formulário
 export function getConditionalFields(formValues: Partial<FormValues>) {
-    const usoUnidadeConditionals: FormField[] = [];
-    const situacaoUsoUnidadeConditionals: FormField[] = [];
+  const usoUnidadeConditionals: FormField[] = [];
+  const situacaoUsoUnidadeConditionals: FormField[] = [];
 
-    if (
-        formValues.usoUnidade === "Comercial" ||
-        formValues.usoUnidade === "UsoMisto" ||
-        formValues.usoUnidade === "Servico" ||
-        formValues.usoUnidade === "Institucional" ||
-        formValues.usoUnidade === "Industrial" ||
-        formValues.usoUnidade === "UsoNaoIdentificado"
-    ) {
-        usoUnidadeConditionals.push({
-            name: "qualUso",
-            label: "Qual o uso?",
-            type: "text",
-            required: false,
-            placeholder: "Digite qual o uso aqui"
-        });
-    }
+  // Exibir "usoUnidade" somente quando a situação não for "Não identificado" ou "Unidade vazia"
+  if (
+    formValues.situacaoUsoUnidade !== "NaoIdentificado" &&
+    formValues.situacaoUsoUnidade !== "UnidadeVazia"
+  ) {
+    situacaoUsoUnidadeConditionals.push({
+      name: "usoUnidade",
+      label: "Uso da unidade",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Selecione uma opção", value: "select" },
+        { label: "Residencial", value: "Residencial" },
+        { label: "Comercial", value: "Comercial" },
+        { label: "Uso Misto", value: "UsoMisto" },
+        { label: "Institucional", value: "Institucional" },
+        { label: "Serviço", value: "Servico" },
+        { label: "Industrial", value: "Industrial" },
+        { label: "Uso não Identificado", value: "UsoNaoIdentificado" },
+        { label: "Outros", value: "Outros" }
+      ]
+    });
+  }
 
-    if (formValues.usoUnidade === "Outros") {
-        usoUnidadeConditionals.push({
-            name: "qualUso",
-            label: "Descreva o uso da unidade:",
-            type: "text",
-            required: true,
-            placeholder: "Digite qual o uso aqui"
-        });
-    }
+  // Campos adicionais se "usoUnidade" for específico
+  if (
+    formValues.usoUnidade === "Comercial" ||
+    formValues.usoUnidade === "UsoMisto" ||
+    formValues.usoUnidade === "Servico" ||
+    formValues.usoUnidade === "Institucional" ||
+    formValues.usoUnidade === "Industrial" ||
+    formValues.usoUnidade === "UsoNaoIdentificado"
+  ) {
+    usoUnidadeConditionals.push({
+      name: "qualUso",
+      label: "Qual o uso?",
+      type: "text",
+      required: false,
+      placeholder: "Digite qual o uso aqui"
+    });
+  }
 
-    if (formValues.usoUnidade === "UsoMisto") {
-        usoUnidadeConditionals.push({
-            name: "quaisTipos",
-            label: "Quais tipos?:",
-            type: "text",
-            required: true,
-            placeholder: "Digite quais os usos aqui"
-        });
-    }
+  if (formValues.usoUnidade === "Outros") {
+    usoUnidadeConditionals.push({
+      name: "qualUso",
+      label: "Descreva o uso da unidade:",
+      type: "text",
+      required: true,
+      placeholder: "Digite qual o uso aqui"
+    });
+  }
 
-    if (
-        formValues.situacaoUsoUnidade === "TerrenoCercado" ||
-        formValues.situacaoUsoUnidade === "TerrenoSemCercamento"
-    ) {
-        situacaoUsoUnidadeConditionals.push(
-            {
-                name: "nome_responsavel",
-                label: "Nome da pessoa responsável pelo terreno",
-                type: "text" as const,
-                required: false,
-                conditions: [
-                    { field: "responsavel_nao_identificado", operator: "equals", value: false }
-                ]
-            },
-            {
-                name: "telefone_responsavel",
-                label: "Telefone da pessoa responsável pelo terreno",
-                type: "text" as const,
-                required: false,
-                conditions: [
-                    { field: "responsavel_nao_identificado", operator: "equals", value: false }
-                ]
-            },
-            {
-                name: "responsavel_nao_identificado",
-                label: "Responsável não identificado",
-                type: "checkbox" as const,
-                required: false
-            },
-            {
-                name: "uso_terreno",
-                label: "Uso do terreno",
-                type: "text",
-                required: false
-            }
-        );
-    }
+  if (formValues.usoUnidade === "UsoMisto") {
+    usoUnidadeConditionals.push({
+      name: "quaisTipos",
+      label: "Quais tipos?",
+      type: "text",
+      required: true,
+      placeholder: "Digite quais os usos aqui"
+    });
+  }
 
-    return { usoUnidadeConditionals, situacaoUsoUnidadeConditionals };
+  // Campos de terreno (quando aplicável)
+  if (
+    formValues.situacaoUsoUnidade === "TerrenoCercado" ||
+    formValues.situacaoUsoUnidade === "TerrenoSemCercamento"
+  ) {
+    situacaoUsoUnidadeConditionals.push(
+      {
+        name: "nome_responsavel",
+        label: "Nome da pessoa responsável pelo terreno",
+        type: "text",
+        required: false,
+        conditions: [
+          { field: "responsavel_nao_identificado", operator: "equals", value: false }
+        ]
+      },
+      {
+        name: "telefone_responsavel",
+        label: "Telefone da pessoa responsável pelo terreno",
+        type: "text",
+        required: false,
+        conditions: [
+          { field: "responsavel_nao_identificado", operator: "equals", value: false }
+        ]
+      },
+      {
+        name: "responsavel_nao_identificado",
+        label: "Responsável não identificado",
+        type: "checkbox",
+        required: false
+      },
+      {
+        name: "uso_terreno",
+        label: "Uso do terreno",
+        type: "text",
+        required: false
+      }
+    );
+  }
+
+  return { usoUnidadeConditionals, situacaoUsoUnidadeConditionals };
 }
+
+
 
 // Retorna todas as seções do formulário com campos condicionais na posição correta
 export function getMergedFormSections(formValues: Partial<FormValues>) {
