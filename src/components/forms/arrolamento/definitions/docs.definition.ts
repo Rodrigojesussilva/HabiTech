@@ -1,4 +1,5 @@
 import { z } from "zod";
+import dayjs from "dayjs";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
 function validarCpf(cpf: string): boolean {
@@ -25,46 +26,53 @@ function validarCpf(cpf: string): boolean {
   return cpfLimpo === base + digito1.toString() + digito2.toString();
 }
 
-// Form validation schema
-export const docsSchema = z.object({
-  paisOrigem: z.string().optional(),
-  documentacao: z.string().optional(),
-  numeroProtocolo: z.string().optional(),
-  numeroRnm: z.string().optional(),
-  statusRnm: z.string().optional(),
-  numeroCrnm: z.string().optional(),
-  statusCrnm: z.string().optional(),
-  numeroPassaporte: z.string().optional(),
-  uf: z.string().optional(),
-  cidade: z.string().optional(),
-  fonteRg: z.string().optional(),
-  rg: z.string().optional(),
-  orgaoExpedidor: z.string().optional(),
-  estadoEmissaoRg: z.string().optional(),
-  dataExpedicaoRg: z.string().optional(),
-  cpf: z
-    .string()
-    .optional()
-    .refine((cpf) => !cpf || validarCpf(cpf), {
+export const docsSchema = z
+  .object({
+    paisOrigem: z.string().optional(),
+    documentacao: z.string().optional(),
+    numeroProtocolo: z.string().optional(),
+    numeroRnm: z.string().optional(),
+    statusRnm: z.string().optional(),
+    numeroCrnm: z.string().optional(),
+    statusCrnm: z.string().optional(),
+    numeroPassaporte: z.string().optional(),
+    uf: z.string().optional(),
+    cidade: z.string().optional(),
+    fonteRg: z.string().optional(),
+    rg: z.string().optional(),
+    orgaoExpedidor: z.string().optional(),
+    estadoEmissaoRg: z.string().optional(),
+    dataExpedicaoRg: z.string().optional(),
+    cpf: z.string().optional().refine((cpf) => !cpf || validarCpf(cpf), {
       message: "CPF inválido",
     }),
-  fonteCpf: z.string().optional(),
-  arrolamento_id: z.string().optional(),
-  idLocal: z.string().optional(),
-  tempoExpedicao: z.object({
-    anos: z.number(),
-    meses: z.number(),
-  }).optional(),
-  dataExpedicaoCpf: z.string().optional(),
-  tempoExpedicaoCpf: z.object({
-    anos: z.number(),
-    meses: z.number(),
-  }).optional(),
-});
+    fonteCpf: z.string().optional(),
+    arrolamento_id: z.string().optional(),
+    idLocal: z.string().optional(),
+    tempoExpedicao: z.object({ anos: z.number(), meses: z.number() }).optional(),
+    dataExpedicaoCpf: z.string().optional(),
+    tempoExpedicaoCpf: z.object({ anos: z.number(), meses: z.number() }).optional(),
+    dataNascimento: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const nascimento = dayjs(data.dataNascimento, "DD/MM/YYYY", true);
+    const expedicaoRg = dayjs(data.dataExpedicaoRg, "DD/MM/YYYY", true);
+
+    if (nascimento.isValid() && expedicaoRg.isValid()) {
+      const minExpedicao = nascimento.add(16, "year");
+
+      if (expedicaoRg.isBefore(minExpedicao)) {
+        ctx.addIssue({
+          path: ["dataExpedicaoRg"],
+          code: z.ZodIssueCode.custom,
+          message: "A expedição do RG deve ocorrer após os 16 anos de idade",
+        });
+      }
+    }
+  });
 
 export type FormValues = z.infer<typeof docsSchema>;
 
-// Default values
 export const defaultValues: Partial<FormValues> = {
   paisOrigem: "Brazil",
   documentacao: "",
@@ -84,44 +92,36 @@ export const defaultValues: Partial<FormValues> = {
   cpf: "",
   fonteCpf: "",
   idLocal: "not",
-  tempoExpedicao: {
-    anos: 0,
-    meses: 0,
-  },
+  tempoExpedicao: { anos: 0, meses: 0 },
   dataExpedicaoCpf: "",
-  tempoExpedicaoCpf: {
-    anos: 0,
-    meses: 0,
-  },
+  tempoExpedicaoCpf: { anos: 0, meses: 0 },
 };
 
-
-
-// Base form structure (without conditional fields)
 export const docsDefinition: FormConfig = {
-    title: "Documentação",
-    sections: [
+  title: "Documentação",
+  sections: [
+    {
+      id: "documentacaoPessoalResponsavel",
+      title: "Documentação da Pessoa Responsável",
+      fields: [
         {
-            id: "documentacaoPessoalResponsavel",
-            title: "Documentação da Pessoa Responsável",
-            fields: [
-                {
-                    name: "paisOrigem",
-                    label: "País de Origem",
-                    type: "select" as const,
-                    required: true,
-                    options: [{label: "Brasil", value: "Brazil"}], // This will be populated dynamically from the helper function
-                }
-            ]
-        }
-    ]
+          name: "paisOrigem",
+          label: "País de Origem",
+          type: "combobox" as const,
+          required: true,
+          options: [
+            { label: "Brasil", value: "Brazil" },
+            { label: "Angola", value: "Angola" },
+            { label: "Portugal", value: "Portugal" },
+            { label: "Estados Unidos", value: "United States" },
+            { label: "Canadá", value: "Canada" },
+            { label: "Moçambique", value: "Mozambique" },
+          ],
+        },
+      ],
+    },
+  ],
 };
-
-/**
- * Get additional conditional fields based on form values for Docs form
- * This centralizes all conditional field logic specific to Docs in one place
- * @param formValues Current form values from Docs form
- */
 
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
   const conditionalFields: FormField[] = [];
@@ -129,26 +129,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
   const pais = formValues.paisOrigem?.toLowerCase();
   const doc = formValues.documentacao?.toLowerCase();
 
-  console.log("DEBUG paisOrigem:", formValues.paisOrigem);
-  console.log("DEBUG documentacao:", formValues.documentacao);
-
-  // Campos para cidadãos brasileiros
   if (pais === "brazil") {
     conditionalFields.push(
-      {
-        name: "uf",
-        label: "Estado (UF)",
-        type: "select",
-        required: true,
-        options: []
-      },
-      {
-        name: "cidade",
-        label: "Cidade",
-        type: "select",
-        required: true,
-        options: []
-      },
+      { name: "uf", label: "Estado (UF)", type: "select", required: true, options: [] },
+      { name: "cidade", label: "Cidade", type: "select", required: true, options: [] },
       {
         name: "fonteRg",
         label: "Fonte para RG",
@@ -156,43 +140,14 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         required: true,
         options: [
           { label: "CNH", value: "CNH" },
-          { label: "RG", value: "RG" }
-        ]
+          { label: "RG", value: "RG" },
+        ],
       },
-      {
-        name: "rg",
-        label: "Número do RG",
-        type: "text",
-        required: true
-      },
-      {
-        name: "orgaoExpedidor",
-        label: "Órgão Expedidor",
-        type: "text",
-        required: true
-      },
-      {
-        name: "estadoEmissaoRg",
-        label: "Estado de Emissão do RG",
-        type: "select",
-        required: true,
-        options: []
-      },
-      {
-        name: "dataExpedicaoRg",
-        label: "Data de Expedição do RG",
-        type: "text",
-        required: true,
-        mask: "99/99/9999",
-        placeholder: "DD/MM/AAAA"
-      },
-      {
-        name: "cpf",
-        label: "CPF",
-        type: "text",
-        required: true,
-        mask: "999.999.999-99"
-      },
+      { name: "rg", label: "Número do RG", type: "text", required: true },
+      { name: "orgaoExpedidor", label: "Órgão Expedidor", type: "text", required: true },
+      { name: "estadoEmissaoRg", label: "Estado de Emissão do RG", type: "select", required: true, options: [] },
+      { name: "dataExpedicaoRg", label: "Data de Expedição do RG", type: "text", required: true, mask: "99/99/9999", placeholder: "DD/MM/AAAA" },
+      { name: "cpf", label: "CPF", type: "text", required: true, mask: "999.999.999-99" },
       {
         name: "fonteCpf",
         label: "Fonte para CPF",
@@ -200,14 +155,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         required: true,
         options: [
           { label: "CIN", value: "CIN" },
-          { label: "CPF", value: "CPF" }
-        ]
+          { label: "CPF", value: "CPF" },
+        ],
       }
     );
-  }
-
-  // Campos para estrangeiros
-  else if (pais && pais !== "brazil") {
+  } else if (pais && pais !== "brazil") {
     conditionalFields.push({
       name: "documentacao",
       label: "Documentação",
@@ -217,25 +169,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         { label: "Protocolo", value: "Protocolo" },
         { label: "RNM", value: "RNM" },
         { label: "CRNM", value: "CRNM" },
-        { label: "Passaporte", value: "Passaporte" }
-      ]
+        { label: "Passaporte", value: "Passaporte" },
+      ],
     });
 
     if (doc === "protocolo") {
-      conditionalFields.push({
-        name: "numeroProtocolo",
-        label: "Número do Protocolo",
-        type: "text",
-        required: true
-      });
+      conditionalFields.push({ name: "numeroProtocolo", label: "Número do Protocolo", type: "text", required: true });
     } else if (doc === "rnm") {
       conditionalFields.push(
-        {
-          name: "numeroRnm",
-          label: "Número do RNM",
-          type: "text",
-          required: true
-        },
+        { name: "numeroRnm", label: "Número do RNM", type: "text", required: true },
         {
           name: "statusRnm",
           label: "Status do RNM",
@@ -244,18 +186,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
           options: [
             { label: "Válido", value: "Válido" },
             { label: "Inválido", value: "Inválido" },
-            { label: "Pendente", value: "Pendente" }
-          ]
+            { label: "Pendente", value: "Pendente" },
+          ],
         }
       );
     } else if (doc === "crnm") {
       conditionalFields.push(
-        {
-          name: "numeroCrnm",
-          label: "Número do CRNM",
-          type: "text",
-          required: true
-        },
+        { name: "numeroCrnm", label: "Número do CRNM", type: "text", required: true },
         {
           name: "statusCrnm",
           label: "Status do CRNM",
@@ -264,44 +201,24 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
           options: [
             { label: "Válido", value: "Válido" },
             { label: "Inválido", value: "Inválido" },
-            { label: "Pendente", value: "Pendente" }
-          ]
+            { label: "Pendente", value: "Pendente" },
+          ],
         }
       );
     } else if (doc === "passaporte") {
-      conditionalFields.push({
-        name: "numeroPassaporte",
-        label: "Número do Passaporte",
-        type: "text",
-        required: true
-      });
+      conditionalFields.push({ name: "numeroPassaporte", label: "Número do Passaporte", type: "text", required: true });
     }
   }
 
   return conditionalFields;
 }
 
-
-
-/**
- * Get complete form sections with merged static and conditional fields
- * This centralizes the merging logic of base and conditional fields
- * @param formValues Current form values from Docs form
- * @returns Array of form sections with merged fields
- */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
-    // Get conditional fields based on current form values
-    const conditionalFields = getConditionalFields(formValues);
-	console.log("Conditional Fields", conditionalFields);
-
-    // Create and return a merged form structure with base fields and conditional fields
-    return [
-        {
-            ...docsDefinition.sections[0],
-            fields: [
-                ...docsDefinition.sections[0].fields,
-                ...conditionalFields
-            ]
-        }
-    ];
-} 
+  const conditionalFields = getConditionalFields(formValues);
+  return [
+    {
+      ...docsDefinition.sections[0],
+      fields: [...docsDefinition.sections[0].fields, ...conditionalFields],
+    },
+  ];
+}

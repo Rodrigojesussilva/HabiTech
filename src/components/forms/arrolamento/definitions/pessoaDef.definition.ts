@@ -84,7 +84,7 @@ export const pessoaDefDefinition: FormConfig = {
                 {
                     name: "temPessoaDeficienciaFam",
                     label: "Alguma pessoa da família tem deficiência?",
-                    type: "select" as const,
+                    type: "radio" as const,
                     required: false,
                     options: [
                         { label: "Sim", value: "sim" },
@@ -119,7 +119,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "responsavelTemDeficiencia",
                 label: "A pessoa responsável pela unidade tem deficiência?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "sim" },
@@ -142,7 +142,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "utilizaTecnologiaAssistida",
                 label: "Utiliza tecnologia assistiva?",
-                type: "select" as const,
+                type: "radio" as const,
                 required: false,
                 options: [
                     { label: "Sim", value: "sim" },
@@ -158,7 +158,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         conditionalFields.push({
             name: "responsavelPossuiLaudo",
             label: "A pessoa responsável possui laudo médico",
-            type: "select" as const,
+            type: "radio" as const,
             required: false,
             options: [
                 { label: "Sim", value: "sim" },

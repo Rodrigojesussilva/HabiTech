@@ -34,7 +34,7 @@ export const caractUnidadeDefinition: FormConfig = {
             fields: [
                 {
                     name: "numeroComodos",
-                    label: "Número de Cômodos(exceto banheiro)",
+                    label: "Quantidade de Cômodos(exceto banheiro)",
                     type: "numberSpinner", 
                     required: true,
                     min: 1,
@@ -43,7 +43,7 @@ export const caractUnidadeDefinition: FormConfig = {
                 },
                 {
                     name: "numeroPavimento",
-                    label: "Número de Pavimentos na Unidade",
+                    label: "Quantidade de Pavimentos na Unidade",
                     type: "numberSpinner", 
                     required: true,
                     min: 1,
@@ -52,7 +52,7 @@ export const caractUnidadeDefinition: FormConfig = {
                 },
                 {
                     name: "numeroSanitarios",
-                    label: "Número de Sanitários na Unidade",
+                    label: "Quantidade de Sanitários na Unidade",
                     type: "numberSpinner", 
                     required: true,
                     min: 1,

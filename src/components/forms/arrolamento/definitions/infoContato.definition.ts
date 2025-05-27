@@ -116,7 +116,6 @@ export const infoContatoDefinition: FormConfig = {
                     label: "Tipo de telefone 1",
                     type: "select" as const,
                     required: true,
-
                     options: [
 
                         { label: "Selecione uma opção", value: "select" },

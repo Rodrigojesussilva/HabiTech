@@ -13,7 +13,7 @@ export type FormCondition = {
 export type FormField = {
   name: string;
   label: string;
-  type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'label' | 'textarea' | 'file' | 'numberSpinner' | 'email';
+  type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'label' | 'textarea' | 'file' | 'numberSpinner' | 'email'| 'date'|'combobox';
   required: boolean;
   readonly?: boolean;
   options?: { label: string; value: string }[];

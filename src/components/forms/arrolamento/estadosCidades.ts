@@ -1,61 +1,51 @@
-// Brazilian states
-export const estados = [
-    { nome: "Acre", sigla: "AC" },
-    { nome: "Alagoas", sigla: "AL" },
-    { nome: "Amapá", sigla: "AP" },
-    { nome: "Amazonas", sigla: "AM" },
-    { nome: "Bahia", sigla: "BA" },
-    { nome: "Ceará", sigla: "CE" },
-    { nome: "Distrito Federal", sigla: "DF" },
-    { nome: "Espírito Santo", sigla: "ES" },
-    { nome: "Goiás", sigla: "GO" },
-    { nome: "Maranhão", sigla: "MA" },
-    { nome: "Mato Grosso", sigla: "MT" },
-    { nome: "Mato Grosso do Sul", sigla: "MS" },
-    { nome: "Minas Gerais", sigla: "MG" },
-    { nome: "Pará", sigla: "PA" },
-    { nome: "Paraíba", sigla: "PB" },
-    { nome: "Paraná", sigla: "PR" },
-    { nome: "Pernambuco", sigla: "PE" },
-    { nome: "Piauí", sigla: "PI" },
-    { nome: "Rio de Janeiro", sigla: "RJ" },
-    { nome: "Rio Grande do Norte", sigla: "RN" },
-    { nome: "Rio Grande do Sul", sigla: "RS" },
-    { nome: "Rondônia", sigla: "RO" },
-    { nome: "Roraima", sigla: "RR" },
-    { nome: "Santa Catarina", sigla: "SC" },
-    { nome: "São Paulo", sigla: "SP" },
-    { nome: "Sergipe", sigla: "SE" },
-    { nome: "Tocantins", sigla: "TO" }
-];
+// estadosCidades.ts
+/**
+ * Retorna lista de países via API REST Countries.
+ * @returns Promise de objetos { nome, sigla }
+ */
+export async function paises(): Promise<{ nome: string; sigla: string }[]> {
+  const response = await fetch('https://restcountries.com/v3.1/all');
+  if (!response.ok) throw new Error('Erro ao buscar países na API REST Countries');
 
-// Cities by state (simplified with a few examples per state)
-export const cidadesPorEstado = {
-    AC: ["Rio Branco", "Cruzeiro do Sul", "Sena Madureira", "Tarauacá", "Feijó"],
-    AL: ["Maceió", "Arapiraca", "Palmeira dos Índios", "Rio Largo", "Penedo"],
-    AP: ["Macapá", "Santana", "Laranjal do Jari", "Oiapoque", "Mazagão"],
-    AM: ["Manaus", "Parintins", "Itacoatiara", "Manacapuru", "Coari"],
-    BA: ["Salvador", "Feira de Santana", "Vitória da Conquista", "Camaçari", "Juazeiro"],
-    CE: ["Fortaleza", "Caucaia", "Juazeiro do Norte", "Maracanaú", "Sobral"],
-    DF: ["Brasília", "Taguatinga", "Ceilândia", "Samambaia", "Plano Piloto"],
-    ES: ["Vitória", "Vila Velha", "Cariacica", "Serra", "Linhares"],
-    GO: ["Goiânia", "Aparecida de Goiânia", "Anápolis", "Rio Verde", "Luziânia"],
-    MA: ["São Luís", "Imperatriz", "Timon", "Caxias", "Codó"],
-    MT: ["Cuiabá", "Várzea Grande", "Rondonópolis", "Sinop", "Tangará da Serra"],
-    MS: ["Campo Grande", "Dourados", "Três Lagoas", "Corumbá", "Ponta Porã"],
-    MG: ["Belo Horizonte", "Uberlândia", "Contagem", "Juiz de Fora", "Betim"],
-    PA: ["Belém", "Ananindeua", "Santarém", "Marabá", "Castanhal"],
-    PB: ["João Pessoa", "Campina Grande", "Santa Rita", "Patos", "Bayeux"],
-    PR: ["Curitiba", "Londrina", "Maringá", "Ponta Grossa", "Cascavel"],
-    PE: ["Recife", "Jaboatão dos Guararapes", "Olinda", "Caruaru", "Petrolina"],
-    PI: ["Teresina", "Parnaíba", "Picos", "Piripiri", "Floriano"],
-    RJ: ["Rio de Janeiro", "São Gonçalo", "Duque de Caxias", "Nova Iguaçu", "Niterói"],
-    RN: ["Natal", "Mossoró", "Parnamirim", "São Gonçalo do Amarante", "Ceará-Mirim"],
-    RS: ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria"],
-    RO: ["Porto Velho", "Ji-Paraná", "Ariquemes", "Vilhena", "Cacoal"],
-    RR: ["Boa Vista", "Rorainópolis", "Caracaraí", "Alto Alegre", "Mucajaí"],
-    SC: ["Florianópolis", "Joinville", "Blumenau", "São José", "Chapecó"],
-    SP: ["São Paulo", "Guarulhos", "Campinas", "São Bernardo do Campo", "Santo André"],
-    SE: ["Aracaju", "Nossa Senhora do Socorro", "Lagarto", "Itabaiana", "São Cristóvão"],
-    TO: ["Palmas", "Araguaína", "Gurupi", "Porto Nacional", "Paraíso do Tocantins"]
-}; 
+  const data = await response.json();
+
+  return data
+    .map((p: any) => ({
+      nome: p.name.common,
+      sigla: p.cca2 // Código ISO Alpha-2
+    }))
+    .sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+}
+/**
+ * Retorna lista de estados via API IBGE.
+ * @returns Promise de objetos { nome, sigla }
+ */
+export async function estados(): Promise<{ nome: string; sigla: string }[]> {
+  const response = await fetch(
+    'https://servicodados.ibge.gov.br/api/v1/localidades/estados'
+  );
+  if (!response.ok) throw new Error('Erro ao buscar estados na API IBGE');
+  const data = await response.json();
+  return data
+    .sort((a: any, b: any) => a.nome.localeCompare(b.nome))
+    .map((e: any) => ({ nome: e.nome, sigla: e.sigla }));
+}
+
+/**
+ * Retorna opções de cidades para uma UF via API IBGE.
+ * @param uf Sigla do estado (ex: 'SP')
+ * @returns Promise de objetos { label, value }
+ */
+export async function getCidadesOptions(
+  uf: string
+): Promise<{ label: string; value: string }[]> {
+  if (!uf) return [];
+  const response = await fetch(
+    `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
+  );
+  if (!response.ok) throw new Error('Erro ao buscar cidades na API IBGE');
+  const data = await response.json();
+  return data
+    .sort((a: any, b: any) => a.nome.localeCompare(b.nome))
+    .map((c: any) => ({ label: c.nome, value: c.nome }));
+}

@@ -1,55 +1,28 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-	getMergedFormSections,
-} from "@/components/forms/arrolamento/definitions/docs.definition";
-import {
-	getCountryOptions,
-	getStateOptions,
-	getCityOptions,
-	formatarData
-} from "@/components/forms/arrolamento/helpers/docs.helper";
+import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import { estados as fetchEstados, getCidadesOptions } from '../estadosCidades';
 
 interface DocsFormProps {
+	id?: string;
 	sectionIndex?: number;
 	familyIndex: number;
 }
 
 const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
+	const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
+	const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
+
 	const form = useFormContext();
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
-	const [formSections, setFormSections] = useState(getMergedFormSections(formValues));
+	const ufSelecionada = formValues.uf;
 
-	useEffect(() => {
-		const updatedSectionsWithoutOptions = getMergedFormSections(formValues);
-		const updatedSections = updatedSectionsWithoutOptions.map(section => {
-			const updatedFields = section.fields.map(field => {
-				let updatedField = field;
-
-				if (field.name === "paisOrigem") {
-					updatedField = { ...field, options: getCountryOptions() };
-				} else if (field.name === "uf") {
-					updatedField = { ...field, options: getStateOptions() };
-				} else if (field.name === "cidade" && formValues.uf) {
-					updatedField = { ...field, options: getCityOptions(formValues.uf) };
-				} else if (field.name === "estadoEmissaoRg") {
-					updatedField = { ...field, options: getStateOptions() };
-				}
-
-				return updatedField;
-			});
-
-			return { ...section, fields: updatedFields };
-		});
-		setFormSections(updatedSections);
-	}, [formValues.paisOrigem, formValues.uf, formValues.documentacao]);
-
+	// Validação da data de expedição do RG
 	useEffect(() => {
 		const rawDate = formValues.dataExpedicaoRg;
-
 		if (rawDate && rawDate.length === 10) {
 			const [day, month, year] = rawDate.split('/');
 			const date = new Date(`${year}-${month}-${day}`);
@@ -78,19 +51,54 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	}, [formValues.dataExpedicaoRg]);
 
+	// Carrega lista de estados
 	useEffect(() => {
-		const rawDate = formValues.dataExpedicaoRg;
-		const formattedDate = formatarData(rawDate);
+		fetchEstados()
+			.then(list => {
+				const options = list.map(e => ({ label: e.nome, value: e.sigla }));
 
-		if (rawDate !== formattedDate) {
-			form.setValue(`families[${familyIndex}].dataExpedicaoRg`, formattedDate);
+				// Coloca SP no topo da lista
+				const spIndex = options.findIndex(e => e.label === 'São Paulo');
+				if (spIndex > -1) {
+					const [sp] = options.splice(spIndex, 1);
+					options.unshift(sp);
+				}
+
+				setEstadoOptions(options);
+			})
+			.catch(console.error);
+	}, []);
+
+	// Atualiza cidades ao mudar UF
+	useEffect(() => {
+		if (!ufSelecionada) {
+			setCidadeOptions([]);
+			return;
 		}
-	}, [formValues.dataExpedicaoRg, form, familyIndex]);
+		getCidadesOptions(ufSelecionada)
+			.then(setCidadeOptions)
+			.catch(console.error);
+	}, [ufSelecionada]);
 
+	// Reatividade para render
 	const reactiveKey = JSON.stringify({
 		paisOrigem: formValues.paisOrigem || "",
 		documentacao: formValues.documentacao || ""
 	});
+
+	// Gerar seções com opções dinâmicas atualizadas
+	const formSections = getMergedFormSections(formValues).map(section => ({
+		...section,
+		fields: section.fields.map(field => {
+			if (field.name === 'uf') {
+				return { ...field, options: estadoOptions };
+			}
+			if (field.name === 'cidade') {
+				return { ...field, options: cidadeOptions };
+			}
+			return field;
+		})
+	}));
 
 	return (
 		<div className="text-left">
@@ -98,7 +106,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				<CollapsibleTrigger asChild>
 					<div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
 						<h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>
-							{`Seção ${sectionNumber ? sectionNumber + 1 : 3} - ${formSections[0].title}`}
+							{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}
 						</h4>
 					</div>
 				</CollapsibleTrigger>
@@ -108,7 +116,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 							key={`${section.id}-${reactiveKey}`}
 							section={section}
 							formControl={form.control}
-							getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 3}.${fieldIndex + 1}`}
+							getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 4}.${fieldIndex + 1}`}
 							sectionIndex={sectionIndex}
 							formValues={formValues}
 							showSectionLabel={false}
