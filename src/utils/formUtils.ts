@@ -1,38 +1,59 @@
 import * as z from "zod";
 
-// Generic form utilities - not tied to any specific form
+// Tipos genéricos e utilitários para formulários dinâmicos
 
-// Define condition type
+// Tipagem para condições de exibição de campos
 export type FormCondition = {
   field: string;
   operator: "equals" | "notEquals" | "contains" | "greaterThan" | "lessThan";
   value: any;
 };
 
-// Define generic FormField type
+// Tipagem principal dos campos de formulário
 export type FormField = {
   name: string;
   label: string;
-  type: 'text' | 'select' | 'checkbox' | 'radio' | 'display' | 'number' | 'label' | 'textarea' | 'file' | 'numberSpinner' | 'email'| 'date'|'combobox';
+  type:
+    | "text"
+    | "select"
+    | "checkbox"
+    | "radio"
+    | "display"
+    | "number"
+    | "label"
+    | "textarea"
+    | "file"
+    | "numberSpinner"
+    | "email"
+    | "date"
+    | "combobox";
   required: boolean;
+
+  // Campos adicionais opcionais
   readonly?: boolean;
   options?: { label: string; value: string }[];
   mask?: string;
   max?: number;
+  min?: number;
   step?: number;
   placeholder?: string;
+  inputMode?: string;           // ← NOVO: restringe tipo de teclado (ex: "numeric")
+  pattern?: string;             // ← NOVO: regex HTML para validação (ex: CPF)
+  autoComplete?: string;        // ← NOVO: controla preenchimento automático
   dependent?: boolean;
-  disableField?: string; // <-- Aqui!
+  disableField?: string;
   displayValue?: (data: Record<string, any>) => string;
-  conditions?: FormCondition[]; // For conditional rendering
+  conditions?: FormCondition[];
   sidebarform?: boolean;
   sidebarlabel?: string;
   showinmodal?: boolean;
-  min?: number;
-  insertAfterField?: string; // Campo após o qual este campo deve ser inserido
+  insertAfterField?: string;
+
+  // Expansível para novos campos sem quebrar tipagem
+  [key: string]: any;
 };
 
-// Generic form section type
+// Estrutura de seção do formulário
 export type FormSection = {
   id: string;
   title?: string;
@@ -40,24 +61,22 @@ export type FormSection = {
   conditions?: FormCondition[];
 };
 
-// Define the entire form configuration type
+// Configuração geral do formulário
 export type FormConfig = {
   title: string;
   sections: FormSection[];
 };
 
 /**
- * Evaluates a set of conditions against form values
- * Works with any form structure as long as it follows the condition format
- * 
- * @param conditions Array of conditions to evaluate
- * @param formValues Current form values
- * @returns true if all conditions are met, false otherwise
+ * Avalia condições para exibir campos dinamicamente
  */
-export function evaluateConditions(conditions: FormCondition[], formValues: Record<string, any>): boolean {
+export function evaluateConditions(
+  conditions: FormCondition[],
+  formValues: Record<string, any>
+): boolean {
   if (!conditions || conditions.length === 0) return true;
 
-  return conditions.every(condition => {
+  return conditions.every((condition) => {
     const fieldValue = formValues[condition.field];
 
     switch (condition.operator) {
@@ -77,7 +96,9 @@ export function evaluateConditions(conditions: FormCondition[], formValues: Reco
   });
 }
 
-// Utility function to derive default values from a Zod schema
+/**
+ * Gera valores padrão para um formulário com base em um schema Zod
+ */
 export function getDefaultValuesFromSchema(schema: z.ZodObject<any>): Record<string, any> {
   const defaultValues: Record<string, any> = {};
   for (const key in schema.shape) {
@@ -90,8 +111,10 @@ export function getDefaultValuesFromSchema(schema: z.ZodObject<any>): Record<str
       defaultValues[key] = false;
     } else if (field instanceof z.ZodArray) {
       defaultValues[key] = [];
+    } else if (field instanceof z.ZodObject) {
+      defaultValues[key] = getDefaultValuesFromSchema(field); // suporte para objetos aninhados
     } else {
-      defaultValues[key] = null; // Default for other types
+      defaultValues[key] = null;
     }
   }
   return defaultValues;
