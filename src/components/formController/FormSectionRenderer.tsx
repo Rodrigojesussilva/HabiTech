@@ -435,22 +435,22 @@ if (field.name === "orgaoExpedidor") {
             }
             return <div className="p-2 border rounded bg-gray-50">{displayValue}</div>;
 
-        case "number":
-            return (
-                <Input
-                    type="number"
-                    {...formField}
-                    placeholder={field.placeholder}
-                    disabled={formField.disabled}
-                    min={field.min}
-                    value={formField.value || field.min || ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const value = e.target.value ? parseInt(e.target.value, 10) : field.min || "";
-                        formField.onChange(value);
-                    }}
-                    className="w-32"
-                />
-            );
+      case "number":
+  return (
+    <Input
+      type="number"
+      placeholder={field.placeholder}
+      disabled={formField.disabled}
+      min={field.min}
+      value={formField.value ?? ""}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value === "" ? undefined : parseInt(e.target.value, 10);
+        formField.onChange(value);
+      }}
+      className="w-32"
+    />
+  );
+
 
         case "email":
             const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Regex simples para validar o email

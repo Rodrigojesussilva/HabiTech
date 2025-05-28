@@ -160,21 +160,25 @@ const FormArrolamento = ({
 		...getDefaultValuesFromSchema(outrasInfosSchema),
 	} as const;
 
+	// ajuste console.log to simulate form submission
 	useEffect(() => {
-		const currentLength = familyFields.length;
-		const targetLength = numberFamilies || 0;
+  console.log(" numberFamilies:", numberFamilies);
+  console.log(" familyFields.length:", familyFields.length);
 
-		if (targetLength > currentLength) {
-			// Add new entries
-			const newEntries = Array(targetLength - currentLength).fill(defaultFamilyEntry);
-			newEntries.forEach(entry => append(entry));
-		} else if (targetLength < currentLength) {
-			// Remove excess entries
-			for (let i = currentLength - 1; i >= targetLength; i--) {
-				remove(i);
-			}
-		}
-	}, [numberFamilies, familyFields.length, append, remove]);
+  const currentLength = familyFields.length;
+  const targetLength = numberFamilies || 0;
+
+  if (targetLength > currentLength) {
+    const newEntries = Array(targetLength - currentLength).fill(defaultFamilyEntry);
+    newEntries.forEach(entry => append(entry));
+  } else if (targetLength < currentLength) {
+    for (let i = currentLength - 1; i >= targetLength; i--) {
+      remove(i);
+    }
+  }
+}, [numberFamilies, familyFields.length, append, remove]);
+
+
 
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
