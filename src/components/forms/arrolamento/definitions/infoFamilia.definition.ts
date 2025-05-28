@@ -54,15 +54,15 @@ export const infoFamiliaDefinition: FormConfig = {
                     type: "display" as const,
                     required: false,
                     displayValue: (data: Partial<FormValues>) => {
-                        const total = (
-                            (data.criancas0a3 || 0) +
-                            (data.criancas4a6 || 0) +
-                            (data.criancas7a11 || 0) +
-                            (data.adolescentes12a18 || 0) +
-                            (data.adultos19a59 || 0) +
-                            (data.idosos60 || 0)
-                        ).toString();
-                        return total;
+                        const total =
+                            Number(data.criancas0a3 || 0) +
+                            Number(data.criancas4a6 || 0) +
+                            Number(data.criancas7a11 || 0) +
+                            Number(data.adolescentes12a18 || 0) +
+                            Number(data.adultos19a59 || 0) +
+                            Number(data.idosos60 || 0);
+
+                        return total.toString();
                     }
                 },
                 {
@@ -221,7 +221,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             { label: "Bermuda", value: "Bermuda" },
             { label: "Brunei", value: "Brunei" },
             { label: "Bolivia", value: "Bolivia" },
-            { label: "Bonaire", value: "Bonaire" },           
+            { label: "Bonaire", value: "Bonaire" },
             { label: "Bahamas", value: "Bahamas" },
             { label: "Bhutan", value: "Bhutan" },
             { label: "Bouvet Island", value: "Bouvet Island" },
