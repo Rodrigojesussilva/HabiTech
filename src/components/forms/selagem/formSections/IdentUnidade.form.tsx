@@ -24,7 +24,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
 
     const form = useFormContext();
-    const { control, setValue, getValues, watch } = form;
+    const { control, setValue, watch } = form;
 
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 

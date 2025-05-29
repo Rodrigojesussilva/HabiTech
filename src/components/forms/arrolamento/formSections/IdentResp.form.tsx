@@ -21,7 +21,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
 
     useEffect(() => {
-        const subscription = form.watch((values, { name, type }) => {
+        const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             if (name === `families[${familyIndex}].responsavel` && typeof responsavel === "string") {
                 const fakeEvent = {
@@ -46,7 +46,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [formValues.naoSeAplicaEntrevistado, form, familyIndex]);
 
-    useEffect(() => {const dataExpedicaoRg = form.watch(`families[${familyIndex}].dataExpedicaoRg`);
+    useEffect(() => {
         // Só roda se dataNascimento estiver definida e no formato correto YYYY-MM-DD
         if (typeof dataNascimento === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
             const idade = calcularIdade(dataNascimento);
