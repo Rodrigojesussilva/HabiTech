@@ -210,153 +210,6 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             );
 
     case "text":
-  // CPF
-  if (field.name === "cpf") {
-    return (
-      <Input
-        {...formField}
-        placeholder={field.placeholder}
-        disabled={formField.disabled}
-        inputMode="numeric"
-        pattern="\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"
-        autoComplete="off"
-        value={formField.value ?? ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const input = e.target.value;
-          const sanitized = input.replace(/[^\d.-]/g, "").slice(0, 14);
-          formField.onChange(sanitized);
-        }}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-    );
-  }
-
-  // RG
-  if (field.name === "rg") {
-    return (
-      <Input
-        {...formField}
-        placeholder={field.placeholder}
-        disabled={formField.disabled}
-        inputMode="numeric"
-        pattern="\\d{5,14}"
-        autoComplete="off"
-        value={formField.value ?? ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const input = e.target.value;
-          const sanitized = input.replace(/[^\d]/g, "").slice(0, 14);
-          formField.onChange(sanitized);
-        }}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-    );
-  }
-
-  // CRNM
-  if (field.name === "numeroCrnm") {
-    return (
-      <Input
-        {...formField}
-        placeholder={field.placeholder}
-        disabled={formField.disabled}
-        inputMode="numeric"
-        pattern="\\d{9}"
-        autoComplete="off"
-        value={formField.value ?? ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const input = e.target.value;
-          const sanitized = input.replace(/[^\d]/g, "").slice(0, 9);
-          formField.onChange(sanitized);
-        }}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-    );
-  }
-
-  // RNM
-  if (field.name === "numeroRnm") {
-    return (
-      <Input
-        {...formField}
-        placeholder={field.placeholder}
-        disabled={formField.disabled}
-        inputMode="numeric"
-        pattern="\\d{9}"
-        autoComplete="off"
-        value={formField.value ?? ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const input = e.target.value;
-          const sanitized = input.replace(/[^\d]/g, "").slice(0, 9);
-          formField.onChange(sanitized);
-        }}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-    );
-  }
-
-  // Campos com máscara (exceto CPF/RG/RNM/CRNM)
-  if (field.mask) {
-    return (
-      <Input
-        {...formField}
-        placeholder={field.placeholder}
-        disabled={formField.disabled}
-        inputMode={field.inputMode}
-        pattern={field.pattern}
-        autoComplete={field.autoComplete}
-        value={formField.value ?? ""}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          formField.onChange(e.target.value);
-        }}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      />
-    );
-  }
-  // Passaporte
-if (field.name === "numeroPassaporte") {
-  return (
-    <Input
-      {...formField}
-      placeholder={field.placeholder}
-      disabled={formField.disabled}
-      inputMode="text"
-      pattern="[a-zA-Z0-9]{6,9}"
-      autoComplete="off"
-      value={formField.value ?? ""}
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        const input = e.target.value;
-        // Remove tudo que não for letra ou número e limita a 9 caracteres
-        const sanitized = input.replace(/[^a-zA-Z0-9]/g, "").slice(0, 9);
-        formField.onChange(sanitized);
-      }}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-    />
-  );
-}
-// Órgão Expedidor
-if (field.name === "orgaoExpedidor") {
-  return (
-    <Input
-      {...formField}
-      placeholder={field.placeholder}
-      disabled={formField.disabled}
-      inputMode="text"
-      pattern="[A-Za-zÀ-ÿ\\s]{3,30}"
-      autoComplete="off"
-      value={formField.value ?? ""}
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        const input = e.target.value;
-        // Permite apenas letras com acentos e espaços, até 30 caracteres
-        const sanitized = input.replace(/[^A-Za-zÀ-ÿ\s]/g, "").slice(0, 30);
-        formField.onChange(sanitized);
-      }}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-    />
-  );
-}
-
-
-  // Campos text normais
   return (
     <Input
       {...formField}
@@ -367,7 +220,9 @@ if (field.name === "orgaoExpedidor") {
       autoComplete={field.autoComplete}
       value={formField.value ?? ""}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        formField.onChange(e.target.value);
+        const raw = e.target.value;
+        const value = field.onChange ? field.onChange(raw) : raw;
+        formField.onChange(value);
       }}
       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
     />

@@ -2,7 +2,6 @@ import { z } from "zod";
 import dayjs from "dayjs";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
-
 // Validador de CPF com dígito verificador
 function validarCpf(cpf: string): boolean {
   const cpfLimpo = cpf.replace(/\D/g, "");
@@ -36,23 +35,30 @@ export const docsSchema = z
     numeroCrnm: z
       .string()
       .optional()
-      .refine((crnm) => {
-        if (!crnm) return true;
-        return /^\d{9}$/.test(crnm);
-      }, {
-        message: "CRNM inválido. Deve conter exatamente 9 dígitos numéricos.",
-      }),
+      .refine(
+        (crnm) => {
+          if (!crnm) return true;
+          return /^\d{9}$/.test(crnm);
+        },
+        {
+          message: "CRNM inválido. Deve conter exatamente 9 dígitos numéricos.",
+        }
+      ),
 
     statusCrnm: z.string().optional(),
     numeroPassaporte: z
-  .string()
-  .optional()
-  .refine((passaporte) => {
-    if (!passaporte) return true;
-    return /^[a-zA-Z0-9]{6,9}$/.test(passaporte);
-  }, {
-    message: "Passaporte inválido. Use apenas letras e números (6 a 9 caracteres).",
-  }),
+      .string()
+      .optional()
+      .refine(
+        (passaporte) => {
+          if (!passaporte) return true;
+          return /^[a-zA-Z0-9]{6,9}$/.test(passaporte);
+        },
+        {
+          message:
+            "Passaporte inválido. Use apenas letras e números (6 a 9 caracteres).",
+        }
+      ),
 
     uf: z.string().optional(),
     cidade: z.string().optional(),
@@ -61,22 +67,29 @@ export const docsSchema = z
     rg: z
       .string()
       .optional()
-      .refine((rg) => {
-        if (!rg) return true;
-        return /^\d{5,14}$/.test(rg);
-      }, {
-        message: "RG inválido. Use apenas números (mínimo 5 dígitos).",
-      }),
+      .refine(
+        (rg) => {
+          if (!rg) return true;
+          return /^\d{5,14}$/.test(rg);
+        },
+        {
+          message: "RG inválido. Use apenas números (mínimo 5 dígitos).",
+        }
+      ),
 
- orgaoExpedidor: z
-  .string()
-  .optional()
-  .refine((value) => {
-    if (!value) return true;
-    return /^[A-Za-zÀ-ÿ\s]{3,30}$/.test(value);
-  }, {
-    message: "Órgão Expedidor inválido. Use apenas letras e espaços (3 a 30 caracteres).",
-  }),
+    orgaoExpedidor: z
+      .string()
+      .optional()
+      .refine(
+        (value) => {
+          if (!value) return true;
+          return /^[A-Za-zÀ-ÿ\s]{3,30}$/.test(value);
+        },
+        {
+          message:
+            "Órgão Expedidor inválido. Use apenas letras e espaços (3 a 30 caracteres).",
+        }
+      ),
 
     estadoEmissaoRg: z.string().optional(),
     dataExpedicaoRg: z.string().optional(),
@@ -85,20 +98,28 @@ export const docsSchema = z
     cpf: z
       .string()
       .optional()
-      .refine((cpf) => {
-        if (!cpf) return true;
-        const numericOnly = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-        return numericOnly.test(cpf) && validarCpf(cpf);
-      }, {
-        message: "CPF inválido. Use o formato 000.000.000-00 e um número válido.",
-      }),
+      .refine(
+        (cpf) => {
+          if (!cpf) return true;
+          const numericOnly = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+          return numericOnly.test(cpf) && validarCpf(cpf);
+        },
+        {
+          message:
+            "CPF inválido. Use o formato 000.000.000-00 e um número válido.",
+        }
+      ),
 
     fonteCpf: z.string().optional(),
     arrolamento_id: z.string().optional(),
     idLocal: z.string().optional(),
-    tempoExpedicao: z.object({ anos: z.number(), meses: z.number() }).optional(),
+    tempoExpedicao: z
+      .object({ anos: z.number(), meses: z.number() })
+      .optional(),
     dataExpedicaoCpf: z.string().optional(),
-    tempoExpedicaoCpf: z.object({ anos: z.number(), meses: z.number() }).optional(),
+    tempoExpedicaoCpf: z
+      .object({ anos: z.number(), meses: z.number() })
+      .optional(),
     dataNascimento: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -116,7 +137,6 @@ export const docsSchema = z
       }
     }
   });
-
 
 export type FormValues = z.infer<typeof docsSchema>;
 
@@ -170,7 +190,9 @@ export const docsDefinition: FormConfig = {
   ],
 };
 
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(
+  formValues: Partial<FormValues>
+): FormField[] {
   const conditionalFields: FormField[] = [];
 
   const pais = formValues.paisOrigem?.toLowerCase();
@@ -178,8 +200,20 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
   if (pais === "brazil") {
     conditionalFields.push(
-      { name: "uf", label: "Estado (UF)", type: "select", required: true, options: [] },
-      { name: "cidade", label: "Cidade", type: "select", required: true, options: [] },
+      {
+        name: "uf",
+        label: "Estado (UF)",
+        type: "select",
+        required: true,
+        options: [],
+      },
+      {
+        name: "cidade",
+        label: "Cidade",
+        type: "select",
+        required: true,
+        options: [],
+      },
       {
         name: "fonteRg",
         label: "Fonte para RG",
@@ -195,10 +229,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         label: "Número do RG",
         type: "text",
         required: true,
-        inputMode: "numeric",
-        pattern: "\\d{5,14}",
-        placeholder: "Somente números",
-        autoComplete: "off"
+        inputMode: "text",
+        pattern: "^[a-zA-Z0-9]{1,10}-\\d{1}$",
+        placeholder: "Ex: AB12345678-9",
+        autoComplete: "off",
+        onChange: (value: string) => {
+          const cleaned = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+          // Se já houver mais de 10 caracteres + hífen, retorna sem continuar
+          if (cleaned.length <= 1) return cleaned;
+
+          const principal = cleaned.slice(0, 10);
+          const verificador = cleaned.slice(10, 11);
+
+          return verificador ? `${principal}-${verificador}` : principal;
+        },
       },
       {
         name: "orgaoExpedidor",
@@ -207,17 +252,25 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         required: true,
         inputMode: "text",
         pattern: "[A-Za-zÀ-ÿ\\s]{3,30}",
-        placeholder: "Ex: SSP, Polícia Civil",
-        autoComplete: "off"
+        placeholder: "Ex: SSP, DETRAN",
+        autoComplete: "off",
+        onChange: (value: string) =>
+          value.replace(/[^A-Za-zÀ-ÿ\s]/g, "").slice(0, 30),
       },
-      { name: "estadoEmissaoRg", label: "Estado de Emissão do RG", type: "select", required: true, options: [] },
+      {
+        name: "estadoEmissaoRg",
+        label: "Estado de Emissão do RG",
+        type: "select",
+        required: true,
+        options: [],
+      },
       {
         name: "dataExpedicaoRg",
         label: "Data de Expedição do RG",
         type: "text",
         required: true,
         mask: "99/99/9999",
-        placeholder: "DD/MM/AAAA"
+        placeholder: "DD/MM/AAAA",
       },
       {
         name: "cpf",
@@ -228,8 +281,16 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         inputMode: "numeric",
         pattern: "\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}",
         placeholder: "000.000.000-00",
-        autoComplete: "off"
+        autoComplete: "off",
+        onChange: (value: string) => {
+          const digits = value.replace(/\D/g, "").slice(0, 11);
+          return digits
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        },
       },
+
       {
         name: "fonteCpf",
         label: "Fonte para CPF",
@@ -260,7 +321,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         name: "numeroProtocolo",
         label: "Número do Protocolo",
         type: "text",
-        required: true
+        required: true,
       });
     } else if (doc === "rnm") {
       conditionalFields.push(
@@ -270,9 +331,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
           type: "text",
           required: true,
           inputMode: "numeric",
-          pattern: "\\d{9}",
+          pattern: "^\\d{9}$",
           placeholder: "9 dígitos",
-          autoComplete: "off"
+          autoComplete: "off",
+          onChange: (value: string) => value.replace(/\D/g, "").slice(0, 9),
         },
         {
           name: "statusRnm",
@@ -294,9 +356,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
           type: "text",
           required: true,
           inputMode: "numeric",
-          pattern: "\\d{9}",
+          pattern: "^\\d{9}$",
           placeholder: "9 dígitos",
-          autoComplete: "off"
+          autoComplete: "off",
+          onChange: (value: string) => value.replace(/\D/g, "").slice(0, 9),
         },
         {
           name: "statusCrnm",
@@ -317,17 +380,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         type: "text",
         required: true,
         inputMode: "text",
-        pattern: "[a-zA-Z0-9]{6,9}",
+        pattern: "^[a-zA-Z0-9]{6,9}$",
         placeholder: "Ex: AB123456",
-        autoComplete: "off"
+        autoComplete: "off",
+        onChange: (value: string) => {
+          return value
+            .replace(/[^a-zA-Z0-9]/g, "")
+            .toUpperCase()
+            .slice(0, 9);
+        },
       });
     }
   }
 
   return conditionalFields;
 }
-
-
 
 export function getMergedFormSections(formValues: Partial<FormValues>) {
   const conditionalFields = getConditionalFields(formValues);
