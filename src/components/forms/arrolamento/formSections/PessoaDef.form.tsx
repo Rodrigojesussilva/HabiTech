@@ -7,7 +7,6 @@ import {
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-
 interface PessoaDefFormProps {
     id?: string;
     sectionIndex?: number;
@@ -23,6 +22,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
+
 
     return (
         <div className="text-left">

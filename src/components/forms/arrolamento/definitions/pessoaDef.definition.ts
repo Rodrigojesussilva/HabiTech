@@ -38,7 +38,30 @@ export const pessoaDefSchema = z.object({
     quantMobilidade: z.string().optional(),
     quantSurdo: z.string().optional(),
     eOutras: z.string().optional(),
+    responsavelDefFisica: z.string().optional(),
+    responsavelDefVisual: z.string().optional(),
+    responsavelDefAuditiva: z.string().optional(),
+    responsavelDefIntelectual: z.string().optional(),
+    responsavelDefMultipla: z.string().optional(),
+    responsavelDefMobilidade: z.string().optional(),
+    responsavelDefSurdoCegueira: z.string().optional(),
+    responsavelDefOutra: z.string().optional(),
+    responsavelAparelhoAuditivo: z.string().optional(),
+    responsavelOrteseProtese: z.string().optional(),
+    responsavelCadeiraRoda: z.string().optional(),
+    responsavelCamaHospitalar: z.string().optional(),
+    responsavelMuletaBengala4pontasAndador: z.string().optional(),
+    responsavelLupaLenteFontaAmpliada: z.string().optional(),
+    responsavelBrailleEquipSinteseVoz: z.string().optional(),
+    responsavelLibras: z.string().optional(),
+    responsavelLeituraFacialLabial: z.string().optional(),
+    responsavelBnglBranOuVerdVerm: z.string().optional(),
+    responsavelCaoGuia: z.string().optional(),
+    responsavelPrancha: z.string().optional(),
+    responsavelOutraTecAssistiva: z.string().optional(),
+    
 
+    
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
 
@@ -78,11 +101,33 @@ export const defaultValues: Partial<FormValues> = {
     quantVisual: "",
     quantAuditiva: "",
     quantIntelectual: "",
-    quantMultiplas:"",
-    quantMobilidade:"",
-    quantSurdo:"",
+    quantMultiplas: "",
+    quantMobilidade: "",
+    quantSurdo: "",
     eOutras: "",
+    responsavelDefFisica: "",
+    responsavelDefVisual: "",
+    responsavelDefAuditiva: "",
+    responsavelDefIntelectual: "",
+    responsavelDefMultipla: "",
+    responsavelDefMobilidade: "",
+    responsavelDefSurdoCegueira: "",
+    responsavelDefOutra: "",
+    responsavelAparelhoAuditivo: "",
+    responsavelOrteseProtese: "",
+    responsavelCadeiraRoda: "",
+    responsavelCamaHospitalar: "",
+    responsavelMuletaBengala4pontasAndador: "",
+    responsavelLupaLenteFontaAmpliada: "",
+    responsavelBrailleEquipSinteseVoz: "",
+    responsavelLibras: "",
+    responsavelLeituraFacialLabial: "",
+    responsavelBnglBranOuVerdVerm: "",
+    responsavelCaoGuia: "",
+    responsavelPrancha: "",
+    responsavelOutraTecAssistiva: "",
     
+
 
     idLocal: "not",
 };
@@ -155,7 +200,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             },
             {
                 name: "defFisica",
-                label: "Fisica",
+                label: "Física",
                 type: "checkbox" as const,
                 required: false,
                 dependent: true,
@@ -216,7 +261,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false,
                 dependent: true,
 
-            },           
+            },
             {
                 name: "tecnologiaAssistiva",
                 label: "Utiliza tecnologia assistiva",
@@ -231,11 +276,26 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
 
         );
+
+        if (formValues.defFisica && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefFisica",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defFisica) {
             conditionalFields.push(
                 {
                     name: "quantFisica",
-                    label: "Quantas pessoas tem deficiência Física",
+                    label: "Quantas pessoas tem deficiência",
                     type: "numberSpinner" as const,
                     required: false,
                     dependent: true,
@@ -244,11 +304,26 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
+
+        if (formValues.defVisual && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefVisual",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defVisual) {
             conditionalFields.push(
                 {
                     name: "quantVisual",
-                    label: "Quantas pessoas tem deficiência Visual",
+                    label: "Quantas pessoas tem deficiência",
                     type: "numberSpinner" as const,
                     required: false,
                     dependent: true,
@@ -257,6 +332,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
+
+        if (formValues.defAuditiva && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefAuditiva",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defAuditiva) {
             conditionalFields.push(
                 {
@@ -270,6 +360,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
+
+        if (formValues.defIntelectualMental && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefIntelectual",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defIntelectualMental) {
             conditionalFields.push(
                 {
@@ -283,6 +388,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
+
+        if (formValues.defMultiplas && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefMultipla",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defMultiplas) {
             conditionalFields.push(
                 {
@@ -296,7 +416,22 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
-         if (formValues.defMobilidadeReduzida) {
+
+        if (formValues.defMobilidadeReduzida && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefMobilidade",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
+        if (formValues.defMobilidadeReduzida) {
             conditionalFields.push(
                 {
                     name: "quantMobilidade",
@@ -309,7 +444,22 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
-         if (formValues.defSurdoCegueira) {
+
+        if (formValues.defSurdoCegueira && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefSurdoCegueira",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
+        if (formValues.defSurdoCegueira) {
             conditionalFields.push(
                 {
                     name: "quantSurdo",
@@ -322,6 +472,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
+
+        if (formValues.defOutra && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelDefOutra",
+                    label: "O responsável tem essa deficiência",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+
         if (formValues.defOutra) {
             conditionalFields.push(
                 {
@@ -437,7 +602,177 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 dependent: true,
             },
 
+
         );
+        if (formValues.aparelhoAuditivo && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelAparelhoAuditivo",
+                    label: "O responsável utiliza aparelho aditivo",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+                    
+                },
+
+            );
+        }
+        if (formValues.ortesesProteses && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelOrteseProtese",
+                    label: "O responsável utiliza Órteses/Próteses",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.cadeiraRoda && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelCadeiraRoda",
+                    label: "O responsável utiliza Cadeira de Roda",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.camaHospitalar && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelCamaHospitalar",
+                    label: "O responsável utiliza Cama Hospitalar",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.muletaBengala4pontasAndador && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelMuletaBengala4pontasAndador",
+                    label: "O responsável utliza Muleta/Bengala 4 pontas/Andador",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.lupaLenteFontaAmpliada && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelLupaLenteFontaAmpliada",
+                    label: "O responsável utliza Lupa/Lente/Fonta Ampliada ou Contraste",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.brailleEquipSinteseVoz && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelBrailleEquipSinteseVoz",
+                    label: "O responsável utiliza Braille Equipamento com Síntese Voz",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.libras && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelLibras",
+                    label: "O responsável utliza Libras",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.leituraFacialLabial && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelLeituraFacialLabial",
+                    label: "O responsável utiliza Leitura Facial/Labial",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.bengalaBrancaOuVerdeVermelha && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelBnglBranOuVerdVerm",
+                    label: "O responsável utiliza Bengala Branca ou Verde Vermelha",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.caoGuia && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelCaoGuia",
+                    label: "O responsável utliza Cão Guia",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+        if (formValues.pranchaComunicacaoAlternativa && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelPrancha",
+                    label: "O responsável utiliza Prancha de Comunicação Alternativa",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+         if (formValues.outrasTecAssistiva && formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelOutraTecAssistiva",
+                    label: "Especificar outros tipos tecnologias assistivas",
+                    type: "textarea" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
     }
 
 
@@ -484,7 +819,6 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "especifiqueOutra",
             "tecnologiaAssistiva"
         ]);
-
         afterInsert(baseFields, conditionalFields, "tecnologiaAssistiva", [
             "tecnologiasAssistivasUsadas",
             "aparelhoAuditivo",
@@ -502,31 +836,70 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "outrasTecAssistiva",
 
         ]);
-
         afterInsert(baseFields, conditionalFields, "defFisica", [
-            "quantFisica",
+            "quantFisica", "responsavelDefFisica"
         ]);
         afterInsert(baseFields, conditionalFields, "defVisual", [
-            "quantVisual",
+            "quantVisual", "responsavelDefVisual"
         ]);
         afterInsert(baseFields, conditionalFields, "defAuditiva", [
-            "quantAuditiva",
+            "quantAuditiva", "responsavelDefAuditiva",
         ]);
         afterInsert(baseFields, conditionalFields, "defIntelectualMental", [
-            "quantIntelectual",
+            "quantIntelectual", "responsavelDefIntelectual",
         ]);
-         afterInsert(baseFields, conditionalFields, "defMultiplas", [
-            "quantMultiplas",
+        afterInsert(baseFields, conditionalFields, "defMultiplas", [
+            "quantMultiplas", "responsavelDefMultipla",
         ]);
-         afterInsert(baseFields, conditionalFields, "defMobilidadeReduzida", [
-            "quantMobilidade",
+        afterInsert(baseFields, conditionalFields, "defMobilidadeReduzida", [
+            "quantMobilidade", "responsavelDefMobilidade",
         ]);
-         afterInsert(baseFields, conditionalFields, "defSurdoCegueira", [
-            "quantSurdo",
+        afterInsert(baseFields, conditionalFields, "defSurdoCegueira", [
+            "quantSurdo", "responsavelDefSurdoCegueira"
         ]);
-         afterInsert(baseFields, conditionalFields, "defOutra", [
-            "eOutras",
+        afterInsert(baseFields, conditionalFields, "defOutra", [
+            "eOutras", "responsavelDefOutra"
         ]);
+        afterInsert(baseFields, conditionalFields, "aparelhoAuditivo", [
+            "responsavelAparelhoAuditivo"
+        ]);
+        afterInsert(baseFields, conditionalFields, "ortesesProteses", [
+            "responsavelOrteseProtese"
+        ]);
+        afterInsert(baseFields, conditionalFields, "cadeiraRoda", [
+            "responsavelCadeiraRoda"
+        ]);
+        afterInsert(baseFields, conditionalFields, "camaHospitalar", [
+            "responsavelCamaHospitalar"
+        ]);
+        afterInsert(baseFields, conditionalFields, "muletaBengala4pontasAndador", [
+            "responsavelMuletaBengala4pontasAndador"
+        ]);
+        afterInsert(baseFields, conditionalFields, "lupaLenteFontaAmpliada", [
+            "responsavelLupaLenteFontaAmpliada"
+        ]);
+        afterInsert(baseFields, conditionalFields, "brailleEquipSinteseVoz", [
+            "responsavelBrailleEquipSinteseVoz"
+        ]);
+        afterInsert(baseFields, conditionalFields, "libras", [
+            "responsavelLibras"
+        ]);
+        afterInsert(baseFields, conditionalFields, "leituraFacialLabial", [
+            "responsavelLeituraFacialLabial"
+        ])
+        afterInsert(baseFields, conditionalFields, "bengalaBrancaOuVerdeVermelha", [
+            "responsavelBnglBranOuVerdVerm"
+        ])
+         afterInsert(baseFields, conditionalFields, "caoGuia", [
+            "responsavelCaoGuia"
+        ])
+         afterInsert(baseFields, conditionalFields, "pranchaComunicacaoAlternativa", [
+            "responsavelPrancha"
+        ])
+         afterInsert(baseFields, conditionalFields, "outrasTecAssistiva", [
+            "responsavelOutraTecAssistiva"
+        ])
+
         return [
             {
                 ...pessoaDefDefinition.sections[0],
