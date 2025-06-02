@@ -105,8 +105,12 @@ export const situUsoUniDefinition: FormConfig = {
                 {
                     name: "tempoMoradiaAnos",
                     label: "Tempo de moradia na Unidade (Anos)",
-                    type: "text" as const,
+                    type: "numberSpinner" as const,
                     required: false,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
 
                 },
                 {
@@ -120,8 +124,12 @@ export const situUsoUniDefinition: FormConfig = {
                 {
                     name: "tempoMoradiaMeses",
                     label: "Tempo de moradia na Unidade (Meses)",
-                    type: "text" as const,
+                    type: "numberSpinner" as const,
                     required: false,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
 
                 },
 

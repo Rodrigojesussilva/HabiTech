@@ -173,11 +173,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "qtdPessoasComDefFam",
                 label: "Quantidade de pessoas com deficiência na família",
-                type: "text" as const,
-                required: false,
-                // Use mask for number input with min value instead of inputType
-                mask: "9999",
-                placeholder: "Quantidade (mínimo 1)",
+                type: "numberSpinner" as const,
+                    required: false,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+
 
             },
             {
@@ -298,7 +300,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -326,7 +332,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -354,7 +364,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência Auditiva",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -380,9 +394,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 {
                     name: "quantIntelectual",
                     label: "Quantas pessoas tem deficiência Intelectual/Mental",
-                    type: "numberSpinner" as const,
+                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -410,7 +428,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência Multiplas",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -438,7 +460,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência de Mobilidade Reduzida",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
 
                 },
 
@@ -466,8 +492,11 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     label: "Quantas pessoas tem deficiência de Surdez-Cegueira",
                     type: "numberSpinner" as const,
                     required: false,
-                    dependent: true,
-
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    dependent:true
                 },
 
             );

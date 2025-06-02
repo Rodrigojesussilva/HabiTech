@@ -53,7 +53,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     const conditionalFields: FormField[] = [];
     
     // Conditionally add fields based on "estadoCivil" value
-    if (formValues.estadoCivil) {
+    if (formValues.estadoCivil === "casado") {
         conditionalFields.push({
             name: "viveComCompanheiro",
             label: "Vive em companhia do(a) cônjuge ou companheiro(a)?",

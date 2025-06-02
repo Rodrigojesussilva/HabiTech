@@ -6,27 +6,22 @@ import { FormValues } from "../definitions/infoFamilia.definition";
  * @returns Formatted currency string
  */
 export function formatCurrency(value: string | number): string {
-    if (value === null || value === undefined || value === '') return "R$ 0,00";
+  if (value === null || value === undefined || value === '') return "R$ 0,00";
 
-    let numValue: number;
+  // Remove tudo que não for número (deixa só dígitos)
+  const onlyNums = String(value).replace(/\D/g, '');
 
-    if (typeof value === 'string') {
-        // Remove todos os caracteres que não sejam dígitos ou vírgula
-        const sanitized = value.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
-        numValue = parseFloat(sanitized);
-    } else {
-        numValue = value;
-    }
+  // Interpreta os últimos 2 dígitos como centavos
+  const numberValue = parseInt(onlyNums || '0', 10);
 
-    if (isNaN(numValue)) return "R$ 0,00";
-
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(numValue);
+  // Formata para moeda BRL com 2 casas decimais
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+  }).format(numberValue / 100);
 }
+
 export function formatarNumeroComDoisDecimais(value: string | number): string {
     if (value === undefined || value === null || value === "") return "";
 
