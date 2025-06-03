@@ -31,22 +31,22 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
 
-    useEffect(() => {
-        const valor = formValues?.valor_locacao;
+   useEffect(() => {
+    const valor = formValues?.valor_locacao;
 
-        if (valor) {
-            const formatted = formatCurrency(valor);
-            const current = form.getValues(`families[${familyIndex}].valor_locacao`);
+    if (valor !== undefined && valor !== null) {
+        const formatted = formatCurrency(valor);
+        const current = form.getValues(`families[${familyIndex}].valor_locacao`);
 
-
-            if (formatted !== current) {
-                form.setValue(`families[${familyIndex}].valor_locacao`, formatted, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                });
-            }
+        if (formatted !== current) {
+            form.setValue(`families[${familyIndex}].valor_locacao`, formatted, {
+                shouldValidate: true,
+                shouldDirty: true,
+            });
         }
-    }, [formValues?.valor_locacao, familyIndex, form]);
+    }
+}, [formValues?.valor_locacao, familyIndex, form]);
+
 
     useEffect(() => {
         if (formValues.tempoMoradiaNaoSabe) {
@@ -113,7 +113,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         familyIndex,
         form
     ]);
-    
+
     // Get merged form sections with conditional fields included
     const formSections = (() => {
         try {

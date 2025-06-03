@@ -418,8 +418,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "radio",
                 required: true,
                 options: [
-                    { label: "CIN", value: "CIN" },
-                    { label: "CPF", value: "CPF" }
+                    { label: "CNH", value: "CNH" },
+                    { label: "RG", value: "RG" },
+                    { label: "Receita Federal", value: "receita federal" },
+                    { label: "CIN - Carteira de Identidade Nacional", value: "cin" }
                 ]
             }
         );

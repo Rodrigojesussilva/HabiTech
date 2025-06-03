@@ -22,7 +22,7 @@ interface InfoFamiliaFormProps {
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-   
+
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -75,14 +75,22 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     ]);
     // Format currency when rendaFamiliar changes
     useEffect(() => {
-        if (formValues.rendaFamiliar) {
-            const formattedValue = formatCurrency(formValues.rendaFamiliar);
-            if (formattedValue !== formValues.rendaFamiliar) {
-                form.setValue(`families[${familyIndex}].rendaFamiliar`, formattedValue);
+        const renda = formValues?.rendaFamiliar;
+
+        if (renda !== undefined && renda !== null) {
+            const formatted = formatCurrency(renda);
+            const current = form.getValues(`families[${familyIndex}].rendaFamiliar`);
+
+            if (formatted !== current) {
+                form.setValue(`families[${familyIndex}].rendaFamiliar`, formatted, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                });
             }
         }
-    }, [formValues.rendaFamiliar, familyIndex, form]);
-  
+    }, [formValues?.rendaFamiliar, familyIndex, form]);
+
+
     const handleCountryCountChange = (country: string, count: number) => {
         const currentCounts = formValues.numerosPorPais || {};
         form.setValue(`families[${familyIndex}].numerosPorPais`, {
