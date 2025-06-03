@@ -59,6 +59,7 @@ export const pessoaDefSchema = z.object({
     responsavelCaoGuia: z.string().optional(),
     responsavelPrancha: z.string().optional(),
     responsavelOutraTecAssistiva: z.string().optional(),
+    responsavelOutraTecAssistivaText: z.string().optional(),
     
 
     
@@ -97,13 +98,13 @@ export const defaultValues: Partial<FormValues> = {
     caoGuia: "",
     pranchaComunicacaoAlternativa: "",
     outrasTecAssistiva: "",
-    quantFisica: "",
-    quantVisual: "",
-    quantAuditiva: "",
-    quantIntelectual: "",
-    quantMultiplas: "",
-    quantMobilidade: "",
-    quantSurdo: "",
+    quantFisica: "1",
+    quantVisual: "1",
+    quantAuditiva: "1",
+    quantIntelectual: "1",
+    quantMultiplas: "1",
+    quantMobilidade: "1",
+    quantSurdo: "1",
     eOutras: "",
     responsavelDefFisica: "",
     responsavelDefVisual: "",
@@ -126,6 +127,7 @@ export const defaultValues: Partial<FormValues> = {
     responsavelCaoGuia: "",
     responsavelPrancha: "",
     responsavelOutraTecAssistiva: "",
+    responsavelOutraTecAssistivaText: "",
     
 
 
@@ -793,6 +795,19 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             conditionalFields.push(
                 {
                     name: "responsavelOutraTecAssistiva",
+                    label: "O responsável utiliza outras tecnologias assistivas",
+                    type: "checkbox" as const,
+                    required: false,
+                    dependent: true,
+
+                },
+
+            );
+        }
+         if (formValues.outrasTecAssistiva) {
+            conditionalFields.push(
+                {
+                    name: "responsavelOutraTecAssistivaText",
                     label: "Especificar outros tipos tecnologias assistivas",
                     type: "textarea" as const,
                     required: false,
@@ -926,7 +941,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "responsavelPrancha"
         ])
          afterInsert(baseFields, conditionalFields, "outrasTecAssistiva", [
-            "responsavelOutraTecAssistiva"
+            "responsavelOutraTecAssistiva","responsavelOutraTecAssistivaText"
         ])
 
         return [

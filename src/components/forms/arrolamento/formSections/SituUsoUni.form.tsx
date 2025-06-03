@@ -47,7 +47,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     }
 }, [formValues?.valor_locacao, familyIndex, form]);
 
-
     useEffect(() => {
         if (formValues.tempoMoradiaNaoSabe) {
             // Verifica se os valores já não estão vazios antes de setar

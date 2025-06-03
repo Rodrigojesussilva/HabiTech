@@ -6,7 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 import {
     formatCurrency,
-    calculateTotalImmigrants, formatarNumeroComDoisDecimais
+    formatarNumeroComDoisDecimais
 } from "@/components/forms/arrolamento/helpers/infoFamilia.helper";
 
 // Import form section renderer
@@ -31,13 +31,22 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     // Get merged form sections with conditional fields included
     let formSections = getMergedFormSections(formValues);
 
-    // Update immigrants count when country data changes
     useEffect(() => {
-        if (formValues.numerosPorPais) {
-            const totalImmigrants = calculateTotalImmigrants(formValues.numerosPorPais);
+        const { nacionalidadesSelecionadas = [], numerosPorPais = {} } = formValues;
+
+        const totalImmigrants = nacionalidadesSelecionadas.reduce((total: number, pais: string) => {
+            const key = pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+            const value = Number(numerosPorPais[key]) || 0;
+            return total + value;
+        }, 0);
+
+        const currentValue = form.getValues(`families[${familyIndex}].pessoasImigrantes`);
+
+        if (totalImmigrants !== currentValue) {
             form.setValue(`families[${familyIndex}].pessoasImigrantes`, totalImmigrants);
         }
-    }, [formValues.numerosPorPais, familyIndex, form]);
+    }, [formValues.nacionalidadesSelecionadas, formValues.numerosPorPais, familyIndex, form]);
+
 
     useEffect(() => {
         const campos = [

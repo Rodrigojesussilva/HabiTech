@@ -6,20 +6,20 @@ import { FormValues } from "../definitions/infoFamilia.definition";
  * @returns Formatted currency string
  */
 export function formatCurrency(value: string | number): string {
-  if (value === null || value === undefined || value === '') return "R$ 0,00";
+    if (value === null || value === undefined || value === '') return "R$ 0,00";
 
-  // Remove tudo que não for número (deixa só dígitos)
-  const onlyNums = String(value).replace(/\D/g, '');
+    // Remove tudo que não for número (deixa só dígitos)
+    const onlyNums = String(value).replace(/\D/g, '');
 
-  // Interpreta os últimos 2 dígitos como centavos
-  const numberValue = parseInt(onlyNums || '0', 10);
+    // Interpreta os últimos 2 dígitos como centavos
+    const numberValue = parseInt(onlyNums || '0', 10);
 
-  // Formata para moeda BRL com 2 casas decimais
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-  }).format(numberValue / 100);
+    // Formata para moeda BRL com 2 casas decimais
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+    }).format(numberValue / 100);
 }
 
 export function formatarNumeroComDoisDecimais(value: string | number): string {
@@ -68,8 +68,18 @@ export function calculateTotalPeople(data: Partial<FormValues>): number {
  * @param numerosPorPais Record of countries and their counts
  * @returns Total number of immigrants
  */
-export function calculateTotalImmigrants(numerosPorPais: Record<string, number> = {}): number {
-    return Object.values(numerosPorPais).reduce((total, count) => total + (count || 0), 0);
+export function calculateTotalImmigrants(
+    numerosPorPais: Record<string, number | undefined> = {},
+    nacionalidadesSelecionadas: string[] = []
+): number {
+    if (!nacionalidadesSelecionadas.length) return 0;
+
+    return nacionalidadesSelecionadas.reduce((total, paisSelecionado) => {
+        const key = paisSelecionado.toLowerCase();
+        const count = numerosPorPais[key] ?? 0; // cuidado com undefined
+        console.log(`Somando país: ${paisSelecionado} (key: ${key}), valor: ${count}`);
+        return total + count;
+    }, 0);
 }
 
 /**
@@ -82,19 +92,19 @@ export function validateInfoFamiliaData(data: Partial<FormValues>): boolean {
     if (calculateTotalPeople(data) <= 0) {
         return false;
     }
-    
+
     // If immigrant count > 0, must have selected nationalities
     if (data.pessoasImigrantes && data.pessoasImigrantes > 0) {
         if (!data.nacionalidadesSelecionadas || data.nacionalidadesSelecionadas.length === 0) {
             return false;
         }
-        
+
         // Total immigrants from countries must match the overall count
         const totalFromCountries = calculateTotalImmigrants(data.numerosPorPais);
         if (totalFromCountries !== data.pessoasImigrantes) {
             return false;
         }
     }
-    
+
     return true;
 } 

@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Combobox } from '@/components/ui/combobox';
+import { MultiCombobox } from '@/components/ui/MultiCombobox';
+
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from "@/components/ui/label";
 import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/utils/formUtils";
@@ -371,6 +373,16 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     value={formField.value}
                     onChange={formField.onChange}
                     placeholder={field.placeholder || "Selecione uma opção"}
+                />
+            );
+
+        case "multicombobox":
+            return (
+                <MultiCombobox
+                    options={field.options || []}
+                    value={formField.value || []}
+                    onChange={formField.onChange}
+                    placeholder={field.placeholder || "Selecione uma ou mais opções"}
                 />
             );
 

@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
+function slugify(pais: string) {
+    return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+}
 // Form validation schema
 export const infoFamiliaSchema = z.object({
     rendaFamiliar: z.string().optional(),
@@ -180,14 +183,13 @@ export const infoFamiliaDefinition: FormConfig = {
  * by a custom field component that can render the autocomplete and dynamic fields
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
-    const conditionalFields: FormField[] = [];
-    console.log(formValues);
+    const fields: FormField[] = [];
 
-    // Add a field for nationality selection (this would need a custom renderer component)
-    conditionalFields.push({
+    // Campo multicombo
+    fields.push({
         name: "nacionalidadesSelecionadas",
         label: "Selecione as nacionalidades",
-        type: "combobox" as const,
+        type: "multicombobox",
         required: false,
         placeholder: "Países",
         options: [
@@ -445,13 +447,25 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         ],
     });
 
-    // For each selected nationality, we would need to add a field
-    // This would be handled in the form component with a custom approach
-    // since dynamic field generation based on user input is not easily
-    // representable in a static definition
+    // Gera um campo para cada país selecionado
+    const nacionalidades = formValues.nacionalidadesSelecionadas ?? [];
+    for (const pais of nacionalidades) {
+        const key = slugify(pais);
+        fields.push({
+            name: `numerosPorPais.${key}`,
+            label: `Número de pessoas de ${pais}`,
+            type: "numberSpinner",
+            required: false,
+            placeholder: "0",
+            min: 0,
+            max: 1000,
+            step: 1,
+        });
+    }
 
-    return conditionalFields;
+    return fields;
 }
+
 
 /**
  * Get complete form sections with merged static and conditional fields

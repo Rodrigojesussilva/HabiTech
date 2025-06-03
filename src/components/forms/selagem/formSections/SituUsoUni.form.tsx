@@ -20,7 +20,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
 
     const form = useFormContext();
-    
+
     // Get form values for conditional logic
     const formValues = (() => {
         try {
@@ -31,33 +31,33 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
     // Formata apenas o campo telefone_responsavel com helper
-useEffect(() => {
-    if (formValues.telefone_responsavel) {
-        const formatted = formatarTelefone(formValues.telefone_responsavel);
-        if (formatted !== formValues.telefone_responsavel) {
-            form.setValue(`families[${familyIndex}].telefone_responsavel`, formatted);
+    useEffect(() => {
+        if (formValues.telefone_responsavel) {
+            const formatted = formatarTelefone(formValues.telefone_responsavel);
+            if (formatted !== formValues.telefone_responsavel) {
+                form.setValue(`families[${familyIndex}].telefone_responsavel`, formatted);
+            }
         }
-    }
-}, [formValues.telefone_responsavel]);
+    }, [formValues.telefone_responsavel]);
 
-useEffect(() => {
-    // Garante valor inicial do checkbox 'responsavel_nao_identificado'
-    if (formValues.responsavel_nao_identificado === undefined) {
-        form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
-    }
-    
-}, [
-    formValues.responsavel_nao_identificado,   
-    form,
-    familyIndex
-]);
+    useEffect(() => {
+        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        if (formValues.responsavel_nao_identificado === undefined) {
+            form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
+        }
+
+    }, [
+        formValues.responsavel_nao_identificado,
+        form,
+        familyIndex
+    ]);
 
     useEffect(() => {
         if (formValues.responsavel_nao_identificado) {
             // Verifica se os valores já não estão vazios antes de setar
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nome_responsavel`);
             const telefoneResponsavel = form.getValues(`families[${familyIndex}].telefone_responsavel`);
-    
+
             if (nomeResponsavel || telefoneResponsavel) {
                 form.setValue(`families[${familyIndex}].nome_responsavel`, "");
                 form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
@@ -83,18 +83,18 @@ useEffect(() => {
         try {
             // Certifique-se de que os valores passados para getMergedFormSections são válidos
             const safeFormValues = { ...formValues };
-            
+
             // Garantir que todos os campos select tenham valores válidos
-            const selectFields = ['regime_ocupacao', 'separaResiduos', 'cozinhaCompartilhada', 
-                                'banheiroCompartilhado', 'contrato_locacao', 'documentoComprovacao', 
-                                'destinoReciclavel', 'destinoOrganico', 'destinoDomestico'];
-            
+            const selectFields = ['regime_ocupacao', 'separaResiduos', 'cozinhaCompartilhada',
+                'banheiroCompartilhado', 'contrato_locacao', 'documentoComprovacao',
+                'destinoReciclavel', 'destinoOrganico', 'destinoDomestico'];
+
             selectFields.forEach(field => {
                 if (field in safeFormValues) {
                     safeFormValues[field] = ensureValidSelectValue(safeFormValues[field]);
                 }
             });
-            
+
             const sections = getMergedFormSections(safeFormValues);
             return sections;
         } catch (err) {
@@ -129,7 +129,7 @@ useEffect(() => {
                             />
                         ))
                     )}
-                      <div className="mt-4 w-full flex justify-start">
+                    <div className="mt-4 w-full flex justify-start">
                         <button
                             type="button"
                             className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
