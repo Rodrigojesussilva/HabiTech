@@ -21,7 +21,7 @@ interface InfoFamiliaFormProps {
 }
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
-    //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
 
 
     const form = useFormContext();
@@ -47,7 +47,23 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         }
     }, [formValues.nacionalidadesSelecionadas, formValues.numerosPorPais, familyIndex, form]);
 
+    useEffect(() => {
+        const nacionalidadesSelecionadas = form.getValues(`families[${familyIndex}].nacionalidadesSelecionadas`) || [];
 
+        nacionalidadesSelecionadas.forEach((pais: string) => {
+            const key = pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+            const path = `families[${familyIndex}].numerosPorPais.${key}`;
+            const currentValue = form.getValues(path);
+
+            if (currentValue === undefined || currentValue === null) {
+                form.setValue(path, 1);
+            }
+        });
+    }, [familyIndex, form]);
+
+
+
+    // Casas decimais
     useEffect(() => {
         const campos = [
             'criancas0a3',
@@ -83,6 +99,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         familyIndex,
         form
     ]);
+
     // Format currency when rendaFamiliar changes
     useEffect(() => {
         const renda = formValues?.rendaFamiliar;
@@ -99,6 +116,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             }
         }
     }, [formValues?.rendaFamiliar, familyIndex, form]);
+
 
 
     const handleCountryCountChange = (country: string, count: number) => {
