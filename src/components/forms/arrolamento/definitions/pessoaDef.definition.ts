@@ -60,9 +60,9 @@ export const pessoaDefSchema = z.object({
     responsavelPrancha: z.string().optional(),
     responsavelOutraTecAssistiva: z.string().optional(),
     responsavelOutraTecAssistivaText: z.string().optional(),
-    
 
-    
+
+
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
 
@@ -128,7 +128,7 @@ export const defaultValues: Partial<FormValues> = {
     responsavelPrancha: "",
     responsavelOutraTecAssistiva: "",
     responsavelOutraTecAssistivaText: "",
-    
+
 
 
     idLocal: "not",
@@ -175,14 +175,21 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "qtdPessoasComDefFam",
                 label: "Quantidade de pessoas com deficiência na família",
-                type: "numberSpinner" as const,
-                    required: false,
-                    placeholder: "0",
-                    min: 1,
-                    max: 100,
-                    step: 1,
+                type: "display" as const,
+                required: false,
+                displayValue: (data: Partial<FormValues>) => {
+                    let total = 0;
 
+                    if (data.defFisica) total += Number(data.quantFisica || 0);
+                    if (data.defVisual) total += Number(data.quantVisual || 0);
+                    if (data.defAuditiva) total += Number(data.quantAuditiva || 0);
+                    if (data.defIntelectualMental) total += Number(data.quantIntelectual || 0);
+                    if (data.defMultiplas) total += Number(data.quantMultiplas || 0);
+                    if (data.defMobilidadeReduzida) total += Number(data.quantMobilidade || 0);
+                    if (data.defSurdoCegueira) total += Number(data.quantSurdo || 0);
 
+                    return total.toString();
+                }
             },
             {
                 name: "responsavelTemDeficiencia",
@@ -306,7 +313,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -338,7 +345,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -370,7 +377,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -396,13 +403,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 {
                     name: "quantIntelectual",
                     label: "Quantas pessoas tem deficiência Intelectual/Mental",
-                     type: "numberSpinner" as const,
+                    type: "numberSpinner" as const,
                     required: false,
                     placeholder: "0",
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -434,7 +441,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -466,7 +473,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
 
                 },
 
@@ -498,7 +505,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     min: 1,
                     max: 100,
                     step: 1,
-                    dependent:true
+                    dependent: true
                 },
 
             );
@@ -643,7 +650,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     type: "checkbox" as const,
                     required: false,
                     dependent: true,
-                    
+
                 },
 
             );
@@ -791,7 +798,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
-         if (formValues.outrasTecAssistiva && formValues.responsavelTemDeficiencia === "sim") {
+        if (formValues.outrasTecAssistiva && formValues.responsavelTemDeficiencia === "sim") {
             conditionalFields.push(
                 {
                     name: "responsavelOutraTecAssistiva",
@@ -804,7 +811,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
-         if (formValues.outrasTecAssistiva) {
+        if (formValues.outrasTecAssistiva) {
             conditionalFields.push(
                 {
                     name: "responsavelOutraTecAssistivaText",
@@ -934,14 +941,14 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         afterInsert(baseFields, conditionalFields, "bengalaBrancaOuVerdeVermelha", [
             "responsavelBnglBranOuVerdVerm"
         ])
-         afterInsert(baseFields, conditionalFields, "caoGuia", [
+        afterInsert(baseFields, conditionalFields, "caoGuia", [
             "responsavelCaoGuia"
         ])
-         afterInsert(baseFields, conditionalFields, "pranchaComunicacaoAlternativa", [
+        afterInsert(baseFields, conditionalFields, "pranchaComunicacaoAlternativa", [
             "responsavelPrancha"
         ])
-         afterInsert(baseFields, conditionalFields, "outrasTecAssistiva", [
-            "responsavelOutraTecAssistiva","responsavelOutraTecAssistivaText"
+        afterInsert(baseFields, conditionalFields, "outrasTecAssistiva", [
+            "responsavelOutraTecAssistiva", "responsavelOutraTecAssistivaText"
         ])
 
         return [
