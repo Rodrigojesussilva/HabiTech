@@ -31,21 +31,27 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
 
-   useEffect(() => {
-    const valor = formValues?.valor_locacao;
+  useEffect(() => {
+    const nsiValor = formValues.nsi_valor_locacao;
+    const valorLocacao = formValues?.valor_locacao;
+    const campoPath = `families[${familyIndex}].valor_locacao`;
+    const current = form.getValues(campoPath);
 
-    if (valor !== undefined && valor !== null) {
-        const formatted = formatCurrency(valor);
-        const current = form.getValues(`families[${familyIndex}].valor_locacao`);
-
+    if (nsiValor) {
+        if (current) {
+            form.setValue(campoPath, "");
+        }
+    } else if (valorLocacao !== undefined && valorLocacao !== null) {
+        const formatted = formatCurrency(valorLocacao);
         if (formatted !== current) {
-            form.setValue(`families[${familyIndex}].valor_locacao`, formatted, {
+            form.setValue(campoPath, formatted, {
                 shouldValidate: true,
                 shouldDirty: true,
             });
         }
     }
-}, [formValues?.valor_locacao, familyIndex, form]);
+}, [formValues.nsi_valor_locacao, formValues?.valor_locacao, familyIndex, form]);
+
 
     useEffect(() => {
         if (formValues.tempoMoradiaNaoSabe) {
@@ -73,18 +79,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     }, [formValues.tempoMoradiaNaoSabe1, form, familyIndex]);
 
-    useEffect(() => {
-        if (formValues.nsi_valor_locacao) {
-            // Verifica se os valores já não estão vazios antes de setar
-            const email = form.getValues(`families[${familyIndex}].valor_locacao`);
-
-
-            if (email) {
-                form.setValue(`families[${familyIndex}].valor_locacao`, "");
-
-            }
-        }
-    }, [formValues.nsi_valor_locacao, form, familyIndex]);
+    
 
     useEffect(() => {
         if (formValues.nsi_contato_proprietario) {
