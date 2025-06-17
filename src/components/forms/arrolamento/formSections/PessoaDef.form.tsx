@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -22,6 +22,39 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
+
+    useEffect(() => {
+        
+        const currentValueFisica = form.getValues(`families[${familyIndex}].quantFisica`);
+        const currentValueVisual = form.getValues(`familVisualies[${familyIndex}].quantVisual`);
+        const currentValueAuditiva = form.getValues(`familVisualies[${familyIndex}].quantAuditiva`);
+        const currentValueIntelectual = form.getValues(`families[${familyIndex}].quantIntelectual`);
+        const currentValueMultiplas = form.getValues(`families[${familyIndex}].quantMultiplas`);
+        const currentValueMobilidade = form.getValues(`families[${familyIndex}].quantMobilidade`);
+        const currentValueSurdo = form.getValues(`families[${familyIndex}].quantSurdo`);
+
+        if (currentValueFisica === undefined || currentValueFisica === null) {
+            form.setValue(`families[${familyIndex}].quantFisica`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueVisual === undefined || currentValueVisual === null) {
+            form.setValue(`families[${familyIndex}].quantVisual`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueAuditiva === undefined || currentValueAuditiva === null) {
+            form.setValue(`families[${familyIndex}].quantAuditiva`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueIntelectual === undefined || currentValueIntelectual === null) {
+            form.setValue(`families[${familyIndex}].quantIntelectual`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueMultiplas === undefined || currentValueMultiplas === null) {
+            form.setValue(`families[${familyIndex}].quantMultiplas`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueMobilidade === undefined || currentValueMobilidade === null) {
+            form.setValue(`families[${familyIndex}].quantMobilidade`, 1); // ou o valor padrão desejado
+        }
+        if (currentValueSurdo === undefined || currentValueSurdo === null) {
+            form.setValue(`families[${familyIndex}].quantSurdo`, 1); // ou o valor padrão desejado
+        }
+    }, []);
 
 
     return (

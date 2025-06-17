@@ -176,8 +176,6 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	]);
 
 
-
-
 	// Mescla seções e preenche opções dinâmicas
 	formSections = getMergedFormSections(formValues).map(section => ({
 		...section,

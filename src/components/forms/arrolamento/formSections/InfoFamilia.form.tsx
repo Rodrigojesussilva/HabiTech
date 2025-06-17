@@ -6,7 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 import {
     formatCurrency,
-    calculateTotalImmigrants, formatarNumeroComDoisDecimais
+    formatarNumeroComDoisDecimais
 } from "@/components/forms/arrolamento/helpers/infoFamilia.helper";
 
 // Import form section renderer
@@ -21,7 +21,7 @@ interface InfoFamiliaFormProps {
 }
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
-    //const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
 
     const form = useFormContext();
     // Get form values for conditional logic
@@ -30,14 +30,39 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     // Get merged form sections with conditional fields included
     let formSections = getMergedFormSections(formValues);
 
-    // Update immigrants count when country data changes
     useEffect(() => {
-        if (formValues.numerosPorPais) {
-            const totalImmigrants = calculateTotalImmigrants(formValues.numerosPorPais);
+        const { nacionalidadesSelecionadas = [], numerosPorPais = {} } = formValues;
+
+        const totalImmigrants = nacionalidadesSelecionadas.reduce((total: number, pais: string) => {
+            const key = pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+            const value = Number(numerosPorPais[key]) || 0;
+            return total + value;
+        }, 0);
+
+        const currentValue = form.getValues(`families[${familyIndex}].pessoasImigrantes`);
+
+        if (totalImmigrants !== currentValue) {
             form.setValue(`families[${familyIndex}].pessoasImigrantes`, totalImmigrants);
         }
-    }, [formValues.numerosPorPais, familyIndex, form]);
+    }, [formValues.nacionalidadesSelecionadas, formValues.numerosPorPais, familyIndex, form]);
 
+    useEffect(() => {
+        const nacionalidadesSelecionadas = form.getValues(`families[${familyIndex}].nacionalidadesSelecionadas`) || [];
+
+        nacionalidadesSelecionadas.forEach((pais: string) => {
+            const key = pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+            const path = `families[${familyIndex}].numerosPorPais.${key}`;
+            const currentValue = form.getValues(path);
+
+            if (currentValue === undefined || currentValue === null) {
+                form.setValue(path, 1);
+            }
+        });
+    }, [familyIndex, form]);
+
+
+
+    // Casas decimais
     useEffect(() => {
         const campos = [
             'criancas0a3',
@@ -73,6 +98,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         familyIndex,
         form
     ]);
+
     // Format currency when rendaFamiliar changes
     useEffect(() => {
         const renda = formValues?.rendaFamiliar;
@@ -89,6 +115,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             }
         }
     }, [formValues?.rendaFamiliar, familyIndex, form]);
+
 
 
     const handleCountryCountChange = (country: string, count: number) => {
