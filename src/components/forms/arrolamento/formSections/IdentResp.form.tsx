@@ -19,7 +19,41 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const formSections = getMergedFormSections(formValues);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
 
+    // Este useEffect garante que o campo "nomeSocialEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
+    // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
+    useEffect(() => {
+        const path = `families[${familyIndex}].nomeSocialEntrevistado`;
 
+        const rawValue = form.getValues(path); // sempre pega o valor atualizado
+
+        if (typeof rawValue === "string") {
+            const sanitizedValue = rawValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, ""); // mantém letras com acento e espaços
+
+            if (rawValue !== sanitizedValue) {
+                form.setValue(path, sanitizedValue);
+            }
+        }
+    }, [form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`), form, familyIndex]);
+
+    // Este useEffect garante que o campo "nomeCompletoEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
+    // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
+    useEffect(() => {
+        const path = `families[${familyIndex}].nomeCompletoEntrevistado`;
+
+        const rawValue = form.getValues(path); // sempre pega o valor atualizado
+
+        if (typeof rawValue === "string") {
+            const sanitizedValue = rawValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, ""); // mantém letras com acento e espaços
+
+            if (rawValue !== sanitizedValue) {
+                form.setValue(path, sanitizedValue);
+            }
+        }
+    }, [form.getValues(`families[${familyIndex}].nomeCompletoEntrevistado`), form, familyIndex]);
+
+    // Este useEffect observa mudanças no campo "responsavel" da família atual.
+    // Quando o valor muda, ele simula um evento de mudança (<select>) e chama a função "onChangeMostrarSecoes",
+    // permitindo que seções do formulário sejam exibidas ou ocultadas dinamicamente com base na escolha do usuário.
     useEffect(() => {
         const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
@@ -37,6 +71,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         return () => subscription.unsubscribe();
     }, [form, familyIndex, onChangeMostrarSecoes]);
 
+    // Este useEffect limpa o campo "nomeSocialEntrevistado" sempre que a opção "naoSeAplicaEntrevistado" estiver marcada (true).
+    // Isso garante que, se o usuário indicar que o nome social não se aplica, qualquer valor digitado previamente seja removido.
     useEffect(() => {
         if (formValues.naoSeAplicaEntrevistado) {
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
@@ -46,6 +82,9 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [formValues.naoSeAplicaEntrevistado, form, familyIndex]);
 
+    // Este useEffect calcula a idade do responsável com base na data de nascimento fornecida no formato "YYYY-MM-DD".
+    // Quando a data é válida, calcula a idade e atualiza o campo "idadeResp" do formulário.
+    // Caso contrário, limpa o campo de idade.
     useEffect(() => {
         // Só roda se dataNascimento estiver definida e no formato correto YYYY-MM-DD
         if (typeof dataNascimento === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
@@ -56,7 +95,13 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [dataNascimento, familyIndex, form.setValue]);
 
-
+    // Esta função valida o campo "dataNascimentoResp" no formulário da família.
+    // Ela verifica:
+    // 1. Se o formato da data é válido (YYYY-MM-DD)
+    // 2. Se o ano contém 4 dígitos
+    // 3. Se a data não é futura
+    // Se alguma dessas validações falhar, ela limpa os campos "dataNascimentoResp" e "idadeResp".
+    // Caso contrário, calcula a idade com base na data e preenche o campo "idadeResp".
     useEffect(() => {
         validarDataNascimento(dataNascimento, familyIndex, form.setValue);
     }, [dataNascimento, familyIndex, form.setValue]);
