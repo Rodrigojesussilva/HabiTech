@@ -224,6 +224,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         afterInsert(baseFields, conditionalFields, "idadeResp", [
             "pessoaEmancipada"
         ]);
+        
          afterInsert(baseFields, conditionalFields, "pessoaEmancipada", [
             "certidaoEmancipacao"
         ]);

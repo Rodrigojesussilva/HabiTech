@@ -22,11 +22,10 @@ export const infoContatoSchema = z.object({
     ativarTelefone3: z.boolean().optional(),
     ativarTelefone4: z.boolean().optional(),
 
-    telefoneRecado: z.string().optional(),
-    nomeRecado: z.string().optional(),
-    parente: z.string().optional(),
-    escrevParentesco: z.string().optional(),
 
+    nomeRecado1: z.string().optional(),
+    parente1: z.string().optional(),
+    escrevParentesco1: z.string().optional(),
 
 
     nomeRecado2: z.string().optional(),
@@ -72,9 +71,9 @@ export const defaultValues: Partial<FormValues> = {
     telefone3WhatsApp: false,
     telefone4WhatsApp: false,
 
-    nomeRecado: "",
-    parente: "",
-    escrevParentesco: "",
+    nomeRecado1: "",
+    parente1: "",
+    escrevParentesco1: "",
 
 
     nomeRecado2: "",
@@ -176,18 +175,19 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
     if (formValues.tipoTelefone1 === "recado") {
         conditionalFields.push(
             {
-                name: "nomeRecado",
+                name: "nomeRecado1",
                 label: "Nome da Pessoa para Recado",
                 type: "text",
                 required: false,
                 placeholder: "Digite o nome da pessoa para recado"
             },
             {
-                name: "parente",
+                name: "parente1",
                 label: "Relação de Parentesco",
                 type: "select" as const,
                 required: true,
                 options: [
+
                     { label: "Selecione uma opção", value: "select" },
                     { label: "Cônjuge/Companheiro", value: "conjuge_companheiro" },
                     { label: "Filha", value: "filha" },
@@ -214,7 +214,18 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Outra Relação de Parentesco", value: "outro" }
                 ]
             },
+
         );
+
+        if (formValues.parente1 === "outro") {
+            conditionalFields.push({
+                name: "escrevParentesco1",
+                label: "Especifique a relação de parentesco?",
+                type: "text",
+                required: false
+            });
+
+        }
     }
     // Se tipoTelefone2 for "celular", exibe checkbox de WhatsApp
     if (formValues.tipoTelefone2 === "celular") {
@@ -267,6 +278,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
+        if (formValues.parente2 === "outro") {
+            conditionalFields.push({
+                name: "escrevParentesco2",
+                label: "Especifique a relação de parentesco?",
+                type: "text",
+                required: false
+            });
+
+        }
     }
     // Se tipoTelefone3 for "celular", exibe checkbox de WhatsApp
     if (formValues.tipoTelefone3 === "celular") {
@@ -320,6 +340,16 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
+
+        if (formValues.parente3 === "outro") {
+            conditionalFields.push({
+                name: "escrevParentesco3",
+                label: "Especifique a relação de parentesco?",
+                type: "text",
+                required: false
+            });
+
+        }
     }
     // Se tipoTelefone4 for "celular", exibe checkbox de WhatsApp
     if (formValues.tipoTelefone4 === "celular") {
@@ -373,6 +403,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             }
         );
+         if (formValues.parente4 === "outro") {
+            conditionalFields.push({
+                name: "escrevParentesco4",
+                label: "Especifique a relação de parentesco?",
+                type: "text",
+                required: false
+            });
+
+        }
     }
     // Se telefone 2 estiver ativado, mostra campos relacionados
     if (formValues.ativarTelefone2 === true) {
@@ -465,15 +504,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
         );
     }
-    // Se parente for "outro", exibe campo para escrever o parentesco
-    if (formValues.parente === "outro") {
-        conditionalFields.push({
-            name: "escrevParentesco",
-            label: "Especifique o parentesco",
-            type: "text",
-            required: false
-        });
-    }
 
     return conditionalFields;
 }
@@ -513,16 +543,28 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "telefone4", "tipoTelefone4", "telefoneRecado4"
         ]);
         afterInsert(baseFields, conditionalFields, "tipoTelefone1", [
-            "telefone1WhatsApp", "telefoneRecado", "nomeRecado", "parente"
+            "telefone1WhatsApp", "telefoneRecado1", "nomeRecado1", "parente1"
+        ]);
+        afterInsert(baseFields, conditionalFields, "parente1", [
+            "escrevParentesco1"
         ]);
         afterInsert(baseFields, conditionalFields, "tipoTelefone2", [
             "telefone2WhatsApp", "telefoneRecado2", "nomeRecado2", "parente2"
         ]);
+        afterInsert(baseFields, conditionalFields, "parente2", [
+            "escrevParentesco2"
+        ]);
         afterInsert(baseFields, conditionalFields, "tipoTelefone3", [
             "telefone3WhatsApp", "telefoneRecado3", "nomeRecado3", "parente3"
         ]);
+           afterInsert(baseFields, conditionalFields, "parente3", [
+            "escrevParentesco3"
+        ]);
         afterInsert(baseFields, conditionalFields, "tipoTelefone4", [
             "telefone4WhatsApp", "telefoneRecado4", "nomeRecado4", "parente4"
+        ]);
+          afterInsert(baseFields, conditionalFields, "parente4", [
+            "escrevParentesco4"
         ]);
 
         return [

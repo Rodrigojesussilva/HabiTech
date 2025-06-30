@@ -400,8 +400,6 @@ function afterInsert(
 }
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     try {
-
-        // Get conditional fields based on current form values
         const conditionalFields = getConditionalFields(formValues);
         const baseFields = [...situUsoUniDefinition.sections[0].fields];
 
@@ -409,8 +407,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
                 "valor_locacao", "nsi_valor_locacao", "contrato_locacao", "nome_proprietario", "contato_proprietario", "nsi_contato_proprietario"
             ]);
-        }
-        else if (formValues.regime_ocupacao === "propria") {
+        } else if (formValues.regime_ocupacao === "propria") {
             afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
                 "documentoComprovacao"
             ]);
@@ -418,41 +415,41 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
                 afterInsert(baseFields, conditionalFields, "documentoComprovacao", [
                     "descricaoDocumento"
                 ]);
-
             }
-        }
-        else if (formValues.regime_ocupacao === "cedida") {
+        } else if (formValues.regime_ocupacao === "cedida") {
             afterInsert(baseFields, conditionalFields, "regime_ocupacao", [
                 "nome_proprietario_cedida", "telefone_proprietario_cedida"
             ]);
         }
+
         if (formValues.separaResiduos === "Sim") {
             afterInsert(baseFields, conditionalFields, "separaResiduos", [
                 "destinoReciclavel", "destinoOrganico"
             ]);
+
             if (formValues.destinoReciclavel === "Outros") {
                 afterInsert(baseFields, conditionalFields, "destinoReciclavel", [
                     "outroDestinoReciclavel"
                 ]);
             }
+
             if (formValues.destinoOrganico === "Outros") {
                 afterInsert(baseFields, conditionalFields, "destinoOrganico", [
+                    "outroDestinoOrganico" // ✅ Corrigido aqui
+                ]);
+            }
+        } else if (formValues.separaResiduos === "Não") {
+            afterInsert(baseFields, conditionalFields, "separaResiduos", [
+                "destinoDomestico"
+            ]);
+
+            if (formValues.destinoDomestico === "Outros") {
+                afterInsert(baseFields, conditionalFields, "destinoDomestico", [
                     "outroDestinoDomestico"
                 ]);
             }
         }
-        else if (formValues.separaResiduos === "Não") {
-            afterInsert(baseFields, conditionalFields, "separaResiduos", [
-                "destinoDomestico"
-            ]);
-            if (formValues.destinoDomestico === "Outros") {
-                afterInsert(baseFields, conditionalFields, "destinoDomestico", [
-                    "outroDestinoOrganico"
-                ]);
-            }
-        }
 
-        // Create and return a merged form structure
         return [
             {
                 ...situUsoUniDefinition.sections[0],
@@ -461,7 +458,6 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         ];
     } catch (error) {
         console.error("Error in getMergedFormSections:", error);
-        // Em caso de erro, retornar apenas os campos base
         return [situUsoUniDefinition.sections[0]];
     }
-} 
+}
