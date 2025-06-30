@@ -435,7 +435,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
 
             if (formValues.destinoOrganico === "Outros") {
                 afterInsert(baseFields, conditionalFields, "destinoOrganico", [
-                    "outroDestinoOrganico" // ✅ Corrigido aqui
+                    "outroDestinoOrganico" 
                 ]);
             }
         } else if (formValues.separaResiduos === "Não") {

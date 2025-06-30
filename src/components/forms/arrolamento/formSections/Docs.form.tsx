@@ -34,7 +34,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
 	}, [dataExpedicaoRg, familyIndex, form.setValue]);
 
-	// Validação da data de expedição (mantida como estava)
+	// Validação da data de expedição
 	useEffect(() => {
 		const rawDate = formValues.dataExpedicaoRg;
 		if (rawDate && rawDate.length === 10) {
