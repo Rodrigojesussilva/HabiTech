@@ -12,6 +12,8 @@ export const identRespSchema = z.object({
     idadeResp: z.string().optional(),
     respDocs: z.string().optional(),
     DescrevParentesco: z.string().optional(),
+    pessoaEmancipada: z.string().optional(),
+    certidaoEmancipacao: z.string().optional(),
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
 });
@@ -29,6 +31,8 @@ export const defaultValues: Partial<FormValues> = {
     idadeResp: "",
     respDocs: "",
     DescrevParentesco: "",
+    pessoaEmancipada: "",
+    certidaoEmancipacao: "",
     idLocal: "not",
 };
 
@@ -85,6 +89,39 @@ export const identRespDefinition: FormConfig = {
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
 
+    // Conditionally add fields based on "responsavel" value
+    if (formValues.idadeResp === "16" || formValues.idadeResp === "17" ) {
+        conditionalFields.push(
+            {
+                name: "pessoaEmancipada",
+                label: "A pessoa entrevistada e emancipada?",
+                type: "select",
+                required: false,
+                options: [
+                    { label: "Sim", value: "sim" },
+                    { label: "Não", value: "não" },
+                   
+                ]
+            },
+
+        );
+    }
+    if (formValues.pessoaEmancipada === "sim") {
+        conditionalFields.push(
+            {
+                name: "certidaoEmancipacao",
+                label: "Possui certidão de emancipação?",
+                type: "select",
+                required: false,
+                options: [
+                    { label: "Certidão de emancipação por escritura pública", value: "CertidãoEmancipacaoEscrituraPublica" },
+                    { label: "Certidão de emancipação judicial", value: "CertidãoEmancipacaoJudicial" },
+                   
+                ]
+            },
+
+        );
+    }
     // Conditionally add fields based on "responsavel" value
     if (formValues.responsavel === "nao") {
         conditionalFields.push(
@@ -179,19 +216,25 @@ function afterInsert(
  */
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     try {
-        
+
         // Get conditional fields based on current form values
         const conditionalFields = getConditionalFields(formValues);
         const baseFields = [...identRespDefinition.sections[0].fields];
 
+        afterInsert(baseFields, conditionalFields, "idadeResp", [
+            "pessoaEmancipada"
+        ]);
+         afterInsert(baseFields, conditionalFields, "pessoaEmancipada", [
+            "certidaoEmancipacao"
+        ]);
+
         afterInsert(baseFields, conditionalFields, "responsavel", [
-            "relacaoResponsavel","nomeCompletoEntrevistado","nomeSocialEntrevistado","naoSeAplicaEntrevistado"
+            "relacaoResponsavel", "nomeCompletoEntrevistado", "nomeSocialEntrevistado", "naoSeAplicaEntrevistado"
         ]);
 
         afterInsert(baseFields, conditionalFields, "relacaoResponsavel", [
             "DescrevParentesco"
         ]);
-
 
         // Create and return a merged form structure with base fields and conditional fields
         return [
