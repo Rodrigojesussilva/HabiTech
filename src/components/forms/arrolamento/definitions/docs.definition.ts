@@ -8,10 +8,13 @@ export const docsSchema = z.object({
     numeroProtocolo: z.string().optional(),
     numeroRnm: z.string().optional(),
     statusRnm: z.string().optional(),
+    dataValidadeRnm: z.string().optional(),
     numeroCrnm: z.string().optional(),
     statusCrnm: z.string().optional(),
+    dataValidadeCrnm: z.string().optional(),
     numeroPassaporte: z.string().optional(),
     uf: z.string().optional(),
+    dataValidadePassaporte: z.string().optional(),
     cidade: z.string().optional(),
     fonteRg: z.string().optional(),
     rg: z.string().optional(),
@@ -42,9 +45,12 @@ export const defaultValues: Partial<FormValues> = {
     numeroProtocolo: "",
     numeroRnm: "",
     statusRnm: "",
+    dataValidadeRnm: "",
     numeroCrnm: "",
     statusCrnm: "",
+    dataValidadeCrnm: "",
     numeroPassaporte: "",
+    dataValidadePassaporte: "",
     uf: "",
     cidade: "",
     fonteRg: "",
@@ -105,7 +111,7 @@ export const docsDefinition: FormConfig = {
                         { label: "Bermuda", value: "Bermuda" },
                         { label: "Brunei", value: "Brunei" },
                         { label: "Bolivia", value: "Bolivia" },
-                        { label: "Bonaire", value: "Bonaire" },                        
+                        { label: "Bonaire", value: "Bonaire" },
                         { label: "Bahamas", value: "Bahamas" },
                         { label: "Bhutan", value: "Bhutan" },
                         { label: "Bouvet Island", value: "Bouvet Island" },
@@ -393,7 +399,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "combobox",
                 required: true,
                 options: [
-                   
+
                 ]
 
             },
@@ -442,12 +448,15 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
         // Additional fields based on documentacao selection
         if (formValues.documentacao === "Protocolo") {
-            conditionalFields.push({
-                name: "numeroProtocolo",
-                label: "Número do Protocolo",
-                type: "text",
-                required: true
-            });
+            conditionalFields.push(
+                {
+                    name: "numeroProtocolo",
+                    label: "Número do Protocolo",
+                    type: "text",
+                    required: true
+                }
+
+            );
         } else if (formValues.documentacao === "RNM") {
             conditionalFields.push(
                 {
@@ -466,7 +475,13 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         { label: "Inválido", value: "Inválido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
-                }
+                },
+                 {
+                    name: "dataValidadeRnm",
+                    label: "Data de validade",
+                    type: "date",
+                    required: true
+                },
             );
         } else if (formValues.documentacao === "CRNM") {
             conditionalFields.push(
@@ -486,15 +501,30 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         { label: "Inválido", value: "Inválido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
-                }
+                },
+                {
+                    name: "dataValidadeCrnm",
+                    label: "Data de validade",
+                    type: "date",
+                    required: true
+                },
             );
-        } else if (formValues.documentacao === "Passaporte") {
-            conditionalFields.push({
-                name: "numeroPassaporte",
-                label: "Número do Passaporte",
-                type: "text",
-                required: true
-            });
+        }
+        else if (formValues.documentacao === "Passaporte") {
+            conditionalFields.push(
+                {
+                    name: "numeroPassaporte",
+                    label: "Número do Passaporte",
+                    type: "text",
+                    required: true
+                },
+                {
+                    name: "dataValidadePassaporte",
+                    label: "Data de validade",
+                    type: "date",
+                    required: true
+                },
+            );
         }
     }
 

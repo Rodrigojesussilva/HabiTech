@@ -95,7 +95,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             {
                 name: "pessoaEmancipada",
                 label: "A pessoa entrevistada e emancipada?",
-                type: "select",
+                type: "radio",
                 required: false,
                 options: [
                     { label: "Sim", value: "sim" },

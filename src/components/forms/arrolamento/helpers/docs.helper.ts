@@ -209,7 +209,7 @@ export function validarData(
   // Verifica se o formato geral é YYYY-MM-DD
   const isFormatoValido = /^\d{4}-\d{2}-\d{2}$/.test(data);
   if (!isFormatoValido) {
-    alert("Data inválida. Use o formato AAAA-MM-DD.");
+    alert("Data inválida. Use o formato DD-MM-AAAA.");
     setValue(`families[${familyIndex}].${fieldName}`, "", { shouldValidate: true });
     return;
   }
@@ -231,4 +231,29 @@ export function validarData(
   }
 }
 
+export function validarDataValidade(
+  data: string | undefined,
+  familyIndex: number,
+  fieldName: string,
+  setValue: Function
+) {
+  if (!data || typeof data !== "string") return;
+
+  // Verifica se o formato geral é YYYY-MM-DD
+  const isFormatoValido = /^\d{4}-\d{2}-\d{2}$/.test(data);
+  if (!isFormatoValido) {
+    alert("Data inválida. Use o formato DD-MM-AAAA.");
+    setValue(`families[${familyIndex}].${fieldName}`, "", { shouldValidate: true });
+    return;
+  }
+
+  // Verifica se o ano tem exatamente 4 dígitos
+  const ano = data.split("-")[0];
+  if (ano.length !== 4) {
+    alert("Ano inválido. O ano deve ter exatamente 4 dígitos.");
+    setValue(`families[${familyIndex}].${fieldName}`, "", { shouldValidate: true });
+    return;
+  }
+ 
+}
 

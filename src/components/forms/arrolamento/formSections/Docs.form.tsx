@@ -6,7 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
-import { validarData } from "@/components/forms/arrolamento/helpers/docs.helper";
+import { validarData, validarDataValidade } from "@/components/forms/arrolamento/helpers/docs.helper";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 interface DocsFormProps {
@@ -26,6 +26,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
 	const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
 	const dataExpedicaoRg = form.watch(`families[${familyIndex}].dataExpedicaoRg`);
+	const dataValidadePassaporte = form.watch(`families[${familyIndex}].dataValidadePassaporte`);
 
 	// Pegar estrutura dos campos dinâmicos
 	let formSections = getMergedFormSections(formValues);
@@ -33,6 +34,10 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	useEffect(() => {
 		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
 	}, [dataExpedicaoRg, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		validarDataValidade(dataValidadePassaporte, familyIndex, "dataValidadePassaporte", form.setValue);
+	}, [dataValidadePassaporte, familyIndex, form.setValue]);
 
 	// Validação da data de expedição
 	useEffect(() => {
@@ -174,6 +179,43 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		form.watch(`families[${familyIndex}].dataExpedicaoRg`),
 		form.watch(`families[${familyIndex}].fonteCpf`), // 👈 Observa também mudanças na fonte
 	]);
+
+	// Validação da validade do passaporte para maiores de 18 anos
+	useEffect(() => {
+		const idade = Number(formValues.idadeResp);
+		const rawDate = formValues.dataValidadePassaporte;
+		const pessoaEmancipada = formValues.pessoaEmancipada;
+
+		// Considera emancipado se for "sim", true ou "true"
+		const isEmancipado = pessoaEmancipada === "sim" || pessoaEmancipada === true || pessoaEmancipada === "true";
+		const deveValidar = idade > 18 || ((idade === 16 || idade === 17) && isEmancipado);
+
+		if (deveValidar && rawDate && rawDate.length === 10) {
+			const [day, month, year] = rawDate.split('/');
+			const validadeDate = new Date(`${year}-${month}-${day}`);
+			const today = new Date();
+
+			if (!isNaN(validadeDate.getTime())) {
+				// Data de 10 anos atrás
+				const dezAnosAtras = new Date();
+				dezAnosAtras.setFullYear(today.getFullYear() - 10);
+
+				// Se a data do passaporte for anterior ou igual a 10 anos atrás → inválido
+				if (validadeDate <= dezAnosAtras) {
+					form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+						type: "manual",
+						message: "A validade do passaporte ultrapassa 10 anos, o que não é permitido para maiores de 18 anos ou menores emancipados.",
+					});
+				} else {
+					form.clearErrors(`families[${familyIndex}].dataValidadePassaporte`);
+				}
+			}
+		} else {
+			form.clearErrors(`families[${familyIndex}].dataValidadePassaporte`);
+		}
+	}, [formValues.idadeResp, formValues.dataValidadePassaporte, formValues.pessoaEmancipada]);
+
+
 
 
 	// Mescla seções e preenche opções dinâmicas
