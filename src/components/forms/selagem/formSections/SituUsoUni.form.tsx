@@ -30,6 +30,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             return {};
         }
     })();
+
     // Formata apenas o campo telefone_responsavel com helper
     useEffect(() => {
         if (formValues.telefone_responsavel) {
@@ -102,7 +103,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             return [situUsoUniDefinition.sections[0]]; // Fallback para seção básica
         }
     })();
-
 
     return (
         <div className="text-left">

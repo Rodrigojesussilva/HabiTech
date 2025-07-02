@@ -180,42 +180,75 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		form.watch(`families[${familyIndex}].fonteCpf`), // 👈 Observa também mudanças na fonte
 	]);
 
-	// Validação da validade do passaporte para maiores de 18 anos
+	// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
 	useEffect(() => {
-		const idade = Number(formValues.idadeResp);
+		const idadeRaw = formValues.idadeResp;
+		const idade = Number(idadeRaw);
 		const rawDate = formValues.dataValidadePassaporte;
 		const pessoaEmancipada = formValues.pessoaEmancipada;
 
-		// Considera emancipado se for "sim", true ou "true"
-		const isEmancipado = pessoaEmancipada === "sim" || pessoaEmancipada === true || pessoaEmancipada === "true";
-		const deveValidar = idade > 18 || ((idade === 16 || idade === 17) && isEmancipado);
+		// Limpa erro no início
+		form.clearErrors(`families[${familyIndex}].dataValidadePassaporte`);
 
-		if (deveValidar && rawDate && rawDate.length === 10) {
+		// 1. Verifica se idade foi informada
+		if (!idadeRaw || isNaN(idade)) {
+			form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+				type: "manual",
+				message: "Informe a idade da pessoa responsável.",
+			});
+			return;
+		}
+
+		// 2. Se idade for 16 ou 17, verifica se emancipação foi informada
+		if ((idade === 16 || idade === 17) && (pessoaEmancipada === undefined || pessoaEmancipada === "")) {
+			form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+				type: "manual",
+				message: "Informe se a pessoa é emancipada.",
+			});
+			return;
+		}
+
+		// 3. Regras de quem deve validar a validade do passaporte
+		const isEmancipado = pessoaEmancipada === "sim" || pessoaEmancipada === true || pessoaEmancipada === "true";
+		const deveValidar = idade >= 18 || ((idade === 16 || idade === 17) && isEmancipado);
+
+		// 4. Se deve validar, verifica se data está válida
+		if (deveValidar) {
+			if (!rawDate || rawDate.length !== 10) {
+				form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+					type: "manual",
+					message: "Informe uma data de validade válida no formato DD/MM/AAAA.",
+				});
+				return;
+			}
+
 			const [day, month, year] = rawDate.split('/');
 			const validadeDate = new Date(`${year}-${month}-${day}`);
 			const today = new Date();
 
-			if (!isNaN(validadeDate.getTime())) {
-				// Data de 10 anos atrás
-				const dezAnosAtras = new Date();
-				dezAnosAtras.setFullYear(today.getFullYear() - 10);
-
-				// Se a data do passaporte for anterior ou igual a 10 anos atrás → inválido
-				if (validadeDate <= dezAnosAtras) {
-					form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
-						type: "manual",
-						message: "A validade do passaporte ultrapassa 10 anos, o que não é permitido para maiores de 18 anos ou menores emancipados.",
-					});
-				} else {
-					form.clearErrors(`families[${familyIndex}].dataValidadePassaporte`);
-				}
+			if (isNaN(validadeDate.getTime())) {
+				form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+					type: "manual",
+					message: "Data de validade do passaporte inválida.",
+				});
+				return;
 			}
-		} else {
-			form.clearErrors(`families[${familyIndex}].dataValidadePassaporte`);
+
+			const dezAnosAtras = new Date();
+			dezAnosAtras.setFullYear(today.getFullYear() - 10);
+
+			if (validadeDate <= dezAnosAtras) {
+				form.setError(`families[${familyIndex}].dataValidadePassaporte`, {
+					type: "manual",
+					message: "A validade do passaporte ultrapassa 10 anos, o que não é permitido para maiores de 18 anos ou menores emancipados.",
+				});
+			}
 		}
-	}, [formValues.idadeResp, formValues.dataValidadePassaporte, formValues.pessoaEmancipada]);
-
-
+	}, [
+		formValues.idadeResp,
+		formValues.dataValidadePassaporte,
+		formValues.pessoaEmancipada
+	]);
 
 
 	// Mescla seções e preenche opções dinâmicas

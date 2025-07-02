@@ -100,8 +100,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         formValues.usoUnidade === "UsoMisto" ||
         formValues.usoUnidade === "Servico" ||
         formValues.usoUnidade === "Institucional" ||
-        formValues.usoUnidade === "Industrial" ||
-        formValues.usoUnidade === "UsoNaoIdentificado"
+        formValues.usoUnidade === "Industrial" 
     ) {
         usoUnidadeConditionals.push({
             name: "qualUso",
