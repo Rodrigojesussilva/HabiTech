@@ -17,8 +17,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
-    const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
-    const idadeResp = form.watch(`families[${familyIndex}].idadeResp`);
+    const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);  
     // Este useEffect garante que o campo "nomeSocialEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
     // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
     useEffect(() => {
