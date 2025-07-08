@@ -102,7 +102,13 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }, [dataNascimento, familyIndex, form.setValue]);
 
     useEffect(() => {
-        const rawDate = formValues.dataNascimentoResp;
+        const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+        const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
+        const pathCertidao = `families[${familyIndex}].certidaoEmancipacao`;
+
+        const rawDate = form.getValues(pathNascimento);
+        const pessoaEmancipada = form.getValues(pathPessoaEmancipada);
+        const certidaoEmancipacao = form.getValues(pathCertidao);
 
         if (rawDate && rawDate.length === 10) {
             const [day, month, year] = rawDate.split('/');
@@ -118,20 +124,26 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                     age--;
                 }
 
-                if (age === 16 || age === 17) {
-                    form.setError(`families[${familyIndex}].dataNascimentoResp`, {
-                        type: "manual",
-                        message: "Responsável com 16 ou 17 anos precisa estar emancipado.",
+                const isEmancipated =
+                    pessoaEmancipada?.toLowerCase() === 'sim' && !!certidaoEmancipacao;
+
+                if ((age === 16 || age === 17) && !isEmancipated) {
+                    form.setError(pathNascimento, {
+                        type: 'manual',
+                        message: 'Responsável com 16 ou 17 anos precisa estar emancipado.',
                     });
                 } else {
-                    form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
+                    form.clearErrors(pathNascimento);
                 }
             }
         } else {
-            form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
+            form.clearErrors(pathNascimento);
         }
-    }, [formValues.dataNascimentoResp]);
-
+    }, [
+        form.watch(`families[${familyIndex}].dataNascimentoResp`),
+        form.watch(`families[${familyIndex}].pessoaEmancipada`),
+        form.watch(`families[${familyIndex}].certidaoEmancipacao`),
+    ]);
 
 
 
