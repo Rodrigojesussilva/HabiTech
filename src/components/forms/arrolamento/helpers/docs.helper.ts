@@ -231,7 +231,7 @@ export function validarData(
   }
 }
 
-export function validarDataValidade(
+export function DataValidade(
   data: string | undefined,
   familyIndex: number,
   fieldName: string,

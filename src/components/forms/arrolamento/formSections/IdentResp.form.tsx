@@ -17,7 +17,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
-    const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);  
+    const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
+
     // Este useEffect garante que o campo "nomeSocialEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
     // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
     useEffect(() => {
@@ -94,48 +95,42 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [dataNascimento, familyIndex, form.setValue]);
 
-    // Esta função valida o campo "dataNascimentoResp" no formulário da família.
-    // Ela verifica:
-    // 1. Se o formato da data é válido (YYYY-MM-DD)
-    // 2. Se o ano contém 4 dígitos
-    // 3. Se a data não é futura
-    // Se alguma dessas validações falhar, ela limpa os campos "dataNascimentoResp" e "idadeResp".
-    // Caso contrário, calcula a idade com base na data e preenche o campo "idadeResp".
-    
+    // Esta função valida o campo "dataNascimentoResp" no formulário da família.    
+    // Se alguma validações falhar, ela limpa os campos "dataNascimentoResp" e "idadeResp".   
     useEffect(() => {
         validarDataNascimento(dataNascimento, familyIndex, form.setValue);
     }, [dataNascimento, familyIndex, form.setValue]);
 
-   useEffect(() => {
-	const rawDate = formValues.dataNascimentoResp;
+    useEffect(() => {
+        const rawDate = formValues.dataNascimentoResp;
 
-	if (rawDate && rawDate.length === 10) {
-		const [day, month, year] = rawDate.split('/');
-		const birthDate = new Date(`${year}-${month}-${day}`);
-		const today = new Date();
+        if (rawDate && rawDate.length === 10) {
+            const [day, month, year] = rawDate.split('/');
+            const birthDate = new Date(`${year}-${month}-${day}`);
+            const today = new Date();
 
-		if (!isNaN(birthDate.getTime())) {
-			let age = today.getFullYear() - birthDate.getFullYear();
-			const monthDiff = today.getMonth() - birthDate.getMonth();
-			const dayDiff = today.getDate() - birthDate.getDate();
+            if (!isNaN(birthDate.getTime())) {
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                const dayDiff = today.getDate() - birthDate.getDate();
 
-			if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-				age--;
-			}
+                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                    age--;
+                }
 
-			if (age === 16 || age === 17) {
-				form.setError(`families[${familyIndex}].dataNascimentoResp`, {
-					type: "manual",
-					message: "Responsável com 16 ou 17 anos precisa estar emancipado.",
-				});
-			} else {
-				form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
-			}
-		}
-	} else {
-		form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
-	}
-}, [formValues.dataNascimentoResp]);
+                if (age === 16 || age === 17) {
+                    form.setError(`families[${familyIndex}].dataNascimentoResp`, {
+                        type: "manual",
+                        message: "Responsável com 16 ou 17 anos precisa estar emancipado.",
+                    });
+                } else {
+                    form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
+                }
+            }
+        } else {
+            form.clearErrors(`families[${familyIndex}].dataNascimentoResp`);
+        }
+    }, [formValues.dataNascimentoResp]);
 
 
 

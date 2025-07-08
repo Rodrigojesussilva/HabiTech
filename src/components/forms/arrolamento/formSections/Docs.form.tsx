@@ -6,7 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
-import { validarData, validarDataValidade } from "@/components/forms/arrolamento/helpers/docs.helper";
+import { validarData, DataValidade } from "@/components/forms/arrolamento/helpers/docs.helper";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 interface DocsFormProps {
@@ -26,6 +26,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
 	const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
 	const dataExpedicaoRg = form.watch(`families[${familyIndex}].dataExpedicaoRg`);
+	const dataExpedicaoCin = form.watch(`families[${familyIndex}].dataExpedicaoCIN`);
 	const dataValidadePassaporte = form.watch(`families[${familyIndex}].dataValidadePassaporte`);
 
 	// Pegar estrutura dos campos dinâmicos
@@ -36,10 +37,14 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	}, [dataExpedicaoRg, familyIndex, form.setValue]);
 
 	useEffect(() => {
-		validarDataValidade(dataValidadePassaporte, familyIndex, "dataValidadePassaporte", form.setValue);
+		validarData(dataExpedicaoCin, familyIndex, "dataExpedicaoCIN", form.setValue);
+	}, [dataExpedicaoCin, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		DataValidade(dataValidadePassaporte, familyIndex, "dataValidadePassaporte", form.setValue);
 	}, [dataValidadePassaporte, familyIndex, form.setValue]);
 
-	// Validação da data de expedição
+	// Validação da data de expedição	
 	useEffect(() => {
 		const rawDate = formValues.dataExpedicaoRg;
 		if (rawDate && rawDate.length === 10) {
@@ -69,7 +74,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
 		}
 	}, [formValues.dataExpedicaoRg]);
-
+	
 	// Atualiza UF
 	useEffect(() => {
 		fetchEstados()
@@ -100,35 +105,25 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	}, [ufSelecionada]);
 
 	useEffect(() => {
-		const pathCpf = `families[${familyIndex}].cpf`;
+		const pathCin = `families[${familyIndex}].cin`;
 		const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
-		const pathExpedicao = `families[${familyIndex}].dataExpedicaoRg`;
-		const pathFonteCpf = `families[${familyIndex}].fonteCpf`;
+		const pathExpedicao = `families[${familyIndex}].dataExpedicaoCIN`;
 
-		const fonteCpf = form.getValues(pathFonteCpf);
-
-		// 🔥 Se NÃO for CIN, limpa os erros do CPF e sai do efeito
-		if (fonteCpf !== 'cin') {
-			form.clearErrors(pathCpf);
-			return;
-		}
-
-		// 🔥 Só executa a lógica abaixo se a fonte CPF for 'cin'
-		const cpfRaw = form.getValues(pathCpf);
+		const cinRaw = form.getValues(pathCin);
 		const nascimentoRaw = form.getValues(pathNascimento);
 		const expedicaoRaw = form.getValues(pathExpedicao);
 
-		form.clearErrors(pathCpf);
+		form.clearErrors(pathCin);
 
-		if (cpfRaw) {
-			const onlyNumbers = unMask(cpfRaw);
-			const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
-			form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+		if (cinRaw) {
+			const onlyNumbers = unMask(cinRaw);
+			const maskedCin = mask(onlyNumbers, ['999.999.999-99']);
+			form.setValue(pathCin, maskedCin, { shouldValidate: false });
 
 			if (!cpfValidator.isValid(onlyNumbers)) {
-				form.setError(pathCpf, {
+				form.setError(pathCin, {
 					type: 'manual',
-					message: 'CPF inválido.',
+					message: 'CIN inválido.',
 				});
 				return;
 			}
@@ -154,7 +149,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 					else if (age >= 60) validadeAnos = 'permanente';
 
 					if (validadeAnos === 'permanente') {
-						form.setError(pathCpf, {
+						form.setError(pathCin, {
 							type: 'manual',
 							message: 'Documento permanente (idoso). Sem necessidade de renovação.',
 						});
@@ -163,7 +158,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 						validadeDate.setFullYear(validadeDate.getFullYear() + validadeAnos);
 
 						if (validadeDate < today) {
-							form.setError(pathCpf, {
+							form.setError(pathCin, {
 								type: 'manual',
 								message: `O documento está vencido. Válido por ${validadeAnos} anos a partir da expedição.`,
 							});
@@ -172,13 +167,32 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				}
 			}
 		}
-
 	}, [
-		form.watch(`families[${familyIndex}].cpf`),
+		form.watch(`families[${familyIndex}].cin`),
 		form.watch(`families[${familyIndex}].dataNascimentoResp`),
-		form.watch(`families[${familyIndex}].dataExpedicaoRg`),
-		form.watch(`families[${familyIndex}].fonteCpf`), // 👈 Observa também mudanças na fonte
+		form.watch(`families[${familyIndex}].dataExpedicaoCIN`)
 	]);
+
+	useEffect(() => {
+		const pathCpf = `families[${familyIndex}].cpf`;
+		const cpfRaw = form.getValues(pathCpf);
+
+		form.clearErrors(pathCpf);
+
+		if (cpfRaw) {
+			const onlyNumbers = unMask(cpfRaw);
+			const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+			form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+
+			if (!cpfValidator.isValid(onlyNumbers)) {
+				form.setError(pathCpf, {
+					type: 'manual',
+					message: 'CPF inválido.',
+				});
+			}
+		}
+	}, [form.watch(`families[${familyIndex}].cpf`)]);
+
 
 	// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
 	useEffect(() => {
@@ -249,7 +263,6 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		formValues.dataValidadePassaporte,
 		formValues.pessoaEmancipada
 	]);
-
 
 	// Mescla seções e preenche opções dinâmicas
 	formSections = getMergedFormSections(formValues).map(section => ({

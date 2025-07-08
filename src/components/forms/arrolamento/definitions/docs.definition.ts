@@ -16,7 +16,9 @@ export const docsSchema = z.object({
     uf: z.string().optional(),
     dataValidadePassaporte: z.string().optional(),
     cidade: z.string().optional(),
-    fonteRg: z.string().optional(),
+    possuiCIN: z.string().optional(),
+    dataExpedicaoCIN: z.string().optional(),
+    cin: z.string().optional(),
     rg: z.string().optional(),
     orgaoExpedidor: z.string().optional(),
     estadoEmissaoRg: z.string().optional(),
@@ -53,7 +55,8 @@ export const defaultValues: Partial<FormValues> = {
     dataValidadePassaporte: "",
     uf: "",
     cidade: "",
-    fonteRg: "",
+    possuiCIN: "",
+    cin:"",
     rg: "",
     orgaoExpedidor: "",
     estadoEmissaoRg: "",
@@ -337,7 +340,6 @@ export const docsDefinition: FormConfig = {
         },
     ]
 };
-
 /**
  * Get additional conditional fields based on form values for Docs form
  * This centralizes all conditional field logic specific to Docs in one place
@@ -360,7 +362,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
                 ],
             },
-
             {
                 name: "cidade",
                 label: "Cidade",
@@ -370,67 +371,86 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
                 ]
             },
-
             {
-                name: "fonteRg",
-                label: "Fonte para RG",
+                name: "possuiCIN",
+                label: "Possui CIN?",
                 type: "radio",
                 required: true,
                 options: [
-                    { label: "CNH", value: "CNH" },
-                    { label: "RG", value: "RG" }
-                ]
-            },
-            {
-                name: "rg",
-                label: "Número do RG",
-                type: "text",
-                required: true
-            },
-            {
-                name: "orgaoExpedidor",
-                label: "Órgão Expedidor",
-                type: "text",
-                required: true
-            },
-            {
-                name: "estadoEmissaoRg",
-                label: "Estado de Emissão do RG",
-                type: "combobox",
-                required: true,
-                options: [
-
-                ]
-
-            },
-            {
-                name: "dataExpedicaoRg",
-                label: "Data de Expedição do RG",
-                type: "date",
-                required: true,
-                mask: "99/99/9999",
-                placeholder: "DD/MM/AAAA"
-            },
-            {
-                name: "cpf",
-                label: "CPF",
-                type: "text",
-                required: true,
-                mask: "999.999.999-99"
-            },
-            {
-                name: "fonteCpf",
-                label: "Fonte para CPF",
-                type: "radio",
-                required: true,
-                options: [
-                    { label: "CNH", value: "CNH" },
-                    { label: "RG", value: "RG" },
-                    { label: "Receita Federal", value: "receita federal" },
-                    { label: "CIN - Carteira de Identidade Nacional", value: "cin" }
+                    { label: "Sim", value: "sim" },
+                    { label: "Não", value: "nao" }
                 ]
             }
+
         );
+        if (formValues.possuiCIN === "sim") {
+            conditionalFields.push(
+                {
+                    name: "cin",
+                    label: "Número do CIN",
+                    type: "text",
+                    required: true
+                },
+                {
+                    name: "dataExpedicaoCIN",
+                    label: "Data expedição CIN",
+                    type: "date",
+                    required: true
+                }
+
+            );
+        }
+        else if (formValues.possuiCIN === "nao") {
+            conditionalFields.push(
+                {
+                    name: "rg",
+                    label: "Número do RG",
+                    type: "text",
+                    required: true
+                },
+                {
+                    name: "orgaoExpedidor",
+                    label: "Órgão Expedidor",
+                    type: "text",
+                    required: true
+                },
+                {
+                    name: "estadoEmissaoRg",
+                    label: "Estado de Emissão do RG",
+                    type: "combobox",
+                    required: true,
+                    options: [
+                    ]
+                },
+                {
+                    name: "dataExpedicaoRg",
+                    label: "Data de Expedição do RG",
+                    type: "date",
+                    required: true,
+                    mask: "99/99/9999",
+                    placeholder: "DD/MM/AAAA"
+                },
+                {
+                    name: "cpf",
+                    label: "CPF",
+                    type: "text",
+                    required: true,
+                    mask: "999.999.999-99"
+                },
+                {
+                    name: "fonteCpf",
+                    label: "Fonte para CPF",
+                    type: "radio",
+                    required: true,
+                    options: [
+                        { label: "CNH", value: "CNH" },
+                        { label: "RG", value: "RG" },
+                        { label: "Receita Federal", value: "receita federal" },                        
+                    ]
+                }
+
+            );
+        }
     } else if (formValues.paisOrigem && formValues.paisOrigem !== "Brazil") {
         // Fields for immigrants
         conditionalFields.push({
@@ -476,7 +496,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         { label: "Pendente", value: "Pendente" }
                     ]
                 },
-                 {
+                {
                     name: "dataValidadeRnm",
                     label: "Data de validade",
                     type: "date",
