@@ -4,6 +4,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/identResp.definition";
 import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 interface IdentRespFormProps {
     id?: string;
@@ -18,9 +20,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
-
+    const navigate = useNavigate();
     // Este useEffect garante que o campo "nomeSocialEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
     // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
+
     useEffect(() => {
         const path = `families[${familyIndex}].nomeSocialEntrevistado`;
 
@@ -95,56 +98,130 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [dataNascimento, familyIndex, form.setValue]);
 
-    // Esta função valida o campo "dataNascimentoResp" no formulário da família.    
-    // Se alguma validações falhar, ela limpa os campos "dataNascimentoResp" e "idadeResp".   
     useEffect(() => {
-        validarDataNascimento(dataNascimento, familyIndex, form.setValue);
-    }, [dataNascimento, familyIndex, form.setValue]);
 
-    useEffect(() => {
+        // Chamada direta no início do useEffect
+        validarDataNascimento(dataNascimento, familyIndex, form.setValue);
+
+        let timeoutId: ReturnType<typeof setTimeout> | null = null; // Tipagem correta para timeoutId
         const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+        const pathNome = `families[${familyIndex}].nomeCompletoResp`;
+        const pathNomeSocial = `families[${familyIndex}].nomeSocialEntrevistado`;
+
         const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
         const pathCertidao = `families[${familyIndex}].certidaoEmancipacao`;
 
-        const rawDate = form.getValues(pathNascimento);
-        const pessoaEmancipada = form.getValues(pathPessoaEmancipada);
-        const certidaoEmancipacao = form.getValues(pathCertidao);
+        const validate = () => {
+            const rawDate = form.getValues(pathNascimento);
 
-        if (rawDate && rawDate.length === 10) {
+            // Só valida quando completo (DD/MM/YYYY)
+            if (!rawDate || rawDate.length !== 10) {
+                form.clearErrors(pathNascimento);
+                return;
+            }
+
             const [day, month, year] = rawDate.split('/');
             const birthDate = new Date(`${year}-${month}-${day}`);
             const today = new Date();
 
-            if (!isNaN(birthDate.getTime())) {
-                let age = today.getFullYear() - birthDate.getFullYear();
-                const monthDiff = today.getMonth() - birthDate.getMonth();
-                const dayDiff = today.getDate() - birthDate.getDate();
+            if (isNaN(birthDate.getTime())) return;
 
-                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-                    age--;
-                }
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
-                const isEmancipated =
-                    pessoaEmancipada?.toLowerCase() === 'sim' && !!certidaoEmancipacao;
+            const isEmancipated = (
+                form.getValues(pathPessoaEmancipada)?.toLowerCase() === 'sim' &&
+                form.getValues(pathCertidao)
+            );
 
-                if ((age === 16 || age === 17) && !isEmancipated) {
-                    form.setError(pathNascimento, {
-                        type: 'manual',
-                        message: 'Responsável com 16 ou 17 anos precisa estar emancipado.',
-                    });
-                } else {
-                    form.clearErrors(pathNascimento);
-                }
+            // Validação para 16-17 anos
+            if ((age === 16 || age === 17) && !isEmancipated) {
+                form.setError(pathNascimento, {
+                    type: 'manual',
+                    message: 'Responsável com 16 ou 17 anos precisa de emancipação',
+                });
             }
-        } else {
-            form.clearErrors(pathNascimento);
-        }
+            // Validação para <16 anos (com alerta)
+            else if (age < 16) {
+                form.setError(pathNascimento, {
+                    type: 'manual',
+                    message: 'Idade mínima: 16 anos',
+                });
+
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    Swal.fire({
+                        title: 'Idade inválida',
+                        text: 'Menores de 16 anos não podem ser responsáveis.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Corrigir data',
+                        cancelButtonText: 'Sair'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Limpa o campo da data e remove erros
+                            form.setValue(pathNascimento, '');
+                            form.setValue(pathNome, '');
+                            form.setValue(pathNomeSocial, '');
+
+                            form.clearErrors(pathNascimento);
+                        } else {
+                            navigate('/home');
+                        }
+                    });
+                }, 600); // Delay maior para garantir que o usuário terminou de digitar
+            } else {
+                form.clearErrors(pathNascimento);
+            }
+        };
+
+        // Adiciona debounce de 300ms para múltiplos watchers
+        const debouncedValidate = setTimeout(validate, 300);
+
+        return () => {
+            clearTimeout(debouncedValidate);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+
     }, [
         form.watch(`families[${familyIndex}].dataNascimentoResp`),
         form.watch(`families[${familyIndex}].pessoaEmancipada`),
-        form.watch(`families[${familyIndex}].certidaoEmancipacao`),
+        form.watch(`families[${familyIndex}].certidaoEmancipacao`)
     ]);
 
+    useEffect(() => {
+        const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
+
+        const validateEmancipation = () => {
+            const resposta = form.getValues(pathPessoaEmancipada)?.toLowerCase();
+
+            if (resposta === 'não' || !resposta) {
+                Swal.fire({
+                    title: 'Atenção',
+                    text: 'Pessoas com 16 ou 17 anos sem emancipação não podem preencher esse cadastro.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ok',
+                    allowOutsideClick: false,
+                    showCancelButton: false
+                }).then(() => {
+                    navigate('/home');
+                });
+            }
+        };
+
+        // form.watch retorna um objeto Subscription
+        const subscription = form.watch((_, { name }) => {
+            if (name === pathPessoaEmancipada) {
+                setTimeout(() => validateEmancipation(), 0);
+            }
+        });
+
+        return () => {
+            // chamar unsubscribe() para cancelar a inscrição
+            subscription.unsubscribe();
+        };
+    }, [familyIndex, form, navigate]);
 
 
     return (

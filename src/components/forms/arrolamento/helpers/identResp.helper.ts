@@ -24,38 +24,35 @@ export function calcularIdade(dataNascimento: string): string {
 export function validarDataNascimento(
   dataNascimento: string | undefined,
   familyIndex: number,
-  setValue: Function
+  setValue: any
 ) {
-  if (!dataNascimento || typeof dataNascimento !== "string") return;
+  const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+  const pathIdade = `families[${familyIndex}].idadeResp`;
 
-  // Verifica se o formato geral é YYYY-MM-DD
-  const isFormatoValido = /^\d{4}-\d{2}-\d{2}$/.test(dataNascimento);
-  if (!isFormatoValido) {
-    alert("Data inválida. Use o formato DD-MM-AAAA.");
-    setValue(`families[${familyIndex}].dataNascimentoResp`, "", { shouldValidate: true });
-    setValue(`families[${familyIndex}].idadeResp`, "", { shouldValidate: true });
+  if (!dataNascimento) return;
+
+  const data = new Date(dataNascimento);
+  const hoje = new Date();
+
+  // ❌ Data inválida
+  if (isNaN(data.getTime())) {
+    alert("Data inválida.");
+    setValue(pathNascimento, "", { shouldValidate: false, shouldDirty: false });
+    setValue(pathIdade, "", { shouldValidate: false, shouldDirty: false });
     return;
   }
 
-  // Verifica se o ano tem exatamente 4 dígitos
-  const ano = dataNascimento.split("-")[0];
-  if (ano.length !== 4) {
-    alert("Ano inválido. O ano deve ter exatamente 4 dígitos.");
-    setValue(`families[${familyIndex}].dataNascimentoResp`, "", { shouldValidate: true });
-    setValue(`families[${familyIndex}].idadeResp`, "", { shouldValidate: true });
-    return;
-  }
-
-  const hoje = new Date().toISOString().split("T")[0];
-
-  if (dataNascimento > hoje) {
+  // ❌ Data futura
+  if (data > hoje) {
     alert("Data de nascimento não pode ser futura.");
-    setValue(`families[${familyIndex}].dataNascimentoResp`, "", { shouldValidate: true });
-    setValue(`families[${familyIndex}].idadeResp`, "", { shouldValidate: true });
+    setValue(pathNascimento, "", { shouldValidate: false, shouldDirty: false });
+    setValue(pathIdade, "", { shouldValidate: false, shouldDirty: false });
     return;
   }
-
-  const idade = calcularIdade(dataNascimento);
-  setValue(`families[${familyIndex}].idadeResp`, idade, { shouldValidate: true });
 }
+
+
+
+
+
 

@@ -34,6 +34,7 @@ export const nupcidadeDefinition: FormConfig = {
                     type: "radio" as const,
                     required: false,
                     options: [
+                        { label: "Solteiro(a)", value: "solteiro" },
                         { label: "Casado(a)", value: "casado" },
                         { label: "Viúvo(a)", value: "viuvo" },
                         { label: "Separado(a) Judicialmente", value: "separado" },

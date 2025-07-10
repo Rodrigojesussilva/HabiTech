@@ -61,6 +61,20 @@ export const identRespDefinition: FormConfig = {
                     required: false
                 },
                 {
+                    name: "nomeSocialEntrevistado",
+                    label: "Nome Social Pessoa Entrevistada",
+                    type: "text",
+                    required: false
+                },
+                {
+                    name: "naoSeAplicaEntrevistado",
+                    label: "Não se aplica",
+                    type: "checkbox",
+                    required: false,
+                    disableField: "nomeSocialEntrevistado",
+                    dependent: true,
+                },
+                {
                     name: "dataNascimentoResp",
                     label: "Data de Nascimento",
                     type: "date" as const,
@@ -163,20 +177,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "text",
                 required: false
             },
-            {
-                name: "nomeSocialEntrevistado",
-                label: "Nome Social Pessoa Entrevistada",
-                type: "text",
-                required: false
-            },
-            {
-                name: "naoSeAplicaEntrevistado",
-                label: "Não se aplica",
-                type: "checkbox",
-                required: false,
-                disableField: "nomeSocialEntrevistado",
-                dependent: true,
-            },
+
         );
     }
 
