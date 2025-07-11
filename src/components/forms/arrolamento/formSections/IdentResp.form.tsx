@@ -153,7 +153,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 timeoutId = setTimeout(() => {
                     Swal.fire({
                         title: 'Idade inválida',
-                        text: 'Menores de 16 anos não podem ser responsáveis.',
+                        text: 'Crianças/Adolescente com menos de 16 anos não podem ser responsáveis.',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Corrigir data',

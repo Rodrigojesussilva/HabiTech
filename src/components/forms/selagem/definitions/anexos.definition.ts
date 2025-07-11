@@ -39,11 +39,33 @@ export const anexosDefinition: FormConfig = {
                     type: "file" as const,
                     required: false,
                 },
+                 {
+                    name: "botaoSelo",
+                    label: "", // sem label no botão
+                    type: "button" as const,
+                    required: false,
+                    insertAfterField: "anexoSelo",
+                    dependent: true,
+                    onClick: () => {
+                        console.log("Abrir câmera para comprovante de renda");
+                    },
+                },
                 {
                     name: "anexoFachada",
                     label: "Anexos-Fachada",
                     type: "file" as const,
                     required: false,
+                },
+                 {
+                    name: "botaoFachada",
+                    label: "", // sem label no botão
+                    type: "button" as const,
+                    required: false,
+                    insertAfterField: "anexoFachada",
+                    dependent: true,
+                    onClick: () => {
+                        console.log("Abrir câmera para comprovante de renda");
+                    },
                 },
                 {
                     name: "anexoMorador",
@@ -51,12 +73,35 @@ export const anexosDefinition: FormConfig = {
                     type: "file" as const,
                     required: false,
                 },
+                 {
+                    name: "botaoMorador",
+                    label: "", // sem label no botão
+                    type: "button" as const,
+                    required: false,
+                    insertAfterField: "anexoMorador",
+                    dependent: true,
+                    onClick: () => {
+                        console.log("Abrir câmera para comprovante de renda");
+                    },
+                },
                 {
                     name: "anexoOutros",
                     label: "Anexos-Outros",
                     type: "file" as const,
                     required: false,
-                }
+                },
+                 {
+                    name: "botaoComprovanteRenda",
+                    label: "", // sem label no botão
+                    type: "button" as const,
+                    required: false,
+                    insertAfterField: "anexoOutros",
+                    dependent: true,
+                    onClick: () => {
+                        console.log("Abrir câmera para comprovante de renda");
+                    },
+                },
+
                 
             ]
         },

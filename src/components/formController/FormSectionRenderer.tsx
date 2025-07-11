@@ -142,6 +142,17 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
         case "label":
             return null; // Label fields are rendered directly in the form item, not in the form control
 
+        case "button":
+            return (
+                <button
+                    type="button"
+                    onClick={field.onClick}                    
+                    className="flex w-[200px] items-center justify-center rounded-md border border-input bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                >
+                    {field.label || "Câmera"} {/* Usa label como texto do botão, ou "Câmera" por padrão */}
+                </button>
+            );
+
         case "numberSpinner":
             return (
                 <Input

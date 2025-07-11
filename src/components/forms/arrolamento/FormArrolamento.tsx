@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect} from "react";
+import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -29,6 +29,8 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import PessoaDefForm from "./formSections/PessoaDef.form"
 import InfoFamiliaForm from "./formSections/InfoFamilia.form"
 import OutrasInfosForm from "./formSections/OutrasInfos.form"
+import StatusNotasForm from "./formSections/StatusNotas.form"
+import AnexosForm from "./formSections/anexos.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
@@ -41,6 +43,8 @@ import { nupcidadeSchema } from "@/components/forms/arrolamento/definitions/nupc
 import { pessoaDefSchema } from "@/components/forms/arrolamento/definitions/pessoaDef.definition";
 import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/infoFamilia.definition";
 import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
+import { statusNotasSchema } from "@/components/forms/arrolamento/definitions/statusNotas.definition";
+import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.definition";
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
@@ -53,6 +57,8 @@ const familySchema = z.object({
 	...pessoaDefSchema.shape,
 	...infoFamiliaSchema.shape,
 	...outrasInfosSchema.shape,
+	...statusNotasSchema.shape,
+	...anexosSchema.shape,
 });
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -149,6 +155,7 @@ const FormArrolamento = ({
 	});
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
+
 		...getDefaultValuesFromSchema(identRespSchema),
 		...getDefaultValuesFromSchema(docsSchema),
 		...getDefaultValuesFromSchema(infoContatoSchema),
@@ -158,6 +165,9 @@ const FormArrolamento = ({
 		...getDefaultValuesFromSchema(pessoaDefSchema),
 		...getDefaultValuesFromSchema(infoFamiliaSchema),
 		...getDefaultValuesFromSchema(outrasInfosSchema),
+		...getDefaultValuesFromSchema(statusNotasSchema),
+		...getDefaultValuesFromSchema(anexosSchema),
+
 	} as const;
 
 	useEffect(() => {
@@ -327,6 +337,7 @@ const FormArrolamento = ({
 	};
 
 	return (
+
 		<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -375,7 +386,7 @@ const FormArrolamento = ({
 						<div className="text-left text-lg font-bold">
 							Arrolamento
 						</div>
-						
+
 						<div className="text-right flex flex-row gap-2">
 							<h3>Preenchimento:</h3>
 							<p className="text-primary">
@@ -391,7 +402,7 @@ const FormArrolamento = ({
 								sectionIndex={0}
 								familyIndex={index}
 								onChangeMostrarSecoes={handleSelectChange}
-							/>							
+							/>
 							<InfoContatoForm sectionIndex={1} familyIndex={index} />
 							{mostrarSecoes && (
 								<>
@@ -403,7 +414,14 @@ const FormArrolamento = ({
 									<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
 								</>
 							)}
+
 							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
+							{mostrarSecoes && (
+								<>
+									<StatusNotasForm sectionIndex={9} familyIndex={index} />
+									<AnexosForm sectionIndex={10} familyIndex={index} />
+								</>
+							)}
 						</div>
 					))}
 				</form>
