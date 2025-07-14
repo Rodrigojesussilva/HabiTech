@@ -442,35 +442,7 @@ const FormSelagem = ({
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
-				</form>
-				{/* 
-<div className="mt-4 w-full flex justify-start">
-  <button
-    type="button"
-    className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-    onClick={() => {
-      console.log("Botão clicado!");
-    }}
-  >
-    Salvar
-  </button>
-</div>
-*/}
-
-{/* 
-<div className="w-full border-t border-gray-300 my-4"></div>
-<div className="mt-4 w-full flex justify-start">
-  <button
-    type="button"
-    className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-    onClick={() => {
-      console.log("Botão clicado!");
-    }}
-  >
-    Encerrar formulário
-  </button>
-</div>
-*/}
+				</form>				
 
 			</Form>
 		</div >

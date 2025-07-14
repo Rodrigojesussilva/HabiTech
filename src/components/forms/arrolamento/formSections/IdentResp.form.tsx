@@ -139,7 +139,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             if ((age === 16 || age === 17) && !isEmancipated) {
                 form.setError(pathNascimento, {
                     type: 'manual',
-                    message: 'Responsável com 16 ou 17 anos precisa de emancipação',
+                    message: 'O(a) adolescente informado(a) não é emancipado(a). O cadastro não pode ser realizado.',
                 });
             }
             // Validação para <16 anos (com alerta)
@@ -153,7 +153,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 timeoutId = setTimeout(() => {
                     Swal.fire({
                         title: 'Idade inválida',
-                        text: 'Crianças/Adolescente com menos de 16 anos não podem ser responsáveis.',
+                        text: 'A(o) criança/adolescente informado(a) tem menos de 16 anos. O cadastro não pode ser realizado.',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Corrigir data',
