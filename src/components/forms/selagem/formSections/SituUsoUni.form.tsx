@@ -31,6 +31,20 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     })();
 
+    useEffect(() => {
+        const path = `families[${familyIndex}].nome_responsavel`;
+
+        const rawValue = form.getValues(path); // sempre pega o valor atualizado
+
+        if (typeof rawValue === "string") {
+            const sanitizedValue = rawValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, ""); // mantém letras com acento e espaços
+
+            if (rawValue !== sanitizedValue) {
+                form.setValue(path, sanitizedValue);
+            }
+        }
+    }, [form.getValues(`families[${familyIndex}].nome_responsavel`), form, familyIndex]);
+
     // Formata apenas o campo telefone_responsavel com helper
     useEffect(() => {
         if (formValues.telefone_responsavel) {
