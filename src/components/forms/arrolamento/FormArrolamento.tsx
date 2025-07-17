@@ -416,12 +416,9 @@ const FormArrolamento = ({
 							)}
 
 							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
-							{mostrarSecoes && (
-								<>
-									<StatusNotasForm sectionIndex={9} familyIndex={index} />
-									<AnexosForm sectionIndex={10} familyIndex={index} />
-								</>
-							)}
+							<StatusNotasForm sectionIndex={9} familyIndex={index} />
+							<AnexosForm sectionIndex={10} familyIndex={index} />
+							
 						</div>
 					))}
 				</form>

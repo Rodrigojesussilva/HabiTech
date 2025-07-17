@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -24,6 +24,20 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
 
+    useEffect(() => {
+        const path = `families[${familyIndex}].nomeCompanheiro`;
+
+        const rawValue = form.getValues(path); // sempre pega o valor atualizado
+
+        if (typeof rawValue === "string") {
+            const sanitizedValue = rawValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, ""); // mantém letras com acento e espaços
+
+            if (rawValue !== sanitizedValue) {
+                form.setValue(path, sanitizedValue);
+            }
+        }
+    }, [form.getValues(`families[${familyIndex}].nomeCompanheiro`), form, familyIndex]);
+    
     return (
         <div className="text-left">
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>

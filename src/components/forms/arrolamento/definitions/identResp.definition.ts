@@ -113,7 +113,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 required: false,
                 options: [
                     { label: "Sim", value: "sim" },
-                    { label: "Não", value: "não" },
+                    { label: "Não", value: "nao" },
                    
                 ]
             },

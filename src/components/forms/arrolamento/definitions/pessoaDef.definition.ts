@@ -203,20 +203,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             },
             {
-                name: "responsavelPossuiLaudo",
-                label: "Possui laudo médico?",
-                type: "radio" as const,
-                required: false,
-                options: [
-
-                    { label: "Sim", value: "sim" },
-                    { label: "Não", value: "nao" },
-                    { label: "Não sabe informar", value: "NaoSabeInformar" },
-                    { label: "Não respondeu", value: "NaoRepondeu" }
-                ],
-
-            },
-            {
                 name: "tiposDeficiencia",
                 label: "Qual/quais os tipos de deficiência?",
                 type: "label" as const,
@@ -299,9 +285,25 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             },
 
-
         );
+        if (formValues.responsavelTemDeficiencia === "sim") {
+            conditionalFields.push(
+                {
+                    name: "responsavelPossuiLaudo",
+                    label: "Possui laudo médico?",
+                    type: "radio" as const,
+                    required: false,
+                    options: [
 
+                        { label: "Sim", value: "sim" },
+                        { label: "Não", value: "nao" },
+                        { label: "Não sabe informar", value: "NaoSabeInformar" },
+                        { label: "Não respondeu", value: "NaoRepondeu" }
+                    ],
+
+                },
+            );
+        }
         if (formValues.defFisica && formValues.responsavelTemDeficiencia === "sim") {
             conditionalFields.push(
                 {
@@ -871,8 +873,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
 
         afterInsert(baseFields, conditionalFields, "temPessoaDeficienciaFam", [
             "qtdPessoasComDefFam",
-            "responsavelTemDeficiencia",
-            "responsavelPossuiLaudo",
+            "responsavelTemDeficiencia",           
             "tiposDeficiencia",
             "defFisica",
             "defVisual",
@@ -885,7 +886,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "especifiqueOutra",
             "tecnologiaAssistiva"
         ]);
-        afterInsert(baseFields, conditionalFields, "tecnologiaAssistiva", [
+        afterInsert(baseFields, conditionalFields, "responsavelTemDeficiencia", [
             "tecnologiasAssistivasUsadas",
             "aparelhoAuditivo",
             "ortesesProteses",
@@ -901,6 +902,9 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "pranchaComunicacaoAlternativa",
             "outrasTecAssistiva",
 
+        ]);
+         afterInsert(baseFields, conditionalFields, "responsavelTemDeficiencia", [
+            "responsavelPossuiLaudo"
         ]);
         afterInsert(baseFields, conditionalFields, "defFisica", [
             "quantFisica", "responsavelDefFisica"

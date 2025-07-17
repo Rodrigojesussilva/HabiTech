@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -5,7 +6,7 @@ import { getMergedFormSections } from "@/components/forms/arrolamento/definition
 import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router-dom';
+
 
 interface IdentRespFormProps {
     id?: string;
@@ -20,10 +21,11 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
-    const navigate = useNavigate();
-    // Este useEffect garante que o campo "nomeSocialEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
-    // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
+    const alertAberto = React.useRef(false);
+    const [alertShown, setAlertShown] = useState(false);
 
+
+    //proibir o digitar numeros e caracteres especiais nomeSocialEntrevistado
     useEffect(() => {
         const path = `families[${familyIndex}].nomeSocialEntrevistado`;
 
@@ -38,8 +40,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`), form, familyIndex]);
 
-    // Este useEffect garante que o campo "nomeCompletoEntrevistado" da família contenha apenas letras (com ou sem acento) e espaços.
-    // Sempre que o valor do campo mudar, caracteres inválidos (números, símbolos, etc.) são automaticamente removidos.
     useEffect(() => {
         const path = `families[${familyIndex}].nomeCompletoEntrevistado`;
 
@@ -54,29 +54,56 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [form.getValues(`families[${familyIndex}].nomeCompletoEntrevistado`), form, familyIndex]);
 
-    // Este useEffect observa mudanças no campo "responsavel" da família atual.
-    // Quando o valor muda, ele simula um evento de mudança (<select>) e chama a função "onChangeMostrarSecoes",
-    // permitindo que seções do formulário sejam exibidas ou ocultadas dinamicamente com base na escolha do usuário.
     useEffect(() => {
+
         const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
-            if (name === `families[${familyIndex}].responsavel` && typeof responsavel === "string") {
-                const fakeEvent = {
-                    target: {
-                        value: responsavel
-                    }
-                } as React.ChangeEvent<HTMLSelectElement>;
+            const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
+            
+            const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;  
+            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`;  
+            if (name === `families[${familyIndex}].responsavel`) {
+               
+                form.setValue(pathNascimento, '');
+                form.setValue(pathEmancipada, '');
+                
+                // NÃO chama se responsavel for "sim" e pessoaEmancipada for "não"
+                const isTrava = responsavel === "sim" && pessoaEmancipada === "nao";
 
-                onChangeMostrarSecoes(fakeEvent);
+                if (!isTrava) {
+                    const fakeEvent = {
+                        target: {
+                            value: responsavel
+                        }
+                    } as React.ChangeEvent<HTMLSelectElement>;
+
+                    onChangeMostrarSecoes(fakeEvent);
+                }
             }
         });
 
         return () => subscription.unsubscribe();
     }, [form, familyIndex, onChangeMostrarSecoes]);
 
-    // Este useEffect limpa o campo "nomeSocialEntrevistado" sempre que a opção "naoSeAplicaEntrevistado" estiver marcada (true).
-    // Isso garante que, se o usuário indicar que o nome social não se aplica, qualquer valor digitado previamente seja removido.
     useEffect(() => {
+        const subscription = form.watch((values, { name }) => {
+            const responsavel = values?.families?.[familyIndex]?.responsavel;
+            const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
+            // Verifica se o campo 'responsavel' foi alterado e se o valor é "sim"
+            if (name === `families[${familyIndex}].pessoaEmancipada` && pessoaEmancipada === "sim" && responsavel === "sim") {
+                const fakeEvent = {
+                    target: {
+                        value: pessoaEmancipada
+                    }
+                } as React.ChangeEvent<HTMLSelectElement>;
+                onChangeMostrarSecoes(fakeEvent);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form, familyIndex, onChangeMostrarSecoes]);
+
+    useEffect(() => {
+
         if (formValues.naoSeAplicaEntrevistado) {
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
             if (nomeResponsavel) {
@@ -85,9 +112,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         }
     }, [formValues.naoSeAplicaEntrevistado, form, familyIndex]);
 
-    // Este useEffect calcula a idade do responsável com base na data de nascimento fornecida no formato "YYYY-MM-DD".
-    // Quando a data é válida, calcula a idade e atualiza o campo "idadeResp" do formulário.
-    // Caso contrário, limpa o campo de idade.
     useEffect(() => {
         // Só roda se dataNascimento estiver definida e no formato correto YYYY-MM-DD
         if (typeof dataNascimento === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
@@ -105,11 +129,9 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
         let timeoutId: ReturnType<typeof setTimeout> | null = null; // Tipagem correta para timeoutId
         const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
-        const pathNome = `families[${familyIndex}].nomeCompletoResp`;
-        const pathNomeSocial = `families[${familyIndex}].nomeSocialEntrevistado`;
-
         const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
         const pathCertidao = `families[${familyIndex}].certidaoEmancipacao`;
+        const responsavel = `families[${familyIndex}].responsavel`;
 
         const validate = () => {
             const rawDate = form.getValues(pathNascimento);
@@ -141,6 +163,20 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                     type: 'manual',
                     message: 'O(a) adolescente informado(a) não é emancipado(a). O cadastro não pode ser realizado.',
                 });
+                const responsavelValue = form.getValues(responsavel)?.toLowerCase();
+                // Verifica se o responsável é "sim"
+                if (responsavelValue === 'sim') {
+                    const pessoaEmancipada = 'nao';
+                    if (typeof pessoaEmancipada === 'string') {
+                        const fakeEvent = {
+                            target: {
+                                name: pathPessoaEmancipada,
+                                value: pessoaEmancipada,
+                            },
+                        } as React.ChangeEvent<HTMLSelectElement>;
+                        onChangeMostrarSecoes(fakeEvent);
+                    }
+                }
             }
             // Validação para <16 anos (com alerta)
             else if (age < 16) {
@@ -157,22 +193,68 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Corrigir data',
-                        cancelButtonText: 'Sair'
+                        cancelButtonText: 'Continuar',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+
                     }).then((result) => {
+                        const responsavelValue = form.getValues(responsavel)?.toLowerCase();
+
                         if (result.isConfirmed) {
+
                             // Limpa o campo da data e remove erros
                             form.setValue(pathNascimento, '');
-                            form.setValue(pathNome, '');
-                            form.setValue(pathNomeSocial, '');
-
                             form.clearErrors(pathNascimento);
+
+                            // Verifica se o responsável é "sim"
+                            if (responsavelValue !== 'nao') {
+                                const pessoaEmancipada = 'sim';
+                                if (typeof pessoaEmancipada === 'string') {
+                                    const fakeEvent = {
+                                        target: {
+                                            name: pathPessoaEmancipada,
+                                            value: pessoaEmancipada,
+                                        },
+                                    } as React.ChangeEvent<HTMLSelectElement>;
+                                    onChangeMostrarSecoes(fakeEvent);
+                                }
+                            }
+
                         } else {
-                            navigate('/home');
+                            form.clearErrors(pathNascimento);
+                            // Verifica se o responsável é "sim"
+                            if (responsavelValue !== 'nao') {
+                                const pessoaEmancipada = 'nao';
+                                if (typeof pessoaEmancipada === 'string') {
+                                    const fakeEvent = {
+                                        target: {
+                                            name: pathPessoaEmancipada,
+                                            value: pessoaEmancipada,
+                                        },
+                                    } as React.ChangeEvent<HTMLSelectElement>;
+                                    onChangeMostrarSecoes(fakeEvent);
+                                }
+                            }
                         }
                     });
                 }, 600); // Delay maior para garantir que o usuário terminou de digitar
             } else {
                 form.clearErrors(pathNascimento);
+                // Não redefine o valor de pessoaEmancipada
+                const responsavelValue = form.getValues(responsavel)?.toLowerCase();
+                // Verifica se o responsável é "sim"
+                if (responsavelValue === 'sim') {
+                    const pessoaEmancipada = 'sim';
+                    if (typeof pessoaEmancipada === 'string') {
+                        const fakeEvent = {
+                            target: {
+                                name: pathPessoaEmancipada,
+                                value: pessoaEmancipada,
+                            },
+                        } as React.ChangeEvent<HTMLSelectElement>;
+                        onChangeMostrarSecoes(fakeEvent);
+                    }
+                }
             }
         };
 
@@ -189,39 +271,82 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         form.watch(`families[${familyIndex}].pessoaEmancipada`),
         form.watch(`families[${familyIndex}].certidaoEmancipacao`)
     ]);
-
+    
     useEffect(() => {
+
         const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
+        const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
 
         const validateEmancipation = () => {
+            if (alertAberto.current || alertShown) return; // evita abrir múltiplos alertas
+
             const resposta = form.getValues(pathPessoaEmancipada)?.toLowerCase();
 
-            if (resposta === 'não' || !resposta) {
+            if (resposta === 'nao') {
+                alertAberto.current = true;
+                setAlertShown(true); // Marca que o alerta foi exibido
+
                 Swal.fire({
+
                     title: 'Atenção',
                     text: 'Pessoas com 16 ou 17 anos sem emancipação não podem preencher esse cadastro.',
                     icon: 'warning',
-                    confirmButtonText: 'Ok',
+                    showCancelButton: true,
+                    confirmButtonText: 'Corrigir data',
+                    cancelButtonText: 'Continuar',
                     allowOutsideClick: false,
-                    showCancelButton: false
-                }).then(() => {
-                    navigate('/home');
+                    allowEscapeKey: false,
+                }).then((result) => {
+                    alertAberto.current = false;
+                    setAlertShown(false); // Reseta o estado após o alerta ser fechado
+
+                    if (result.isConfirmed) {
+                        const pessoaEmancipada = 'sim';
+                        if (typeof pessoaEmancipada === 'string') {
+                            const fakeEvent = {
+                                target: {
+                                    name: pathPessoaEmancipada,
+                                    value: pessoaEmancipada,
+                                },
+                            } as React.ChangeEvent<HTMLSelectElement>;
+                            onChangeMostrarSecoes(fakeEvent);
+                        }
+                        
+                        form.setValue(pathNascimento, '');
+                        form.setValue(pathPessoaEmancipada, '');
+
+                    }
+                    else {
+                        form.clearErrors(pathNascimento);
+                        // Não redefine o valor de pessoaEmancipada
+                        const pessoaEmancipada = form.getValues(pathPessoaEmancipada);
+
+                        if (typeof pessoaEmancipada === 'string') {
+                            const fakeEvent = {
+                                target: {
+                                    name: pathPessoaEmancipada,
+                                    value: pessoaEmancipada,
+                                },
+                            } as React.ChangeEvent<HTMLSelectElement>;
+
+                            onChangeMostrarSecoes(fakeEvent);
+                        }
+                    }
                 });
             }
         };
 
-        // form.watch retorna um objeto Subscription
         const subscription = form.watch((_, { name }) => {
             if (name === pathPessoaEmancipada) {
-                setTimeout(() => validateEmancipation(), 0);
+                const currentValue = form.getValues(pathPessoaEmancipada);
+                if (currentValue !== undefined) {
+                    validateEmancipation();
+                }
             }
         });
 
-        return () => {
-            // chamar unsubscribe() para cancelar a inscrição
-            subscription.unsubscribe();
-        };
-    }, [familyIndex, form, navigate]);
+        return () => subscription.unsubscribe();
+    }, [familyIndex, form, onChangeMostrarSecoes, alertShown]);
 
 
     return (

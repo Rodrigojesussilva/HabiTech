@@ -8,13 +8,13 @@ export const docsSchema = z.object({
     numeroProtocolo: z.string().optional(),
     numeroRnm: z.string().optional(),
     statusRnm: z.string().optional(),
-    dataValidadeRnm: z.string().optional(),
+    dataExpedicaoRnm: z.string().optional(),
     numeroCrnm: z.string().optional(),
     statusCrnm: z.string().optional(),
-    dataValidadeCrnm: z.string().optional(),
+    dataExpedicaoCrnm: z.string().optional(),
     numeroPassaporte: z.string().optional(),
     uf: z.string().optional(),
-    dataValidadePassaporte: z.string().optional(),
+    dataExpedicaoPassaporte: z.string().optional(),
     cidade: z.string().optional(),
     possuiCIN: z.string().optional(),
     dataExpedicaoCIN: z.string().optional(),
@@ -47,12 +47,12 @@ export const defaultValues: Partial<FormValues> = {
     numeroProtocolo: "",
     numeroRnm: "",
     statusRnm: "",
-    dataValidadeRnm: "",
+    dataExpedicaoRnm: "",
     numeroCrnm: "",
     statusCrnm: "",
-    dataValidadeCrnm: "",
+    dataExpedicaoCrnm: "",
     numeroPassaporte: "",
-    dataValidadePassaporte: "",
+    dataExpedicaoPassaporte: "",
     uf: "",
     cidade: "",
     possuiCIN: "",
@@ -497,8 +497,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     ]
                 },
                 {
-                    name: "dataValidadeRnm",
-                    label: "Data de validade",
+                    name: "dataExpedicaoRnm",
+                    label: "Data de Expedição",
                     type: "date",
                     required: true
                 },
@@ -523,8 +523,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     ]
                 },
                 {
-                    name: "dataValidadeCrnm",
-                    label: "Data de validade",
+                    name: "dataExpedicaoCrnm",
+                    label: "Data de Expedição",
                     type: "date",
                     required: true
                 },
@@ -539,8 +539,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     required: true
                 },
                 {
-                    name: "dataValidadePassaporte",
-                    label: "Data de validade",
+                    name: "dataExpedicaoPassaporte",
+                    label: "Data de Expedição",
                     type: "date",
                     required: true
                 },
