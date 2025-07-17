@@ -100,32 +100,35 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			{formDomSections.length > 0 && (
 				<>
 					<div className="w-full border-gray-200 my-2 border-t-2"></div>
-					<div className="flex items-center justify-between px-4 mb-4">
-						<span className="font-medium text-sm">Família:</span>
-						<div className="flex items-center space-x-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handleFamilyIndexChange(Math.max(0, activeFamilyIndex - 1))}
-								disabled={activeFamilyIndex <= 0}
-								className="px-2 py-1"
-							>
-								&lt;&lt;
-							</Button>
-							<span className="text-sm font-medium">
-								{activeFamilyIndex + 1}/{form?.getValues("numberFamilies") || 1}
-							</span>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handleFamilyIndexChange(Math.min((form?.getValues("numberFamilies") || 1) - 1, activeFamilyIndex + 1))}
-								disabled={activeFamilyIndex >= (form?.getValues("numberFamilies") || 1) - 1}
-								className="px-2 py-1"
-							>
-								&gt;&gt;
-							</Button>
+					{/* Ocultar controles de navegação de família para formulário de Selagem */}
+					{nomeForm !== "Selagem" && (
+						<div className="flex items-center justify-between px-4 mb-4">
+							<span className="font-medium text-sm">Família:</span>
+							<div className="flex items-center space-x-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleFamilyIndexChange(Math.max(0, activeFamilyIndex - 1))}
+									disabled={activeFamilyIndex <= 0}
+									className="px-2 py-1"
+								>
+									&lt;&lt;
+								</Button>
+								<span className="text-sm font-medium">
+									{activeFamilyIndex + 1}/{form?.getValues("numberFamilies") || 1}
+								</span>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => handleFamilyIndexChange(Math.min((form?.getValues("numberFamilies") || 1) - 1, activeFamilyIndex + 1))}
+									disabled={activeFamilyIndex >= (form?.getValues("numberFamilies") || 1) - 1}
+									className="px-2 py-1"
+								>
+									&gt;&gt;
+								</Button>
+							</div>
 						</div>
-					</div>
+					)}
 
 					<div className="flex flex-col w-[95%] space-x-4 p-0">
 						{formDomSections.map((el: { id: string; label: string }, index: number) => (
