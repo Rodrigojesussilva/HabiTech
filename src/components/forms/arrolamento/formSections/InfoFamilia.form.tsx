@@ -33,6 +33,9 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     useEffect(() => {
         const { nacionalidadesSelecionadas = [], numerosPorPais = {} } = formValues;
 
+        if (!nacionalidadesSelecionadas || !numerosPorPais) {
+            return;
+        }
         const totalImmigrants = nacionalidadesSelecionadas.reduce((total: number, pais: string) => {
             const key = pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
             const value = Number(numerosPorPais[key]) || 0;

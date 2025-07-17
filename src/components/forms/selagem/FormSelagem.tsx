@@ -331,9 +331,9 @@ const FormSelagem = ({
 					label: "Quantas familias nesse formulário?",
 					type: "number",
 					required: true,
-					sidebarform: true,
+					sidebarform: false,
 					sidebarlabel: "Quantidade de Famílias",
-					showinmodal: true,
+					showinmodal: false,
 					min: 1,
 				} as FormFieldType,
 
