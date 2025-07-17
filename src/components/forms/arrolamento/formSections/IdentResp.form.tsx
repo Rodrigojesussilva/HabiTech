@@ -57,16 +57,34 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     useEffect(() => {
 
         const subscription = form.watch((values, { name }) => {
+
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
             
             const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;  
-            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`;  
+            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`; 
+            const pathRelacaoResponsavel = `families[${familyIndex}].relacaoResponsavel`;  
+            const pathNomeCompletoResp = `families[${familyIndex}].nomeCompletoResp`;  
+            const pathNomeCompletoEntrevistado = `families[${familyIndex}].nomeCompletoEntrevistado`;  
+            const pathNomeSocialEntrevistado = `families[${familyIndex}].nomeSocialEntrevistado`;
+            const pathDescrevParentesco = `families[${familyIndex}].DescrevParentesco`;  
+            const pathCertidaoEmancipacao = `families[${familyIndex}].certidaoEmancipacao`;  
+  
+
+
             if (name === `families[${familyIndex}].responsavel`) {
                
                 form.setValue(pathNascimento, '');
                 form.setValue(pathEmancipada, '');
-                
+                form.setValue(pathRelacaoResponsavel, '');
+                form.setValue(pathNomeCompletoResp, '');
+                form.setValue(pathNomeCompletoEntrevistado , '');
+                form.setValue(pathNomeSocialEntrevistado , '');
+                form.setValue(pathDescrevParentesco , '');
+                form.setValue(pathCertidaoEmancipacao , '');
+
+
+
                 // NÃO chama se responsavel for "sim" e pessoaEmancipada for "não"
                 const isTrava = responsavel === "sim" && pessoaEmancipada === "nao";
 
