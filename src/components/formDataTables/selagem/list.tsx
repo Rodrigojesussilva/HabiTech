@@ -1,66 +1,124 @@
+import  { useState } from "react"
 import { Selagem, columns } from "./columns"
 import { DataTable } from "./data-table"
+import survey_resource from "../../../service/survey_resource.api"
+import { API_BASE_URL } from "../../../service/constants"
+import Loader from "../../loader/Loader"
 
-function getData(): Selagem[] {
-  // Fetch data from your API here.
-  return [
-    {
-
-      Data: '07/03/2025',
-      numeroFormulario: 50,
-      numeroSelo: 132,
-      status: "pendente",
-      nomeEspacoHabitado: "03/03/2025",
-    },
-    {
-      Data: '07/03/2025',
-      numeroFormulario: 50,
-      numeroSelo: 132,
-      status: "pendente",
-      nomeEspacoHabitado: "03/03/2025",
-    },
-    {
-      Data: '07/03/2025',
-      numeroFormulario: 50,
-      numeroSelo: 132,
-      status: "pendente",
-      nomeEspacoHabitado: "03/03/2025",
-    },
-  ]
+// Type guard para validar se o response é do tipo esperado
+function isGetSelagemResponse(response: any): response is { selagens: any[] } {
+  return response && (Array.isArray(response.selagens) || response.selagens === undefined)
 }
 
 export default function DemoPage() {
-  const data = getData()
+  const [data, setData] = useState<Selagem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [initialDate, setInitialDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [createdBy, setCreatedBy] = useState("")
+
+  const fetchData = async () => {
+    if (!createdBy.trim()) {
+      setData([])
+      setInitialDate("")
+      setEndDate("")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const request = {
+        created_by: createdBy.trim(),
+        initial_date: initialDate,
+        end_date: endDate,
+      }
+
+      const response = await survey_resource.GetSelagem(request, async (req) => {
+        const searchParams = new URLSearchParams()
+        for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+          if (value !== undefined && value !== "") {
+            searchParams.append(key, String(value))
+          }
+        }
+
+        const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const res = await fetch(url, {
+          method: req.method,
+          headers: {
+            "Content-Type": "application/json",
+            ...(req.headers || {}),
+          },
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`HTTP ${res.status}: ${text}`)
+        }
+
+        return res.json()
+      })
+
+
+      if (isGetSelagemResponse(response)) {
+        const mapped = (response.selagens ?? []).map((item: any): Selagem => ({
+          id: item.id,
+          survey_id: item.survey_id,
+          created_by: item.created_by,
+          visit_count: item.visit_count,
+          created_at: item.created_at,
+          survey: {
+            main_metadata: {
+              numero_sei: item.survey?.main_metadata?.numero_sei ?? "",
+            },
+          },
+        }))
+
+        setData(mapped)
+      } else if (response && Object.keys(response).length === 0) {
+        // Resposta vazia, mas sem erro
+        console.warn("Resposta vazia: nenhuma selagem encontrada.")
+        setData([])
+      } else {
+        console.error("Resposta inesperada da API:", response)
+        setData([])
+      }
+
+    } catch (error) {
+      console.error("Erro ao buscar selagens:", error)
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <>
       <div className="flex flex-col text-left ml-10 mt-10 gap-4">
-        <h1 className="text-2xl font-bold">Listagem de Fomulários de Selagens</h1>
+        <h1 className="text-2xl font-bold">Listagem de Formulários de Selagens</h1>
 
-        {/* Campos de data para pesquisa */}
-        <div className="flex flex-row gap-4 items-center">
+        <div className="flex flex-row gap-4 items-end">
           <div className="flex flex-col">
-            <label htmlFor="data-inicial" className="text-sm font-medium text-gray-700">
-              Data inicial
+            <label htmlFor="created-by" className="text-sm font-medium text-gray-700">
+              Criado por
             </label>
             <input
-              type="date"
-              id="data-inicial"
-              name="data-inicial"
+              type="text"
+              id="created-by"
               className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={createdBy}
+              onChange={(e) => setCreatedBy(e.target.value)}
+              placeholder="Nome do criador"
             />
           </div>
-          <div className="flex flex-col">
-            <label htmlFor="data-final" className="text-sm font-medium text-gray-700">
-              Data final
-            </label>
-            <input
-              type="date"
-              id="data-final"
-              name="data-final"
-              className="border border-gray-300 rounded px-3 py-1 mt-1"
-            />
-          </div>
+
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Carregando..." : "Filtrar"}
+          </button>
+          {loading && <Loader />}
         </div>
 
         <p className="text-sm text-gray-500">

@@ -1,5 +1,4 @@
 import * as React from "react"
-
 import {
 	ColumnDef,
 	flexRender,
@@ -45,23 +44,18 @@ export function DataTable<TData, TValue>({
 	return (
 		<div className="rounded-lg border bg-white">
 			<Table className="rounded-lg border bg-white">
-				<TableHeader className="rounded-lg border bg-white" >
+				<TableHeader className="rounded-lg border bg-white">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow className="rounded-lg border bg-white" key={headerGroup.id}>
-							{headerGroup.headers.map((header) => {
-								return (
-									<TableHead className="bg-secondary  border text-center text-primary" key={header.id}>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-												header.column.columnDef.header,
-												header.getContext()
-											)}
-									</TableHead>
-								)
-							})}
-							<TableHead className="bg-secondary  border text-center text-primary" key="actions">
-								
+							{headerGroup.headers.map((header) => (
+								<TableHead className="bg-secondary border text-center text-primary" key={header.id}>
+									{header.isPlaceholder
+										? null
+										: flexRender(header.column.columnDef.header, header.getContext())}
+								</TableHead>
+							))}
+							<TableHead className="bg-secondary border text-center text-primary" key="actions">
+								Ações
 							</TableHead>
 						</TableRow>
 					))}
@@ -69,31 +63,26 @@ export function DataTable<TData, TValue>({
 				<TableBody>
 					{table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
-							<TableRow
-								key={row.id}
-								data-state={row.getIsSelected() && "selected"}
-							>
+							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 								{row.getVisibleCells().map((cell) => (
-									<>
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-
-										</TableCell>
-
-									</>
+									<TableCell key={cell.id}>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
 								))}
-								<Button className="cursor-pointer p-2" variant="ghost">
-									<PencilIcon className="w-3 h-3" />
-								</Button>
-								<Button className="cursor-pointer p-2" variant="ghost">
-									<TrashIcon className="w-3 h-3" />
-								</Button>
+								<TableCell className="flex items-center justify-center gap-2">
+									<Button className="cursor-pointer p-2" variant="ghost">
+										<PencilIcon className="w-4 h-4" />
+									</Button>
+									<Button className="cursor-pointer p-2" variant="ghost">
+										<TrashIcon className="w-4 h-4" />
+									</Button>
+								</TableCell>
 							</TableRow>
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-24 text-center">
-								No results.
+							<TableCell colSpan={columns.length + 1} className="h-24 text-center">
+								Nenhum resultado encontrado.
 							</TableCell>
 						</TableRow>
 					)}

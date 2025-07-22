@@ -1,10 +1,12 @@
 import React from 'react';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/identResp.definition";
 import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import survey_resource from "../../../../service/survey_resource.api"
+import { API_BASE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
 
 
@@ -17,14 +19,217 @@ interface IdentRespFormProps {
 
 const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes }: IdentRespFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
+    const [initialDate] = useState("")
+    const [endDate] = useState("")
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
+    const idadeResp = form.watch(`families[${familyIndex}].idadeResp`);
+    const nomeCompleto = form.watch(`families[${familyIndex}].nomeCompletoResp`);
+    const responsavel = form.watch(`families[${familyIndex}].responsavel`);
+    const relacaoResponsavel = form.watch(`families[${familyIndex}].relacaoResponsavel`);
+    const nomeCompletoEntrevistado = form.watch(`families[${familyIndex}].nomeCompletoEntrevistado`);
+    const naoSeAplicaEntrevistado = form.watch(`families[${familyIndex}].naoSeAplicaEntrevistado`);
+    const nomeSocialEntrevistado = form.watch(`families[${familyIndex}].nomeSocialEntrevistado`);
+    const descrevParentesco = form.watch(`families.${familyIndex}.DescrevParentesco`);
     const alertAberto = React.useRef(false);
     const [alertShown, setAlertShown] = useState(false);
 
+    // 👇 Armazena os valores anteriores
+    const prevValuesRef = useRef<Record<string, any>>({
+        dataNascimento: dataNascimento,
+        idadeResp: idadeResp,
+        nomeCompleto: nomeCompleto,
+        responsavel: responsavel,
+        relacaoResponsavel: relacaoResponsavel,
+        nomeCompletoEntrevistado: nomeCompletoEntrevistado,
+        naoSeAplicaEntrevistado: naoSeAplicaEntrevistado,
+        nomeSocialEntrevistado: nomeSocialEntrevistado,
+        descrevParentesco: descrevParentesco,
+    });
+    //auxilia a fetchData
+    function isGetArrolamentoResponse(
+        response: any
+    ): response is { arrolamentos: any[] } {
+        return response && Array.isArray(response.arrolamentos)
+    }
 
+    const fetchData = async () => {
+        const seiFromStorageRaw = localStorage.getItem("seiNumber");
+        const seiFromStorage = Number(seiFromStorageRaw);
+
+
+        try {
+            const request = {
+                numero_sei: seiFromStorage,
+                initial_date: initialDate,
+                end_date: endDate,
+            };
+
+            const response = await fetchArrolamento(request);
+
+            if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
+                showErrorMessage("Nenhum Arrolamento Cadastrado");
+                return;
+            }
+
+            if (isGetArrolamentoResponse(response)) {
+                await handleArrolamentoResponse(response);
+            }
+
+        } catch (error) {
+            console.error("Erro ao buscar arrolamentos:", error);
+            showErrorMessage("Erro ao buscar dados do arrolamento");
+        }
+    };
+
+    const showErrorMessage = (message: string) => {
+        Swal.fire({
+            icon: "error",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+            showConfirmButton: true,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+
+    const fetchArrolamento = async (request: any) => {
+        return await survey_resource.GetArrolamento(request, async (req: any) => {
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            }
+
+            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(req.headers || {}),
+                },
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return res.json();
+        });
+    };
+
+    const handleArrolamentoResponse = async (response: any) => {
+        if (response.arrolamentos && response.arrolamentos.length > 0) {
+            const primeiroArrolamento = response.arrolamentos[0];
+            const arrolamentoId = primeiroArrolamento.id;
+            const criadoPor = primeiroArrolamento.created_by;
+
+            localStorage.setItem("arrolamentoId", arrolamentoId);
+            localStorage.setItem("arrolamentoCreated_by", criadoPor);
+
+            const formPayload = {
+                created_by: criadoPor,
+                form: {
+                    family_index: 1,
+                    identificacao_responsavel: createIdentificacaoResponsavel(),
+                },
+            };
+
+            try {
+                await survey_resource.SendFormToArrolamentoIdentRep(API_BASE_URL, arrolamentoId, formPayload);
+                //showSuccessMessage("Arrolamento cadastrado com sucesso");
+            } catch (error) {
+                console.error("Erro ao enviar formulário para arrolamento:", error);
+                showErrorMessage("Erro ao enviar os dados");
+            }
+        }
+    };
+
+    const createIdentificacaoResponsavel = () => {
+        const valorResponsavel = (responsavel || "").trim().toLowerCase();
+        const isResponsavel = valorResponsavel === "sim";
+
+        const formatarDataParaBR = (data: string): string => {
+            if (!data) return "";
+            const [ano, mes, dia] = data.split("-");
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        return {
+            responsavel: isResponsavel,
+            nome_completo: nomeCompleto || "",
+            data_nascimento: formatarDataParaBR(dataNascimento),
+            relacao_social: isResponsavel ? "" : relacaoResponsavel,
+            nome_social: nomeSocialEntrevistado || "",
+            nome_social_aplicavel: isResponsavel ? false : !!naoSeAplicaEntrevistado,
+            nome_completo_entrevistado: isResponsavel ? "" : nomeCompletoEntrevistado || "",
+            descrev_parentesco: isResponsavel ? "" : descrevParentesco || "",
+            idade: parseInt(idadeResp || "0", 10),
+        };
+    };   
+
+    useEffect(() => {
+        const handleBlur = () => {
+            const activeFieldName = document.activeElement?.getAttribute("name");
+
+            const fields = {
+                [`families[${familyIndex}].dataNascimentoResp`]: dataNascimento,
+                [`families[${familyIndex}].idadeResp`]: idadeResp,
+                [`families[${familyIndex}].nomeCompletoResp`]: nomeCompleto,
+                [`families[${familyIndex}].responsavel`]: responsavel,
+                [`families[${familyIndex}].relacaoResponsavel`]: relacaoResponsavel,
+                [`families[${familyIndex}].nomeCompletoEntrevistado`]: nomeCompletoEntrevistado,
+                [`families[${familyIndex}].naoSeAplicaEntrevistado`]: naoSeAplicaEntrevistado,
+                [`families[${familyIndex}].nomeSocialEntrevistado`]: nomeSocialEntrevistado,
+                [`families.${familyIndex}.DescrevParentesco`]: descrevParentesco,
+            };
+
+            let shouldFetch = false;
+
+            for (const [fieldName, currentValue] of Object.entries(fields)) {
+                const prevValue = prevValuesRef.current[fieldName.split(".").pop() || ""];
+
+                if (currentValue !== prevValue && activeFieldName !== fieldName) {
+                    shouldFetch = true;
+                    prevValuesRef.current[fieldName.split(".").pop() || ""] = currentValue;
+                }
+            }
+
+            if (shouldFetch) {
+                const questionario = localStorage.getItem("questionario");
+                const seiNumber = localStorage.getItem("seiNumber");
+                const sealNumber = localStorage.getItem("sealNumber");
+                const numberFamilies = localStorage.getItem("numberFamilies");
+
+                console.log("questionario:", questionario);
+                console.log("seiNumber:", seiNumber);
+                console.log("sealNumber:", sealNumber);
+                console.log("numberFamilies:", numberFamilies);
+
+                fetchData();
+            }
+        };
+
+        window.addEventListener("blur", handleBlur, true);
+        return () => {
+            window.removeEventListener("blur", handleBlur, true);
+        };
+    }, [
+        dataNascimento,
+        idadeResp,
+        nomeCompleto,
+        responsavel,
+        relacaoResponsavel,
+        nomeCompletoEntrevistado,
+        naoSeAplicaEntrevistado,
+        nomeSocialEntrevistado,
+        descrevParentesco,
+    ]);
+    
     //proibir o digitar numeros e caracteres especiais nomeSocialEntrevistado
     useEffect(() => {
         const path = `families[${familyIndex}].nomeSocialEntrevistado`;
@@ -60,28 +265,28 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
-            
-            const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;  
-            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`; 
-            const pathRelacaoResponsavel = `families[${familyIndex}].relacaoResponsavel`;  
-            const pathNomeCompletoResp = `families[${familyIndex}].nomeCompletoResp`;  
-            const pathNomeCompletoEntrevistado = `families[${familyIndex}].nomeCompletoEntrevistado`;  
+
+            const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`;
+            const pathRelacaoResponsavel = `families[${familyIndex}].relacaoResponsavel`;
+            const pathNomeCompletoResp = `families[${familyIndex}].nomeCompletoResp`;
+            const pathNomeCompletoEntrevistado = `families[${familyIndex}].nomeCompletoEntrevistado`;
             const pathNomeSocialEntrevistado = `families[${familyIndex}].nomeSocialEntrevistado`;
-            const pathDescrevParentesco = `families[${familyIndex}].DescrevParentesco`;  
-            const pathCertidaoEmancipacao = `families[${familyIndex}].certidaoEmancipacao`;  
-  
+            const pathDescrevParentesco = `families[${familyIndex}].DescrevParentesco`;
+            const pathCertidaoEmancipacao = `families[${familyIndex}].certidaoEmancipacao`;
+
 
 
             if (name === `families[${familyIndex}].responsavel`) {
-               
+
                 form.setValue(pathNascimento, '');
                 form.setValue(pathEmancipada, '');
                 form.setValue(pathRelacaoResponsavel, '');
                 form.setValue(pathNomeCompletoResp, '');
-                form.setValue(pathNomeCompletoEntrevistado , '');
-                form.setValue(pathNomeSocialEntrevistado , '');
-                form.setValue(pathDescrevParentesco , '');
-                form.setValue(pathCertidaoEmancipacao , '');
+                form.setValue(pathNomeCompletoEntrevistado, '');
+                form.setValue(pathNomeSocialEntrevistado, '');
+                form.setValue(pathDescrevParentesco, '');
+                form.setValue(pathCertidaoEmancipacao, '');
 
 
 
@@ -289,7 +494,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         form.watch(`families[${familyIndex}].pessoaEmancipada`),
         form.watch(`families[${familyIndex}].certidaoEmancipacao`)
     ]);
-    
+
     useEffect(() => {
 
         const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
@@ -329,7 +534,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                             } as React.ChangeEvent<HTMLSelectElement>;
                             onChangeMostrarSecoes(fakeEvent);
                         }
-                        
+
                         form.setValue(pathNascimento, '');
                         form.setValue(pathPessoaEmancipada, '');
 

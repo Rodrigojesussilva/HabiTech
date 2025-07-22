@@ -45,7 +45,9 @@ import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/in
 import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
 import { statusNotasSchema } from "@/components/forms/arrolamento/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.definition";
-
+import { API_BASE_URL } from "../../../service/constants";
+import survey_resource from "../../../service/survey_resource.api"
+import Swal from 'sweetalert2'
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -140,7 +142,23 @@ const FormArrolamento = ({
 			setMetadata(null);
 		};
 	}, []);
+	// Limpar erros automaticamente ao digitar nos campos obrigatórios
+	useEffect(() => {
+		const subscription = form.watch((values, { name }) => {
+			if (!name) return;
 
+			if (["questionario", "seiNumber", "sealNumber", "numberFamilies"].includes(name)) {
+				const value = values[name as keyof typeof values];
+				if (
+					value &&
+					Object.prototype.hasOwnProperty.call(form.formState.errors, name)
+				) {
+					form.clearErrors(name as keyof FormValues);
+				}
+			}
+		});
+		return () => subscription.unsubscribe();
+	}, [form]);
 
 
 	const { fields: familyFields, append, remove } = useFieldArray({
@@ -373,7 +391,123 @@ const FormArrolamento = ({
 
 							<Button
 								type="button"
-								onClick={() => setIsMetadataModalOpen(false)}
+								onClick={async () => {
+									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
+
+									const values = form.getValues();
+									let hasError = false;
+
+									// Validação individual com destaque dos campos
+									if (!values.questionario) {
+										form.setError("questionario", {
+											type: "manual",
+											message: "O campo Questionário é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("questionario");
+									}
+
+									if (!values.seiNumber) {
+										form.setError("seiNumber", {
+											type: "manual",
+											message: "O campo Número SEI é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("seiNumber");
+									}
+
+									if (!values.sealNumber) {
+										form.setError("sealNumber", {
+											type: "manual",
+											message: "O campo Número do Selo é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("sealNumber");
+									}
+
+									if (!values.numberFamilies) {
+										form.setError("numberFamilies", {
+											type: "manual",
+											message: "O campo Número de Famílias é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("numberFamilies");
+									}
+
+									if (hasError) {
+										Swal.fire({
+											position: "top-end",
+											icon: "warning",
+											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Preencha todos os campos obrigatórios
+													</div>`,
+											showConfirmButton: false,
+											timer: 2000,
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+
+										return;
+									}
+
+
+									localStorage.setItem("questionario", questionario);
+									localStorage.setItem("seiNumber", seiNumber);
+									localStorage.setItem("sealNumber", sealNumber);
+									localStorage.setItem("numberFamilies", numberFamilies.toString());
+
+									console.log("Valores armazenados no localStorage:");
+									console.log("questionario:", localStorage.getItem("questionario"));
+									console.log("seiNumber:", localStorage.getItem("seiNumber"));
+									console.log("sealNumber:", localStorage.getItem("sealNumber"));
+									console.log("numberFamilies:", localStorage.getItem("numberFamilies"));
+
+									const dataToSend = {
+										created_by: questionario,
+										main_metadata: {
+											numero_sei: seiNumber,
+											numero_selo: sealNumber,
+											quantidade_familias: numberFamilies,
+										},
+									};
+
+									try {
+										const json = await survey_resource.CreateArrolamento(API_BASE_URL, dataToSend);
+										console.log("Resposta da API:", json);
+										setIsMetadataModalOpen(false);
+										Swal.fire({
+											position: "top-end",
+											icon: "success",
+											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Arrolamento cadastrado com sucesso
+													</div>`,
+											showConfirmButton: false,
+											timer: 1500,
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+
+									} catch (error) {
+										console.error("Erro ao enviar os dados:", error);
+										Swal.fire({
+											icon: "error",
+											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Erro ao enviar os dados<br/>
+													<span class="text-sm">Veja o console para mais detalhes.</span>
+													</div>`,
+											showConfirmButton: true,
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+									}
+								}}
 								className="mt-4"
 							>
 								Concluir
@@ -418,7 +552,7 @@ const FormArrolamento = ({
 							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
 							<StatusNotasForm sectionIndex={9} familyIndex={index} />
 							<AnexosForm sectionIndex={10} familyIndex={index} />
-							
+
 						</div>
 					))}
 				</form>

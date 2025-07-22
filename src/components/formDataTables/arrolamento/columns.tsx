@@ -6,11 +6,11 @@ import { ArrowUpDown } from "lucide-react"
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 export type Arrolamento = {
-	questionario: string
-	sei: number
-	selo: number
-	status: "pendente" | "finalizado"
-	dataVisita: string
+  questionario: string
+  sei: number
+  selo: number
+  status: "pendente" | "finalizado"
+  dataVisita: string // pode ser "DD/MM/YYYY"
 }
 
 export const columns: ColumnDef<Arrolamento>[] = [

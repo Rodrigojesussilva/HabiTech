@@ -39,6 +39,10 @@ import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/
 import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
 import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
+import { API_BASE_URL } from "../../../service/constants";
+import survey_resource from "../../../service/survey_resource.api"
+import Swal from 'sweetalert2';
+
 
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
@@ -405,9 +409,124 @@ const FormSelagem = ({
 							))}
 							<Button
 								type="button"
-								onClick={() => {
-									handleSetEndTime(); // Atualiza o valor de firstVisitEnd antes de fechar
-									setIsMetadataModalOpen(false);
+								onClick={async () => {
+
+									handleSetEndTime(); 
+									//setIsMetadataModalOpen(false);
+
+									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
+
+									const values = form.getValues(); // pegar os valores do formulário
+									let hasError = false;
+
+									// Validação individual com destaque dos campos
+									if (!values.questionario) {
+										form.setError("questionario", {
+											type: "manual",
+											message: "O campo Questionário é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("questionario");
+									}
+
+									if (!values.seiNumber) {
+										form.setError("seiNumber", {
+											type: "manual",
+											message: "O campo Número SEI é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("seiNumber");
+									}
+
+									if (!values.sealNumber) {
+										form.setError("sealNumber", {
+											type: "manual",
+											message: "O campo Número do Selo é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("sealNumber");
+									}
+
+									if (!values.numberFamilies) {
+										form.setError("numberFamilies", {
+											type: "manual",
+											message: "O campo Número de Famílias é obrigatório.",
+										});
+										hasError = true;
+									} else {
+										form.clearErrors("numberFamilies");
+									}
+
+									// Exibe o alerta se algum erro foi encontrado
+									if (hasError) {
+										Swal.fire({
+											position: "top-end",
+											icon: "warning",
+											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Preencha todos os campos obrigatórios
+													</div>`,
+											showConfirmButton: false,
+											timer: 2000,
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+
+										return;
+									}
+
+
+									// Monta o objeto conforme a estrutura esperada pela API de selagem
+									const dataToSend = {
+										created_by: questionario,
+										main_metadata: {
+											numero_sei: seiNumber,
+											numero_selo: sealNumber,
+											quantidade_familias: numberFamilies,
+										},
+										// authorization_token: "seu_token_aqui", // se usar token, inclua aqui
+									};
+
+									try {
+										const json = await survey_resource.CreateSelagem(API_BASE_URL, dataToSend);
+										console.log("Resposta da API:", json);
+										setIsMetadataModalOpen(false);
+										Swal.fire({
+											position: "top-end",
+											icon: "success",
+											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+										      Selagem cadastrada com sucesso
+                                             </div>`,
+											showConfirmButton: false,
+											timer: 1500,
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+
+									} catch (error) {
+										console.error("Erro ao enviar os dados:", error);
+										Swal.fire({
+											icon: "error",
+											html: `
+												<div class="text-lg text-center break-words w-full -translate-y-2">
+												Erro ao enviar os dados
+												</div>
+												<div class="text-sm text-center break-words w-full mt-2">
+												Veja o console para mais detalhes.
+												</div>
+  `,
+											showConfirmButton: true,
+											confirmButtonText: "Ok",
+											customClass: {
+												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											},
+										});
+
+									}
 								}}
 								className="mt-4"
 							>
