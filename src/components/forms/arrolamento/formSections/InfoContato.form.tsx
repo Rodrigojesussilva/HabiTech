@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -8,6 +8,9 @@ import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/inf
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import survey_resource from "../../../../service/survey_resource.api"
+import { API_BASE_URL } from "../../../../service/constants"
+import Swal from 'sweetalert2';
 
 interface InfoContatoFormProps {
     id?: string;
@@ -16,11 +19,200 @@ interface InfoContatoFormProps {
 }
 
 const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
-    const [mostrarContato, setMostrarContato] = useState(false);
 
+    const [mostrarContato, setMostrarContato] = useState(false);
+    const [initialDate] = useState("")
+    const [endDate] = useState("")
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
+    const email = form.watch(`families[${familyIndex}].email`);
+    const naoSabeEmail = form.watch(`families[${familyIndex}].naoSabeEmail`);
+    
+    const prevValuesRef = useRef<{ [key: string]: any }>({
+        email: email,
+        // outros campos se necessário
+    });
+    //auxilia a fetchData
+    function isGetArrolamentoResponse(
+        response: any
+    ): response is { arrolamentos: any[] } {
+        return response && Array.isArray(response.arrolamentos)
+    };
+
+    const fetchData = async () => {
+        const seiFromStorageRaw = localStorage.getItem("seiNumber");
+        const seiFromStorage = Number(seiFromStorageRaw);
+
+        const hasEmailError = validateEmailField();
+        if (hasEmailError) {
+            showWarningMessage("Preencha todos os campos obrigatórios do responsável");
+            return;
+        }
+
+        try {
+            const request = {
+                numero_sei: seiFromStorage,
+                initial_date: initialDate,
+                end_date: endDate,
+            };
+
+            const response = await fetchArrolamento(request);
+
+            if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
+                showErrorMessage("Nenhum Arrolamento Cadastrado");
+                return;
+            }
+
+            if (isGetArrolamentoResponse(response)) {
+                await handleContatoResponse(response);
+            }
+
+        } catch (error) {
+            console.error("Erro ao buscar arrolamentos:", error);
+            showErrorMessage("Erro ao buscar dados do arrolamento");
+        }
+    };
+
+    const validateEmailField = (): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let hasError = false;
+
+        if (!naoSabeEmail) {
+            if (!email) {
+                form.setError(`families.${familyIndex}.email`, {
+                    type: "manual",
+                    message: "Informe o email ou marque 'Não se aplica'.",
+                });
+                hasError = true;
+            } else if (!emailRegex.test(email)) {
+                form.setError(`families.${familyIndex}.email`, {
+                    type: "manual",
+                    message: "Informe um e-mail válido.",
+                });
+                hasError = true;
+            } else {
+                form.clearErrors(`families.${familyIndex}.email`);
+            }
+        } else {
+            form.clearErrors(`families.${familyIndex}.email`);
+        }
+
+        return hasError;
+    };
+
+    const showWarningMessage = (message: string) => {
+        Swal.fire({
+            position: "top-end",
+            icon: "warning",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}</div>`,
+            showConfirmButton: false,
+            timer: 2000,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+
+    const showErrorMessage = (message: string) => {
+        Swal.fire({
+            icon: "error",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+            showConfirmButton: true,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+   
+    const fetchArrolamento = async (request: any) => {
+        return await survey_resource.GetArrolamento(request, async (req: any) => {
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            }
+
+            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(req.headers || {}),
+                },
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return res.json();
+        });
+    };
+
+    const handleContatoResponse = async (response: any) => {
+        const arrolamento = response.arrolamentos?.[0];
+        if (arrolamento) {
+            const arrolamentoId = arrolamento.id;
+            const criadoPor = arrolamento.created_by;
+
+            localStorage.setItem("arrolamentoId", arrolamentoId);
+            localStorage.setItem("arrolamentoCreated_by", criadoPor);
+
+            const formPayload = {
+                created_by: criadoPor,
+                form: {
+                    family_index: 1,
+                    contato: {
+                        email: email,
+                    },
+                },
+            };
+
+            try {
+                await survey_resource.SendFormToArrolamentoContato(API_BASE_URL, arrolamentoId, formPayload);
+                //showSuccessMessage("Informações de contato cadastradas com sucesso");
+            } catch (error) {
+                console.error("Erro ao enviar formulário:", error);
+                showErrorMessage("Erro ao enviar os dados");
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleBlur = () => {
+            const activeFieldName = document.activeElement?.getAttribute("name");
+
+            const fieldName = `families.${familyIndex}.email`;
+            const prevEmail = prevValuesRef.current["email"];
+            const currentEmail = email;
+
+            const emailFieldChanged = currentEmail !== prevEmail && activeFieldName !== fieldName;
+
+            if (emailFieldChanged) {
+                prevValuesRef.current["email"] = currentEmail;
+
+                const questionario = localStorage.getItem("questionario");
+                const seiNumber = localStorage.getItem("seiNumber");
+                const sealNumber = localStorage.getItem("sealNumber");
+                const numberFamilies = localStorage.getItem("numberFamilies");
+
+                console.log("questionario:", questionario);
+                console.log("seiNumber:", seiNumber);
+                console.log("sealNumber:", sealNumber);
+                console.log("numberFamilies:", numberFamilies);
+
+                fetchData();
+            }
+        };
+
+        window.addEventListener("blur", handleBlur, true);
+        return () => {
+            window.removeEventListener("blur", handleBlur, true);
+        };
+    }, [email, familyIndex]);
 
     // Initialize telefones array if it doesn't exist
     useEffect(() => {
@@ -35,7 +227,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             'telefone1',
             'telefone2',
             'telefone3',
-            'telefone4',          
+            'telefone4',
         ];
 
         phoneFields.forEach(field => {
@@ -57,7 +249,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         familyIndex,
         form
     ]);
-    
+
     useEffect(() => {
         // Garante valor inicial do checkbox 'responsavel_nao_identificado'
         if (formValues.naoSabeEmail === undefined) {
@@ -121,7 +313,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                             showSectionLabel={false}
                             familyIndex={familyIndex}
                         />
-                    ))}
+                    ))}                  
                 </CollapsibleContent>
             </Collapsible>
         </div>
