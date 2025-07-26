@@ -1,4 +1,5 @@
 import  { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Selagem, columns } from "./columns"
 import { DataTable } from "./data-table"
 import survey_resource from "../../../service/survey_resource.api"
@@ -10,12 +11,71 @@ function isGetSelagemResponse(response: any): response is { selagens: any[] } {
   return response && (Array.isArray(response.selagens) || response.selagens === undefined)
 }
 
+// Mock data para testes
+const mockSelagens: Selagem[] = [
+  {
+    id: "sel_12345abc",
+    survey_id: "survey_001",
+    created_by: "João Silva",
+    visit_count: 1,
+    created_at: "2024-01-15T10:30:00Z",
+    survey: {
+      main_metadata: {
+        numero_sei: "SEI001234567"
+      }
+    }
+  },
+  {
+    id: "sel_67890def",
+    survey_id: "survey_002", 
+    created_by: "Maria Santos",
+    visit_count: 2,
+    created_at: "2024-01-16T14:15:00Z",
+    survey: {
+      main_metadata: {
+        numero_sei: "SEI987654321"
+      }
+    }
+  },
+  {
+    id: "sel_11111ghi",
+    survey_id: "survey_003",
+    created_by: "Pedro Costa",
+    visit_count: 1,
+    created_at: "2024-01-17T09:45:00Z",
+    survey: {
+      main_metadata: {
+        numero_sei: "SEI555666777"
+      }
+    }
+  }
+]
+
 export default function DemoPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<Selagem[]>([])
   const [loading, setLoading] = useState(false)
   const [initialDate, setInitialDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [createdBy, setCreatedBy] = useState("")
+
+  const handleEdit = (selagem: Selagem) => {
+    console.log("🚀 Editando selagem:", selagem)
+    alert(`Navegando para edição da selagem: ${selagem.id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}`)
+    navigate(`/edit-selagem/${selagem.id}`)
+  }
+
+  const loadMockData = () => {
+    console.log("📊 Carregando dados mockados...")
+    setData(mockSelagens)
+  }
+
+  const clearData = () => {
+    setData([])
+    setCreatedBy("")
+    setInitialDate("")
+    setEndDate("")
+  }
 
   const fetchData = async () => {
     if (!createdBy.trim()) {
@@ -118,16 +178,32 @@ export default function DemoPage() {
           >
             {loading ? "Carregando..." : "Filtrar"}
           </button>
+
+          {/* Botões de teste */}
+          <button
+            onClick={loadMockData}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            🧪 Carregar Mock
+          </button>
+
+          <button
+            onClick={clearData}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            🗑️ Limpar
+          </button>
+
           {loading && <Loader />}
         </div>
 
         <p className="text-sm text-gray-500">
-          Visualize ou modifique os dados de selagens.
+          Visualize ou modifique os dados de selagens. <strong>Use o botão "🧪 Carregar Mock" para testar a edição!</strong>
         </p>
       </div>
 
       <div className="container mx-auto p-10">
-        <DataTable columns={columns} data={data} />
+        <DataTable columns={columns} data={data} onEdit={handleEdit} />
       </div>
     </>
   )

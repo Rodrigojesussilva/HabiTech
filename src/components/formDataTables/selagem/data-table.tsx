@@ -22,11 +22,13 @@ import { Button } from "@/components/ui/button"
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
+	onEdit?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	onEdit,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -70,7 +72,11 @@ export function DataTable<TData, TValue>({
 									</TableCell>
 								))}
 								<TableCell className="flex items-center justify-center gap-2">
-									<Button className="cursor-pointer p-2" variant="ghost">
+									<Button 
+										className="cursor-pointer p-2" 
+										variant="ghost"
+										onClick={() => onEdit?.(row.original)}
+									>
 										<PencilIcon className="w-4 h-4" />
 									</Button>
 									<Button className="cursor-pointer p-2" variant="ghost">
