@@ -32,7 +32,7 @@ jobs:
           docker push ghcr.io/$IMAGE_NAME:latest
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: angerona-cloud
     needs: build
     env:
       DEPLOY_DIR: /home/administrator/frontend-instrumentos-pesquisa
