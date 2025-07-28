@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Arrolamento, columns } from "./columns"
 import { DataTable } from "./data-table"
 import survey_resource from "../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../service/constants"
 import Loader from "../../loader/Loader"
 
 function isGetArrolamentoResponse(
@@ -43,7 +43,7 @@ export default function DemoPage() {
           }
         }
 
-        const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
         const res = await fetch(url, {
           method: req.method,
           headers: {

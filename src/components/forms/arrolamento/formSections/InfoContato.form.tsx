@@ -9,7 +9,7 @@ import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/inf
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
 
 interface InfoContatoFormProps {
@@ -134,7 +134,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -172,7 +172,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             };
 
             try {
-                await survey_resource.SendFormToArrolamentoContato(API_BASE_URL, arrolamentoId, formPayload);
+                await survey_resource.SendFormToArrolamentoContato(SURVEY_RESOURCE_URL, arrolamentoId, formPayload);
                 //showSuccessMessage("Informações de contato cadastradas com sucesso");
             } catch (error) {
                 console.error("Erro ao enviar formulário:", error);

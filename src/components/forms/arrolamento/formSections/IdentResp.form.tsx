@@ -6,7 +6,7 @@ import { getMergedFormSections } from "@/components/forms/arrolamento/definition
 import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
 
 
@@ -104,7 +104,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -140,7 +140,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             };
 
             try {
-                await survey_resource.SendFormToArrolamentoIdentRep(API_BASE_URL, arrolamentoId, formPayload);
+                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, formPayload);
                 //showSuccessMessage("Arrolamento cadastrado com sucesso");
             } catch (error) {
                 console.error("Erro ao enviar formulário para arrolamento:", error);

@@ -40,10 +40,13 @@ import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/
 import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
 import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
-import { API_BASE_URL } from "../../../service/constants";
+import { SURVEY_RESOURCE_URL, CURRENT_API } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
 import { loadSelagemData, LoadSelagemDataParams } from './helpers/apiMapper';
+import SelagemDebugPanel from '../../debug/SelagemDebugPanel';
+import ApiConnectionTester from '../../debug/ApiConnectionTester';
+import ApiStatusIndicator from '../../debug/ApiStatusIndicator';
 
 
 // Define the schema for a single family, integrating IdentResp schema
@@ -131,17 +134,20 @@ const FormSelagem = ({
 		},
 	});
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
-	const { setValue, watch } = useForm();
-	// Acessa os valores dos campos
-	const naoAplica = watch("naoAplica");  // Assumindo que 'naoAplica' é o campo que será monitorado
+	
+	// Acessa os valores dos campos usando o form principal
+	const naoAplica = useWatch({
+		control: form.control,
+		name: "naoAplica"
+	});
 
 	useEffect(() => {
 		// Verifica se o campo 'naoAplica' está marcado como verdadeiro
 		if (naoAplica) {
 			// Limpa o campo 'seiNumber' se a condição for atendida
-			setValue("seiNumber", "");
+			form.setValue("seiNumber", "");
 		}
-	}, [naoAplica, setValue]);
+	}, [naoAplica, form]);
 	const { setForm, setMetadata } = useFormMetadata();
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -393,6 +399,13 @@ const FormSelagem = ({
 
 	return (
 		<div ref={ref} className="text-left" nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+			{/* API Status Indicator (fixed position) */}
+			<ApiStatusIndicator />
+			
+			{/* Debug Panels (only in localhost) */}
+			<ApiConnectionTester className="mb-4" />
+			<SelagemDebugPanel className="mb-4" />
+			
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
@@ -437,58 +450,72 @@ const FormSelagem = ({
 							<Button
 								type="button"
 								onClick={async () => {
+									console.log("🚀 Iniciando criação de nova selagem...");
 
 									handleSetEndTime(); 
 									//setIsMetadataModalOpen(false);
 
 									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
+									console.log("📋 Valores do formulário:", { questionario, seiNumber, sealNumber, numberFamilies });
 
 									const values = form.getValues(); // pegar os valores do formulário
 									let hasError = false;
 
 									// Validação individual com destaque dos campos
-									if (!values.questionario) {
+									console.log("🔍 Iniciando validação dos campos...");
+
+									if (!values.questionario || values.questionario.trim() === '') {
+										console.warn("❌ Campo questionario vazio:", values.questionario);
 										form.setError("questionario", {
 											type: "manual",
 											message: "O campo Questionário é obrigatório.",
 										});
 										hasError = true;
 									} else {
+										console.log("✅ Campo questionario OK:", values.questionario);
 										form.clearErrors("questionario");
 									}
 
-									if (!values.seiNumber) {
+									// Só valida SEI se não estiver marcado como "não se aplica"
+									if (!values.naoAplica && (!values.seiNumber || values.seiNumber.trim() === '')) {
+										console.warn("❌ Campo seiNumber vazio (e não é N/A):", values.seiNumber);
 										form.setError("seiNumber", {
 											type: "manual",
 											message: "O campo Número SEI é obrigatório.",
 										});
 										hasError = true;
 									} else {
+										console.log("✅ Campo seiNumber OK (ou N/A):", values.seiNumber);
 										form.clearErrors("seiNumber");
 									}
 
-									if (!values.sealNumber) {
+									if (!values.sealNumber || values.sealNumber.trim() === '') {
+										console.warn("❌ Campo sealNumber vazio:", values.sealNumber);
 										form.setError("sealNumber", {
 											type: "manual",
 											message: "O campo Número do Selo é obrigatório.",
 										});
 										hasError = true;
 									} else {
+										console.log("✅ Campo sealNumber OK:", values.sealNumber);
 										form.clearErrors("sealNumber");
 									}
 
-									if (!values.numberFamilies) {
+									if (!values.numberFamilies || values.numberFamilies <= 0) {
+										console.warn("❌ Campo numberFamilies inválido:", values.numberFamilies);
 										form.setError("numberFamilies", {
 											type: "manual",
-											message: "O campo Número de Famílias é obrigatório.",
+											message: "O campo Número de Famílias deve ser maior que 0.",
 										});
 										hasError = true;
 									} else {
+										console.log("✅ Campo numberFamilies OK:", values.numberFamilies);
 										form.clearErrors("numberFamilies");
 									}
 
 									// Exibe o alerta se algum erro foi encontrado
 									if (hasError) {
+										console.warn("❌ Validação falhou - campos obrigatórios não preenchidos");
 										Swal.fire({
 											position: "top-end",
 											icon: "warning",
@@ -505,21 +532,34 @@ const FormSelagem = ({
 										return;
 									}
 
+									console.log("✅ Validação passou - preparando dados para envio...");
+
 
 									// Monta o objeto conforme a estrutura esperada pela API de selagem
 									const dataToSend = {
 										created_by: questionario,
 										main_metadata: {
-											numero_sei: seiNumber,
+											numero_sei: values.naoAplica ? "N/A" : seiNumber,
 											numero_selo: sealNumber,
 											quantidade_familias: numberFamilies,
 										},
 										// authorization_token: "seu_token_aqui", // se usar token, inclua aqui
 									};
 
+									console.log("📤 Dados preparados para envio:", dataToSend);
+									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_URL);
+									console.log("🔧 Configuração de ambiente:", {
+										hostname: window.location.hostname,
+										isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+										forceProduction: localStorage.getItem('FORCE_PRODUCTION'),
+										currentAPI: CURRENT_API,
+										surveyResourceUrl: SURVEY_RESOURCE_URL
+									});
+
 									try {
-										const json = await survey_resource.CreateSelagem(API_BASE_URL, dataToSend);
-										console.log("Resposta da API:", json);
+										console.log("🚀 Chamando survey_resource.CreateSelagem com URL:", SURVEY_RESOURCE_URL);
+										const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_URL, dataToSend);
+										console.log("✅ Resposta da API:", json);
 										setIsMetadataModalOpen(false);
 										Swal.fire({
 											position: "top-end",
@@ -535,21 +575,33 @@ const FormSelagem = ({
 										});
 
 									} catch (error) {
-										console.error("Erro ao enviar os dados:", error);
+										const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+										const errorStack = error instanceof Error ? error.stack : undefined;
+										
+										console.error("❌ Erro detalhado ao criar selagem:", {
+											error: error,
+											message: errorMessage,
+											stack: errorStack,
+											dataToSend: dataToSend,
+											apiUrl: SURVEY_RESOURCE_URL
+										});
+										
 										Swal.fire({
 											icon: "error",
+											title: "Erro ao criar selagem",
 											html: `
 												<div class="text-lg text-center break-words w-full -translate-y-2">
 												Erro ao enviar os dados
 												</div>
 												<div class="text-sm text-center break-words w-full mt-2">
+												${errorMessage}<br/>
 												Veja o console para mais detalhes.
 												</div>
   `,
 											showConfirmButton: true,
 											confirmButtonText: "Ok",
 											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+												popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
 											},
 										});
 

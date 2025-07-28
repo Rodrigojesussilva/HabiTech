@@ -45,7 +45,7 @@ import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/in
 import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
 import { statusNotasSchema } from "@/components/forms/arrolamento/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.definition";
-import { API_BASE_URL } from "../../../service/constants";
+import { SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 // Define the schema for a single family, integrating IdentResp schema
@@ -477,7 +477,7 @@ const FormArrolamento = ({
 									};
 
 									try {
-										const json = await survey_resource.CreateArrolamento(API_BASE_URL, dataToSend);
+										const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
 										console.log("Resposta da API:", json);
 										setIsMetadataModalOpen(false);
 										Swal.fire({

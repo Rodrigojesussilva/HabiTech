@@ -1014,7 +1014,7 @@ namespace survey_resource {
     }
 
     export const GetSelagem = async (request: GetSelagemRequest, handler: RequestHandler): Promise<GetSelagemResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens`;
+        const path = `/v1/selagens`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1082,7 +1082,14 @@ namespace survey_resource {
         dataToSend: object
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens`;
+            const path = `/v1/selagens`;
+            const fullUrl = `${baseUrl}${path}`;
+
+            console.log("🎯 survey_resource.CreateSelagem chamado com:");
+            console.log("  📍 baseUrl recebido:", baseUrl);
+            console.log("  📂 path:", path);
+            console.log("  🌐 URL completa:", fullUrl);
+            console.log("  📦 dados:", dataToSend);
 
             const requestFields = Object.entries(dataToSend);
             const { headers, body } = requestFields.reduce(
@@ -1107,25 +1114,38 @@ namespace survey_resource {
                 }
             );
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            console.log("🚀 Fazendo requisição fetch para:", fullUrl);
+            console.log("📋 Headers:", headers);
+            console.log("📦 Body:", JSON.stringify(body));
+
+            const response = await fetch(fullUrl, {
                 method: "POST",
                 headers,
                 body: JSON.stringify(body),
             });
 
+            console.log("📥 Resposta recebida:");
+            console.log("  📊 Status:", response.status);
+            console.log("  📄 StatusText:", response.statusText);
+            console.log("  🌐 URL final:", response.url);
+
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Resposta de erro:", errorText);
                 throw new Error(`Erro na requisição: ${response.status} - ${response.statusText}`);
             }
 
-            return await response.json();
+            const jsonResponse = await response.json();
+            console.log("✅ JSON de resposta:", jsonResponse);
+            return jsonResponse;
         } catch (error) {
-            console.error("Erro ao criar selagem:", error);
+            console.error("❌ Erro ao criar selagem:", error);
             throw error;
         }
     };
 
     export const CreateFromSelagem = async (request: CreateFromSelagemRequest, handler: RequestHandler): Promise<CreateFromSelagemResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}/new-visit`;
+        const path = `/v1/selagens/${request.id}/new-visit`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1164,7 +1184,7 @@ namespace survey_resource {
     }
 
     export const UpdateSelagem = async (request: UpdateSelagemRequest, handler: RequestHandler): Promise<UpdateSelagemResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}`;
+        const path = `/v1/selagens/${request.id}`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {

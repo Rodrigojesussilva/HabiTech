@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom"
 import { Selagem, columns } from "./columns"
 import { DataTable } from "./data-table"
 import survey_resource from "../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../service/constants"
 import Loader from "../../loader/Loader"
+import ApiEnvironmentSwitcher from "../../debug/ApiEnvironmentSwitcher"
 
 // Type guard para validar se o response é do tipo esperado
 function isGetSelagemResponse(response: any): response is { selagens: any[] } {
@@ -101,7 +102,7 @@ export default function DemoPage() {
           }
         }
 
-        const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
         const res = await fetch(url, {
           method: req.method,
           headers: {
@@ -155,6 +156,9 @@ export default function DemoPage() {
     <>
       <div className="flex flex-col text-left ml-10 mt-10 gap-4">
         <h1 className="text-2xl font-bold">Listagem de Formulários de Selagens</h1>
+        
+        {/* API Environment Switcher for Development */}
+        <ApiEnvironmentSwitcher className="mb-4" />
 
         <div className="flex flex-row gap-4 items-end">
           <div className="flex flex-col">
