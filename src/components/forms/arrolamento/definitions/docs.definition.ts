@@ -491,8 +491,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     type: "radio",
                     required: true,
                     options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
+                        { label: "Válido", value: "Valido" },
+                        { label: "Inválido", value: "Invalido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
                 },
@@ -517,8 +517,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     type: "radio",
                     required: true,
                     options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
+                        { label: "Válido", value: "Valido" },
+                        { label: "Inválido", value: "Invalido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
                 },

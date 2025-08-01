@@ -1,1 +1,1 @@
-export const API_BASE_URL = "https://api-sehab.angeronacloud.com.br"
+export const API_BASE_URL = "https://api-sehab.develop.habitasampa.inf.br"

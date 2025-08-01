@@ -648,7 +648,7 @@ namespace survey_resource {
     export type RequestMetadataProps = {
         service: string;
         method: string;
-    }
+    };
 
     export type RequestHandler = (requestHandler: RequestHandlerProps, meta: RequestMetadataProps) => Promise<unknown>;
 
@@ -788,7 +788,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'CreateFromArrolamento',
         }) as Promise<CreateFromArrolamentoResponse>;
-    }
+    };
 
     export const UpdateArrolamento = async (request: UpdateArrolamentoRequest, handler: RequestHandler): Promise<UpdateArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -827,7 +827,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'UpdateArrolamento',
         }) as Promise<UpdateArrolamentoResponse>;
-    }
+    };
 
     export const PatchArrolamento = async (request: PatchArrolamentoRequest, handler: RequestHandler): Promise<PatchArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -890,7 +890,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'PatchArrolamento',
         }) as Promise<PatchArrolamentoResponse>;
-    }
+    };
 
     export const DeleteArrolamento = async (request: DeleteArrolamentoRequest, handler: RequestHandler): Promise<DeleteArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -929,7 +929,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'DeleteArrolamento',
         }) as Promise<DeleteArrolamentoResponse>;
-    }
+    };
 
     export const GetArrolamentoAttachments = async (request: GetArrolamentoAttachmentsRequest, handler: RequestHandler): Promise<GetArrolamentoAttachmentsResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}/attachments`;
@@ -973,7 +973,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetArrolamentoAttachments',
         }) as Promise<GetArrolamentoAttachmentsResponse>;
-    }
+    };
 
     export const RemoveArrolamentoAttachment = async (request: RemoveArrolamentoAttachmentRequest, handler: RequestHandler): Promise<RemoveArrolamentoAttachmentResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}/attachments`;
@@ -1011,7 +1011,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'RemoveArrolamentoAttachment',
         }) as Promise<RemoveArrolamentoAttachmentResponse>;
-    }
+    };
 
     export const GetSelagem = async (request: GetSelagemRequest, handler: RequestHandler): Promise<GetSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens`;
@@ -1075,7 +1075,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetSelagem',
         }) as Promise<GetSelagemResponse>;
-    }
+    };
 
     export const CreateSelagem = async (
         baseUrl: string,
@@ -1161,7 +1161,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'CreateFromSelagem',
         }) as Promise<CreateFromSelagemResponse>;
-    }
+    };
 
     export const UpdateSelagem = async (request: UpdateSelagemRequest, handler: RequestHandler): Promise<UpdateSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}`;
@@ -1200,7 +1200,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'UpdateSelagem',
         }) as Promise<UpdateSelagemResponse>;
-    }
+    };
 
     export const PatchSelagem = async (request: PatchSelagemRequest, handler: RequestHandler): Promise<PatchSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}`;
@@ -1284,7 +1284,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'PatchSelagem',
         }) as Promise<PatchSelagemResponse>;
-    }
+    };
 
     export const DeleteSelagem = async (request: DeleteSelagemRequest, handler: RequestHandler): Promise<DeleteSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}`;
@@ -1323,7 +1323,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'DeleteSelagem',
         }) as Promise<DeleteSelagemResponse>;
-    }
+    };
 
     export const GetSelagemAttachments = async (request: GetSelagemAttachmentsRequest, handler: RequestHandler): Promise<GetSelagemAttachmentsResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
@@ -1367,7 +1367,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetSelagemAttachments',
         }) as Promise<GetSelagemAttachmentsResponse>;
-    }
+    };
 
     export const RemoveSelagemAttachment = async (request: RemoveSelagemAttachmentRequest, handler: RequestHandler): Promise<RemoveSelagemAttachmentResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
@@ -1405,7 +1405,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'RemoveSelagemAttachment',
         }) as Promise<RemoveSelagemAttachmentResponse>;
-    }
+    };
 
     export const SendFormToArrolamentoIdentRep = async (
         baseUrl: string,
@@ -1458,6 +1458,30 @@ namespace survey_resource {
                 family_index: number;
                 contato: {
                     email: string;
+                    nao_sabe_email: boolean;
+                    telefone1: string;
+                    telefone2: string;
+                    telefone3: string;
+                    telefone4: string;
+                    tipo_telefone1: string;
+                    tipo_telefone2: string;
+                    tipo_telefone3: string;
+                    tipo_telefone4: string;
+                    nome_recado_tel1: string;
+                    nome_recado_tel2: string;
+                    nome_recado_tel3: string;
+                    nome_recado_tel4: string;
+                    relacao_parentesco_tel1: string;
+                    relacao_parentesco_tel2: string;
+                    relacao_parentesco_tel3: string;
+                    relacao_parentesco_tel4: string;
+                    whatzap_telefone1: boolean;
+                    whatzap_telefone2: boolean;
+                    whatzap_telefone3: boolean;
+                    whatzap_telefone4: boolean;
+                    ativar_telefone2: boolean;
+                    ativar_telefone3: boolean;
+                    ativar_telefone4: boolean;
                 };
             };
         }
@@ -1487,6 +1511,363 @@ namespace survey_resource {
             throw error;
         }
     };
+
+    export const SendFormToArrolamentoSituacaoUso = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                situacao_uso: {
+                    regime_ocupacao: string;
+                    contato_proprietario: string;
+                    contrato_locacao: string;
+                    nome_proprietario: string;
+                    nsi_contato_proprietario: boolean;
+                    nsi_valor_locacao: boolean;
+                    valor_locacao: string;
+                };
+            };
+        }
+
+
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            const json = await response.json();
+            return json;
+        } catch (error) {
+            console.error("Erro ao enviar formulário para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoDoc = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                documentacao: {
+                    cidade: string;
+                    cpf: string;
+                    data_emissao_rg: string;
+                    data_expedicao_cin: string;
+                    data_expedicao_crnm: string;
+                    data_expedicao_passaporte: string;
+                    data_expedicao_rnm: string;
+                    documentacao: string;
+                    estado_emissao_rg: string;
+                    fonte_cpf: string;
+                    numero_cin: boolean;
+                    numero_crnm: string;
+                    numero_passaporte: string;
+                    numero_protocolo: string;
+                    numero_rnm: string;
+                    orgao_expedidor: string;
+                    pais_origem: string;
+                    possui_cin: boolean;
+                    rg: string;
+                    status_crnm: string;
+                    status_rnm: string;
+                    uf: string;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar formulário para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoEtnicoRacial = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                identificacao_etnico_racial: {
+                    etnico_racial: string;
+                    genero: string;
+                    genero_outro: string;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificação étnico-racial para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoNupcidade = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                nupcidade: {
+                    estado_civil: string;
+                    nome_companheiro: string;
+                    vive_com_companheiro: boolean;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar dados de nupcidade para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoPessoaDeficiente = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                pessoa_deficiente: {
+                    tem_deficiencia: boolean;
+                    // possui_laudo: string;
+                    utiliza_tecnologia_assistida: boolean;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar dados de pessoa com deficiência para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoInformacaoFamilia = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                informacao_familia: {
+                    total_pessoas: number;
+                    renda_familiar: string;
+                    criancas_0a3: number;
+                    criancas_4a6: number;
+                    criancas_7a11: number;
+                    adolescentes_12a18: number;
+                    adultos_19a59: number;
+                    idosos_60: number;
+                    pessoas_com_deficiencia_cronica: number;
+                    gestantes: number;
+                    pessoas_imigrantes: number;
+                    nacionalidades_imigrantes: number;
+                    nao_sabe_informar: boolean;
+                    nao_tem_informacao: boolean;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar dados de informação da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoOutrasInf = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+            };
+            outras_informacoes: {
+                texto: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar outras informações da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoStatusNotas = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+            };
+            status_notas: {
+                justificativa: string;
+                nome_supervisor: string;
+                observacao: string;
+                status: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar status_notas da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
 
 }
 

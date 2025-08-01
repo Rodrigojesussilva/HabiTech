@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -9,6 +9,9 @@ import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidade
 import { validarData, DataValidade } from "@/components/forms/arrolamento/helpers/docs.helper";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
+import Swal from 'sweetalert2';
+import survey_resource from "../../../../service/survey_resource.api"
+import { API_BASE_URL } from "../../../../service/constants"
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
@@ -19,7 +22,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
 	const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
 	const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
-
+	const [initialDate] = useState("")
+	const [endDate] = useState("")
 	const form = useFormContext();
 
 	// Observar todos os valores da família
@@ -30,9 +34,331 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	const dataExpedicaoCrnm = form.watch(`families[${familyIndex}].dataExpedicaoCrnm`);
 	const dataExpedicaoCin = form.watch(`families[${familyIndex}].dataExpedicaoCIN`);
 	const dataExpedicaoPassaporte = form.watch(`families[${familyIndex}].dataExpedicaoPassaporte`);
+	const Cidade = form.watch(`families[${familyIndex}].cidade`);
+	const Cpf = form.watch(`families[${familyIndex}].cpf`);
+	const Documentacao = form.watch(`families[${familyIndex}].documentacao`);
+	const estadoEmissaoRG = form.watch(`families[${familyIndex}].estadoEmissaoRg`);
+	const fonteCpf = form.watch(`families[${familyIndex}].fonteCpf`);
+	const numeroCrnm = form.watch(`families[${familyIndex}].numeroCrnm`);
+	const numeroPassaporte = form.watch(`families[${familyIndex}].numeroPassaporte`);
+	const numeroProtoccolo = form.watch(`families[${familyIndex}].numeroProtocolo`);
+	const numeroRnm = form.watch(`families[${familyIndex}].numeroRnm`);
+	const orgaoExpedidor = form.watch(`families[${familyIndex}].orgaoExpedidor`);
+	const paisOrigem = form.watch(`families[${familyIndex}].paisOrigem`);
+	const Rg = form.watch(`families[${familyIndex}].rg`);
+	const StatusCrnm = form.watch(`families[${familyIndex}].statusCrnm`);
+	const StatusRmn = form.watch(`families[${familyIndex}].statusRnm`);
+	const Uf = form.watch(`families[${familyIndex}].uf`);
+	const possuiCin = form.watch(`families[${familyIndex}].possuiCIN`);
+	const Cin = form.watch(`families[${familyIndex}].cin`);
+	const triggeredByBlurRef = useRef(false);
+
 
 	// Pegar estrutura dos campos dinâmicos
 	let formSections = getMergedFormSections(formValues);
+
+	const prevValuesRef = useRef<Record<string, any>>({
+		cidade: Cidade,
+		cpf: Cpf,
+		data_emissao_rg: dataExpedicaoRg,
+		data_expedicao_cin: dataExpedicaoCin,
+		data_expedicao_crnm: dataExpedicaoCrnm,
+		data_expedicao_passaporte: dataExpedicaoPassaporte,
+		data_expedicao_rnm: dataExpedicaoRnm,
+		documentacao: Documentacao,
+		estado_emissao_rg: estadoEmissaoRG,
+		fonte_cpf: fonteCpf,
+		numero_cin: Cin,
+		numero_crnm: numeroCrnm,
+		numero_passaporte: numeroPassaporte,
+		numero_protocolo: numeroProtoccolo,
+		numero_rnm: numeroRnm,
+		orgao_expedidor: orgaoExpedidor,
+		pais_origem: paisOrigem,
+		possui_cin: possuiCin,
+		rg: Rg,
+		status_crnm: StatusCrnm,
+		status_rnm: StatusRmn,
+		uf: Uf,
+	});
+
+
+	function isGetArrolamentoResponse(
+		response: any
+	): response is { arrolamentos: any[] } {
+		return response && Array.isArray(response.arrolamentos)
+	};
+
+	const fetchData = async () => {
+		const seiFromStorageRaw = localStorage.getItem("seiNumber");
+		const seiFromStorage = Number(seiFromStorageRaw);
+
+		try {
+			const request = {
+				numero_sei: seiFromStorage,
+				initial_date: initialDate,
+				end_date: endDate,
+			};
+
+			const response = await fetchArrolamento(request);
+			/*
+				if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
+					showErrorMessage("Nenhum Arrolamento Cadastrado");
+					return;
+				}
+			*/
+
+			if (isGetArrolamentoResponse(response)) {
+				await handleDocumentacaoResponse(response);
+			}
+
+		} catch (error) {
+			console.error("Erro ao buscar arrolamentos:", error);
+			showErrorMessage("Erro ao buscar dados do arrolamento");
+		}
+	};
+
+	const showErrorMessage = (message: string) => {
+		Swal.fire({
+			icon: "error",
+			html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+			showConfirmButton: true,
+			customClass: {
+				popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+			},
+		});
+	};
+
+	const fetchArrolamento = async (request: any) => {
+		return await survey_resource.GetArrolamento(request, async (req: any) => {
+			const searchParams = new URLSearchParams();
+			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+				if (value !== undefined && value !== "") {
+					searchParams.append(key, String(value));
+				}
+			}
+
+			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const res = await fetch(url, {
+				method: req.method,
+				headers: {
+					"Content-Type": "application/json",
+					...(req.headers || {}),
+				},
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`HTTP ${res.status}: ${text}`);
+			}
+
+			return res.json();
+		});
+	};
+
+	const handleDocumentacaoResponse = async (response: any) => {
+		const arrolamento = response.arrolamentos?.[0];
+		if (arrolamento) {
+			const arrolamentoId = arrolamento.id;
+			const criadoPor = arrolamento.created_by;
+
+			localStorage.setItem("arrolamentoId", arrolamentoId);
+			localStorage.setItem("arrolamentoCreated_by", criadoPor);
+
+			const formatarDataParaBR = (data: string): string => {
+				if (!data) return "";
+				const [ano, mes, dia] = data.split("-");
+				return `${dia}/${mes}/${ano}`;
+			};
+
+			const documentacaoPayload = {
+				created_by: criadoPor,
+				form: {
+					family_index: 1,
+					documentacao: {
+						cidade: Cidade,
+						cpf: Cpf,
+						data_emissao_rg: formatarDataParaBR(dataExpedicaoRg),
+						data_expedicao_cin: formatarDataParaBR(dataExpedicaoCin),
+						data_expedicao_crnm: formatarDataParaBR(dataExpedicaoCrnm),
+						data_expedicao_passaporte: formatarDataParaBR(dataExpedicaoPassaporte),
+						data_expedicao_rnm: formatarDataParaBR(dataExpedicaoRnm),
+						documentacao: Documentacao,
+						estado_emissao_rg: estadoEmissaoRG,
+						fonte_cpf: fonteCpf,
+						numero_cin: true,//corrigir
+						numero_crnm: numeroCrnm,
+						numero_passaporte: numeroPassaporte,
+						numero_protocolo: numeroProtoccolo,
+						numero_rnm: numeroRnm,
+						orgao_expedidor: orgaoExpedidor,
+						pais_origem: paisOrigem,
+						possui_cin: possuiCin === "sim", // <-- aqui está a correção
+						rg: Rg,
+						status_crnm: StatusCrnm,
+						status_rnm: StatusRmn,
+						uf: Uf,
+					},
+				},
+			};
+
+			try {
+				console.log("Payload final enviado:", JSON.stringify(documentacaoPayload, null, 2));
+				await survey_resource.SendFormToArrolamentoDoc(API_BASE_URL, arrolamentoId, documentacaoPayload);
+				// showSuccessMessage("Documentação enviada com sucesso");
+			} catch (error) {
+				console.error("Erro ao enviar documentação:", error);
+				showErrorMessage("Erro ao enviar os dados de documentação");
+			}
+		}
+	};
+
+	const hasArrolamento = async (request: any): Promise<boolean> => {
+		try {
+			const response = await fetchArrolamento(request);
+
+			const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
+
+			return !isEmpty;
+		} catch (error) {
+			console.error("Erro ao verificar arrolamentos:", error);
+			return false;
+		}
+	};
+	useEffect(() => {
+		const handleBlur = async () => {
+			const activeFieldName = document.activeElement?.getAttribute("name");
+
+			const fields = {
+				["documentacao.cidade"]: Cidade,
+				["documentacao.cpf"]: Cpf,
+				["documentacao.data_emissao_rg"]: dataExpedicaoRg,
+				["documentacao.data_expedicao_cin"]: dataExpedicaoCin,
+				["documentacao.data_expedicao_crnm"]: dataExpedicaoCrnm,
+				["documentacao.data_expedicao_passaporte"]: dataExpedicaoPassaporte,
+				["documentacao.data_expedicao_rnm"]: dataExpedicaoRnm,
+				["documentacao.documentacao"]: Documentacao,
+				["documentacao.estado_emissao_rg"]: estadoEmissaoRG,
+				["documentacao.fonte_cpf"]: fonteCpf,
+				["documentacao.numero_cin"]: Cin, // boolean
+				["documentacao.numero_crnm"]: numeroCrnm,
+				["documentacao.numero_passaporte"]: numeroPassaporte,
+				["documentacao.numero_protocolo"]: numeroProtoccolo,
+				["documentacao.numero_rnm"]: numeroRnm,
+				["documentacao.orgao_expedidor"]: orgaoExpedidor,
+				["documentacao.pais_origem"]: paisOrigem,
+				["documentacao.possui_cin"]: possuiCin, // boolean
+				["documentacao.rg"]: Rg,
+				["documentacao.status_rnm"]: StatusRmn,
+				["documentacao.status_crnm"]: StatusCrnm,
+				["documentacao.uf"]: Uf,
+			};
+
+			let shouldFetch = false;
+
+			for (const [fieldName, currentValue] of Object.entries(fields)) {
+				const shortName = fieldName.split(".").pop() || "";
+				const prevValue = prevValuesRef.current[shortName];
+
+				if (currentValue !== prevValue && activeFieldName !== fieldName) {
+					shouldFetch = true;
+					prevValuesRef.current[shortName] = currentValue;
+				}
+			}
+
+			if (shouldFetch) {
+				const seiNumber = localStorage.getItem("seiNumber");
+				const request = {
+					numero_sei: Number(seiNumber),
+					initial_date: initialDate,
+					end_date: endDate,
+				};
+
+				const hasData = await hasArrolamento(request);
+
+				if (!hasData) {
+					showErrorMessage("Nenhum Arrolamento Cadastrado");
+					return;
+				}
+
+				triggeredByBlurRef.current = true;
+				fetchData(); // função de envio do formulário/documentação
+			}
+		};
+
+		window.addEventListener("blur", handleBlur, true);
+		return () => {
+			window.removeEventListener("blur", handleBlur, true);
+		};
+	}, [
+		Cidade,
+		Cpf,
+		dataExpedicaoRg,
+		dataExpedicaoCin,
+		dataExpedicaoCrnm,
+		dataExpedicaoPassaporte,
+		dataExpedicaoRnm,
+		Documentacao,
+		estadoEmissaoRG,
+		fonteCpf,
+		Cin,
+		numeroCrnm,
+		numeroPassaporte,
+		numeroProtoccolo,
+		numeroRnm,
+		orgaoExpedidor,
+		paisOrigem,
+		possuiCin,
+		Rg,
+		StatusRmn,
+		StatusCrnm,
+		Uf,
+	]);
+	
+	useEffect(() => {
+
+		form.setValue(`families[${familyIndex}].uf`, "");
+		form.setValue(`families[${familyIndex}].cidade`, "");
+		form.setValue(`families[${familyIndex}].rg`, "");
+		form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
+		form.setValue(`families[${familyIndex}].contato_proprietario`, "");
+		form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
+		form.setValue(`families[${familyIndex}].cpf`, "");
+		form.setValue(`families[${familyIndex}].fonteCpf`, "");
+		form.setValue(`families[${familyIndex}].documentacao`, "");
+		form.setValue(`families[${familyIndex}].possuiCIN`, "");
+
+	}, [paisOrigem, familyIndex]);
+
+	useEffect(() => {
+
+		form.setValue(`families[${familyIndex}].rg`, "");
+		form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
+		form.setValue(`families[${familyIndex}].contato_proprietario`, "");
+		form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
+		form.setValue(`families[${familyIndex}].cpf`, "");
+		form.setValue(`families[${familyIndex}].fonteCpf`, "");
+		form.setValue(`families[${familyIndex}].cin`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoCIN`, "");
+
+
+	}, [possuiCin, familyIndex]);
+
+	useEffect(() => {
+
+		form.setValue(`families[${familyIndex}].numeroProtocolo`, "");
+		form.setValue(`families[${familyIndex}].numeroRnm`, "");
+		form.setValue(`families[${familyIndex}].statusRnm`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoRnm`, "");
+		form.setValue(`families[${familyIndex}].numeroCrnm`, "");
+		form.setValue(`families[${familyIndex}].statusCrnm`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoCrnm`, "");
+		form.setValue(`families[${familyIndex}].numeroPassaporte`, "");
+		form.setValue(`families[${familyIndex}].dataExpedicaoPassaporte`, "");
+
+	}, [Documentacao, familyIndex]);
 
 	useEffect(() => {
 		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
@@ -45,7 +371,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	useEffect(() => {
 		validarData(dataExpedicaoCrnm, familyIndex, "dataExpedicaoCrnm", form.setValue);
 	}, [dataExpedicaoCrnm, familyIndex, form.setValue]);
-	
+
 	useEffect(() => {
 		validarData(dataExpedicaoCin, familyIndex, "dataExpedicaoCIN", form.setValue);
 	}, [dataExpedicaoCin, familyIndex, form.setValue]);
