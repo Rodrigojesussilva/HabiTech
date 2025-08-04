@@ -186,7 +186,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 						documentacao: Documentacao,
 						estado_emissao_rg: estadoEmissaoRG,
 						fonte_cpf: fonteCpf,
-						numero_cin: true,//corrigir
+						numero_cin: Number(Cin),
 						numero_crnm: numeroCrnm,
 						numero_passaporte: numeroPassaporte,
 						numero_protocolo: numeroProtoccolo,
@@ -328,6 +328,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		form.setValue(`families[${familyIndex}].fonteCpf`, "");
 		form.setValue(`families[${familyIndex}].documentacao`, "");
 		form.setValue(`families[${familyIndex}].possuiCIN`, "");
+		form.setValue(`families[${familyIndex}].cin`, "");
 
 	}, [paisOrigem, familyIndex]);
 

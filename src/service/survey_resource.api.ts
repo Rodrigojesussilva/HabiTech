@@ -1577,7 +1577,7 @@ namespace survey_resource {
                     documentacao: string;
                     estado_emissao_rg: string;
                     fonte_cpf: string;
-                    numero_cin: boolean;
+                    numero_cin: number;
                     numero_crnm: string;
                     numero_passaporte: string;
                     numero_protocolo: string;
