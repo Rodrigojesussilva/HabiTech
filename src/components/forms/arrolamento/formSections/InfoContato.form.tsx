@@ -107,12 +107,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             };
 
             const response = await fetchArrolamento(request);
-            /*
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
 
             if (isGetArrolamentoResponse(response)) {
                 await handleContatoResponse(response);
@@ -282,7 +276,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             const hasData = await hasArrolamento(request);
 
             if (!hasData) {
-                showErrorMessage("Nenhum Arrolamento Cadastrado");
+                console.log("Nenhum Arrolamento Cadastrado");
                 return;
             }
 
@@ -377,7 +371,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             }
         }
     }, [formValues.naoSabeEmail, form, familyIndex]);
-    
+
     useEffect(() => {
         if (!ativarTelefone2) {
             form.setValue(`families[${familyIndex}].telefone2`, "");

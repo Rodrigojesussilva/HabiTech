@@ -30,7 +30,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
     const formSections = getMergedFormSections(formValues);
     const outrasInformacoesTexto = form.watch(`families[${familyIndex}].texto`);
     const triggeredByBlurRef = useRef(false);
-    
+
     const prevValuesRef = useRef<Record<string, any>>({
         texto: outrasInformacoesTexto,
     });
@@ -54,12 +54,6 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
 
             const response = await fetchArrolamento(request);
 
-            /*
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
 
             if (isGetArrolamentoResponse(response)) {
                 await handleOutrasInfResponse(response);
@@ -182,7 +176,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 

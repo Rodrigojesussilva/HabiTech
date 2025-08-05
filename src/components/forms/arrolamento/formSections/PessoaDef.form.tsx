@@ -43,11 +43,14 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     const defSurdo = form.watch(`families[${familyIndex}].defSurdoCegueira`);
     const defVisual = form.watch(`families[${familyIndex}].defVisual`);
     const especifiqueOutraDef = form.watch(`families[${familyIndex}].especifiqueOutras`);
+    const especifiqueOutraTecAssistiva = form.watch(`families[${familyIndex}].especifiqueOutraTecAssistiva`);
     const leituraFacialLabial = form.watch(`families[${familyIndex}].leituraFacialLabial`);
     const libras = form.watch(`families[${familyIndex}].libras`);
     const lupaLenteFonteAmpliada = form.watch(`families[${familyIndex}].lupaLenteFontaAmpliada`);
     const muletaBengala4PontasAndador = form.watch(`families[${familyIndex}].muletaBengala4pontasAndador`);
     const orteseProtese = form.watch(`families[${familyIndex}].ortesesProteses`);
+    const pranchaComunicacaoAlternativa = form.watch(`families[${familyIndex}].pranchaComunicacaoAlternativa`);
+
     const possuiLaudo = form.watch(`families[${familyIndex}].responsavelPossuiLaudo`);
     const qtdDefAuditiva = form.watch(`families[${familyIndex}].quantAuditiva`);
     const qtdDefFisica = form.watch(`families[${familyIndex}].quantFisica`);
@@ -67,12 +70,13 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     const responsavelLibras = form.watch(`families[${familyIndex}].responsavelLibras`);
     const responsavelLupaLenteFonteAmpliada = form.watch(`families[${familyIndex}].responsavelLupaLenteFontaAmpliada`);
     const responsavelMuletaBengala4PontasAndador = form.watch(`families[${familyIndex}].responsavelMuletaBengala4pontasAndador`);
-    const responsavelOrteseProtese = form.watch(`families[${familyIndex}].responsavelOrteseProtese`);
     const responsavelTemDeficiencia = form.watch(`families[${familyIndex}].responsavelTemDeficiencia`);
+    const responsavelOrteseProtese = form.watch(`families[${familyIndex}].responsavelOrteseProtese`);
+    const responsavelPranchaComAlt = form.watch(`families[${familyIndex}].responsavelPranchaComAlt`);
     const utilizaTecnologiaAssistida = form.watch(`families[${familyIndex}].tecnologiaAssistiva`);
-
     const outrasTecAssistiva = form.watch(`families[${familyIndex}].outrasTecAssistiva`);
-    const pranchaComunicacaoAlternativa = form.watch(`families[${familyIndex}].pranchaComunicacaoAlternativa`);
+
+    const responsavelDefFisica = form.watch(`families[${familyIndex}].responsavelDefFisica`);
     const responsavelDefAuditiva = form.watch(`families[${familyIndex}].responsavelDefAuditiva`);
     const responsavelDefIntelectual = form.watch(`families[${familyIndex}].responsavelDefIntelectual`);
     const responsavelDefMobilidade = form.watch(`families[${familyIndex}].responsavelDefMobilidade`);
@@ -106,6 +110,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         def_surdo: defSurdo,
         def_visual: defVisual,
         especifique_outra_def: especifiqueOutraDef,
+        especifique_outra_tec_assistida: especifiqueOutraTecAssistiva,
         leitura_facial_labial: leituraFacialLabial,
         libras: libras,
         lupa_lente_fonte_ampliada: lupaLenteFonteAmpliada,
@@ -118,7 +123,6 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         qtd_def_intelectual_mental: qtdDefIntelectualMental,
         qtd_def_mobilidade_reduzida: qtdDefMobilidadeReduzida,
         qtd_def_multiplas: qtdDefMultiplas,
-        qtd_def_outra: 0, // ou valor correto
         qtd_def_surdo: qtdDefSurdo,
         qtd_def_visual: qtdDefVisual,
 
@@ -133,8 +137,9 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         responsavel_lupa_lente_fonte_ampliada: responsavelLupaLenteFonteAmpliada,
         responsavel_muleta_bengala4pontas_andador: responsavelMuletaBengala4PontasAndador,
         responsavel_ortese_protese: responsavelOrteseProtese,
-
+        responsavel_prancha: responsavelPranchaComAlt,
         // Campos que faltavam:
+        responsavel_def_fisica: responsavelDefFisica,
         responsavel_def_auditiva: responsavelDefAuditiva,
         responsavel_def_intelectual: responsavelDefIntelectual,
         responsavel_def_mobilidade: responsavelDefMobilidade,
@@ -222,15 +227,6 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         localStorage.setItem("arrolamentoId", arrolamentoId);
         localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-        const quantidadeTotal =
-            (defFisica ? Number(qtdDefFisica || 0) : 0) +
-            (defVisual ? Number(qtdDefVisual || 0) : 0) +
-            (defAuditiva ? Number(qtdDefAuditiva || 0) : 0) +
-            (defIntelectualMental ? Number(qtdDefIntelectualMental || 0) : 0) +
-            (defMultiplas ? Number(qtdDefMultiplas || 0) : 0) +
-            (defMobilidadeReduzida ? Number(qtdDefMobilidadeReduzida || 0) : 0) +
-            (defSurdo ? Number(qtdDefSurdo || 0) : 0);
-
         const payload = {
             created_by: criadoPor,
             form: {
@@ -254,6 +250,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                     def_visual: defVisual === true || defVisual === "sim",
 
                     especifique_outra_def: especifiqueOutraDef || "",
+                    especifique_outra_tec_assistida: especifiqueOutraTecAssistiva || "",
                     leitura_facial_labial: leituraFacialLabial === true || leituraFacialLabial === "sim",
                     libras: libras === true || libras === "sim",
                     lupa_lente_fonte_ampliada: lupaLenteFonteAmpliada === true || lupaLenteFonteAmpliada === "sim",
@@ -275,13 +272,13 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
                     responsavel_aparelho_auditivo: responsavelAparelhoAuditivo === true || responsavelAparelhoAuditivo === "sim",
                     responsavel_bengala_branca_ou_verde_vermelha: responsavelBengalaBrancaOuVerdeVermelha === true || responsavelBengalaBrancaOuVerdeVermelha === "sim",
-
                     responsavel_braille_equip_sintese_voz: responsavelBrailleEquipSinteseVoz === true || responsavelBrailleEquipSinteseVoz === "sim",
                     responsavel_cadeira_de_roda: responsavelCadeiraDeRoda === true || responsavelCadeiraDeRoda === "sim",
                     responsavel_cama_hospitalar: responsavelCamaHospitalar === true || responsavelCamaHospitalar === "sim",
                     responsavel_cao_guia: responsavelCaoGuia === true || responsavelCaoGuia === "sim",
-
+                    responsavel_prancha: responsavelPranchaComAlt === true || responsavelPranchaComAlt === "sim",
                     responsavel_def_auditiva: responsavelDefAuditiva === true || responsavelDefAuditiva === "sim",
+                    responsavel_def_fisica: responsavelDefFisica === true || responsavelDefFisica === "sim",
                     responsavel_def_intelectual: responsavelDefIntelectual === true || responsavelDefIntelectual === "sim",
                     responsavel_def_mobilidade: responsavelDefMobilidade === true || responsavelDefMobilidade === "sim",
                     responsavel_def_multipla: responsavelDefMultipla === true || responsavelDefMultipla === "sim",
@@ -353,6 +350,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 [`pessoa_deficiente.def_surdo`]: defSurdo,
                 [`pessoa_deficiente.def_visual`]: defVisual,
                 [`pessoa_deficiente.especifique_outra_def`]: especifiqueOutraDef,
+                [`pessoa_deficiente.especifique_outra_tec_assistida`]: especifiqueOutraTecAssistiva,
                 [`pessoa_deficiente.leitura_facial_labial`]: leituraFacialLabial,
                 [`pessoa_deficiente.libras`]: libras,
                 [`pessoa_deficiente.lupa_lente_fonte_ampliada`]: lupaLenteFonteAmpliada,
@@ -366,7 +364,6 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 [`pessoa_deficiente.qtd_def_intelectual_mental`]: qtdDefIntelectualMental,
                 [`pessoa_deficiente.qtd_def_mobilidade_reduzida`]: qtdDefMobilidadeReduzida,
                 [`pessoa_deficiente.qtd_def_multiplas`]: qtdDefMultiplas,
-                //[`pessoa_deficiente.qtd_def_outra`]: qtdDefOutra,  // ajustar para variável existente ou 0
                 [`pessoa_deficiente.qtd_def_surdo`]: qtdDefSurdo,
                 [`pessoa_deficiente.qtd_def_visual`]: qtdDefVisual,
 
@@ -387,7 +384,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 [`pessoa_deficiente.responsavel_libras`]: responsavelLibras,
                 [`pessoa_deficiente.responsavel_lupa_lente_fonte_ampliada`]: responsavelLupaLenteFonteAmpliada,
                 [`pessoa_deficiente.responsavel_muleta_bengala4pontas_andador`]: responsavelMuletaBengala4PontasAndador,
-                [`pessoa_deficiente.responsavel_ortese_protese`]: responsavelOrteseProtese,
+                [`pessoa_deficiente."responsavel_prancha"`]: responsavelPranchaComAlt,
+                [`pessoa_deficiente.responsa`]: responsavelOrteseProtese,
                 [`pessoa_deficiente.responsavel_outra_tec_assistiva`]: responsavelOutraTecAssistiva,
             };
 
@@ -414,10 +412,9 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
-
                 triggeredByBlurRef.current = true;
                 await fetchData();
             }
@@ -449,6 +446,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         defSurdo,
         defVisual,
         especifiqueOutraDef,
+        especifiqueOutraTecAssistiva,
         leituraFacialLabial,
         libras,
         lupaLenteFonteAmpliada,
@@ -462,7 +460,6 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         qtdDefIntelectualMental,
         qtdDefMobilidadeReduzida,
         qtdDefMultiplas,
-        //qtdDefOutra,
         qtdDefSurdo,
         qtdDefVisual,
 
@@ -484,6 +481,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         responsavelLupaLenteFonteAmpliada,
         responsavelMuletaBengala4PontasAndador,
         responsavelOrteseProtese,
+        responsavelPranchaComAlt,
         responsavelOutraTecAssistiva,
     ]);
 

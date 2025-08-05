@@ -75,13 +75,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             };
 
             const response = await fetchArrolamento(request);
-            /*
-        
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
+
 
             if (isGetArrolamentoResponse(response)) {
                 await handleArrolamentoResponse(response);
@@ -239,7 +233,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 const hasData = await hasArrolamento(request); // ✅ uso aqui da função externa
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 

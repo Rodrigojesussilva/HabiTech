@@ -30,6 +30,9 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
+    function slugify(pais: string) {
+        return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+    }
     // Get merged form sections with conditional fields included
     let formSections = getMergedFormSections(formValues);
     const totalPessoas = form.watch(`families[${familyIndex}].totalPessoas`);
@@ -43,8 +46,13 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     const pessoasComDeficienciaCronica = form.watch(`families[${familyIndex}].pessoasComDoencasCronicas`);
     const gestantes = form.watch(`families[${familyIndex}].gestantes`);
     const pessoasImigrantes = form.watch(`families[${familyIndex}].pessoasImigrantes`);
+    const nacionalidadesSelecionadas = form.getValues(`families[${familyIndex}].nacionalidadesSelecionadas`) ?? [];
 
-
+    const numerosPorPais = nacionalidadesSelecionadas.map((pais: string) => {
+        const key = slugify(pais);
+        const valor = form.getValues(`families[${familyIndex}].numerosPorPais.${key}`);
+        return valor?.toString() ?? "0";
+    });
 
     const triggeredByBlurRef = useRef(false);
 
@@ -60,6 +68,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         pessoasComDeficienciaCronica,
         gestantes,
         pessoasImigrantes,
+        nacionalidadesSelecionadas,
+        numerosPorPais,
     });
 
     function isGetArrolamentoResponse(
@@ -163,9 +173,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                         pessoas_com_deficiencia_cronica: Number(pessoasComDeficienciaCronica),
                         gestantes: Number(gestantes),
                         pessoas_imigrantes: Number(pessoasImigrantes),
-                        nacionalidades_imigrantes: 0, // ajuste se necessário
-                        nao_sabe_informar: true,
-                        nao_tem_informacao: true,
+                        nacionalidades_selecionadas: nacionalidadesSelecionadas,
+                        numeros_por_pais: numerosPorPais,
                     },
                 },
             };
@@ -179,7 +188,6 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             }
         }
     };
-
 
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
@@ -211,6 +219,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                 pessoasComDeficienciaCronica,
                 gestantes,
                 pessoasImigrantes,
+                nacionalidadesSelecionadas,
+                numerosPorPais
             };
 
             let shouldFetch = false;
@@ -235,7 +245,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 
@@ -261,6 +271,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         pessoasComDeficienciaCronica,
         gestantes,
         pessoasImigrantes,
+        nacionalidadesSelecionadas,
+        numerosPorPais
     ]);
 
     useEffect(() => {

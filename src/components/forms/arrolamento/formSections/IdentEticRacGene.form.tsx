@@ -57,12 +57,6 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
             };
 
             const response = await fetchArrolamento(request);
-            /*
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
 
             if (isGetArrolamentoResponse(response)) {
                 await handleIdentificacaoResponse(response);
@@ -189,7 +183,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 

@@ -1706,8 +1706,61 @@ namespace survey_resource {
             form: {
                 family_index: number;
                 pessoa_deficiente: {
+                    aparelho_auditivo: boolean;
+                    bengala_branca_ou_verde_vermelha: boolean;
+                    braille_equip_sintese_voz: boolean;
+                    cadeira_de_roda: boolean;
+                    cama_hospitalar: boolean;
+                    cao_guia: boolean;
+                    def_auditiva: boolean;
+                    def_fisica: boolean;
+                    def_intelectual_mental: boolean;
+                    def_mobilidade_reduzida: boolean;
+                    def_multiplas: boolean;
+                    def_outra: boolean;
+                    def_surdo: boolean;
+                    def_visual: boolean;
+                    especifique_outra_def: string;
+                    especifique_outra_tec_assistida: string;
+                    leitura_facial_labial: boolean;
+                    libras: boolean;
+                    lupa_lente_fonte_ampliada: boolean;
+                    muleta_bengala4pontas_andador: boolean;
+                    ortese_protese: boolean;
+                    outras_tec_assistiva: boolean;
+                    possui_laudo: string;
+                    prancha_comunicacao_alternativa: boolean;
+                    qtd_def_auditiva: number;
+                    qtd_def_fisica: number;
+                    qtd_def_intelectual_mental: number;
+                    qtd_def_mobilidade_reduzida: number;
+                    qtd_def_multiplas: number;
+                    qtd_def_surdo: number;
+                    qtd_def_visual: number;
+                    qtd_pessoas_com_def_fam: number;
+                    responsavel_aparelho_auditivo: boolean;
+                    responsavel_bengala_branca_ou_verde_vermelha: boolean;
+                    responsavel_braille_equip_sintese_voz: boolean;
+                    responsavel_cadeira_de_roda: boolean;
+                    responsavel_cama_hospitalar: boolean;
+                    responsavel_cao_guia: boolean;
+                    responsavel_def_auditiva: boolean;
+                    responsavel_def_fisica: boolean;
+                    responsavel_def_intelectual: boolean;
+                    responsavel_def_mobilidade: boolean;
+                    responsavel_def_multipla: boolean;
+                    responsavel_def_outra: boolean;
+                    responsavel_def_surdo_cegueira: boolean;
+                    responsavel_def_visual: boolean;
+                    responsavel_leitura_facial_labial: boolean;
+                    responsavel_libras: boolean;
+                    responsavel_lupa_lente_fonte_ampliada: boolean;
+                    responsavel_muleta_bengala4pontas_andador: boolean;
+                    responsavel_ortese_protese: boolean;
+                    responsavel_outra_tec_assistiva: boolean;
+                    responsavel_prancha: boolean;
+                    responsavel_tem_deficiencia: boolean;
                     tem_deficiencia: boolean;
-                    // possui_laudo: string;
                     utiliza_tecnologia_assistida: boolean;
                 };
             };
@@ -1715,7 +1768,6 @@ namespace survey_resource {
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
-
             const headers = {
                 "Content-Type": "application/json",
             };
@@ -1733,7 +1785,10 @@ namespace survey_resource {
 
             return await response.json();
         } catch (error) {
-            console.error("Erro ao enviar dados de pessoa com deficiência para arrolamento:", error);
+            console.error(
+                "Erro ao enviar dados de pessoa com deficiência para arrolamento:",
+                error
+            );
             throw error;
         }
     };
@@ -1757,9 +1812,8 @@ namespace survey_resource {
                     pessoas_com_deficiencia_cronica: number;
                     gestantes: number;
                     pessoas_imigrantes: number;
-                    nacionalidades_imigrantes: number;
-                    nao_sabe_informar: boolean;
-                    nao_tem_informacao: boolean;
+                    nacionalidades_selecionadas: string[];
+                    numeros_por_pais: string[];
                 };
             };
         }
@@ -1868,6 +1922,50 @@ namespace survey_resource {
         }
     };
 
+    // Sua função já exportada, que faz o POST para enviar o arquivo
+    export const SendFileToUpload = async (
+        baseUrl: string,
+        entityId: string,
+        fileContent: string
+    ): Promise<any> => {
+        try {
+            const path = `/file-input/v1/files/upload`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            // Remove prefixo base64 caso exista
+            const cleanedFileContent = fileContent.replace(/^data:.*;base64,/, "");
+
+            const body = {
+                entity_id: entityId,
+                file: cleanedFileContent,
+                usage: "SURVEY",
+            };
+
+            console.log("Enviando corpo do request:", body);
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            const jsonResponse = await response.json();
+            console.log("Resposta do upload:", jsonResponse);
+
+            return jsonResponse;
+        } catch (error) {
+            console.error("Erro ao enviar arquivo para upload:", error);
+            throw error;
+        }
+    };
 
 }
 

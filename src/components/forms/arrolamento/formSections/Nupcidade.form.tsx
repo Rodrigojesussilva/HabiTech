@@ -58,13 +58,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
             };
 
             const response = await fetchArrolamento(request);
-            
-            /*
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
+
 
             if (isGetArrolamentoResponse(response)) {
                 await handleNupcidadeResponse(response);
@@ -165,7 +159,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
             const fields = {
                 "nupcidade.estado_civil": estadoCivil,
                 "nupcidade.nome_companheiro": nomeCompanheiro,
-                "nupcidade.vive_com_companheiro": viveComCompanheiro,               
+                "nupcidade.vive_com_companheiro": viveComCompanheiro,
             };
 
             let shouldFetch = false;
@@ -191,7 +185,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 

@@ -101,12 +101,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			};
 
 			const response = await fetchArrolamento(request);
-			/*
-				if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-					showErrorMessage("Nenhum Arrolamento Cadastrado");
-					return;
-				}
-			*/
+			
 
 			if (isGetArrolamentoResponse(response)) {
 				await handleDocumentacaoResponse(response);
@@ -186,7 +181,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 						documentacao: Documentacao,
 						estado_emissao_rg: estadoEmissaoRG,
 						fonte_cpf: fonteCpf,
-						numero_cin: Number(Cin),
+						numero_cin: Cin,
 						numero_crnm: numeroCrnm,
 						numero_passaporte: numeroPassaporte,
 						numero_protocolo: numeroProtoccolo,
@@ -277,7 +272,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				const hasData = await hasArrolamento(request);
 
 				if (!hasData) {
-					showErrorMessage("Nenhum Arrolamento Cadastrado");
+					console.log("Nenhum Arrolamento Cadastrado");
 					return;
 				}
 
@@ -314,7 +309,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		StatusCrnm,
 		Uf,
 	]);
-	
+
 	useEffect(() => {
 
 		form.setValue(`families[${familyIndex}].uf`, "");

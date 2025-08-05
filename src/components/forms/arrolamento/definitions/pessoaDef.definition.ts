@@ -57,7 +57,7 @@ export const pessoaDefSchema = z.object({
     responsavelLeituraFacialLabial: z.string().optional(),
     responsavelBnglBranOuVerdVerm: z.string().optional(),
     responsavelCaoGuia: z.string().optional(),
-    responsavelPrancha: z.string().optional(),
+    responsavelPranchaComAlt: z.string().optional(),
     responsavelOutraTecAssistiva: z.string().optional(),
     especifiqueOutraTecAssistiva: z.string().optional(),
 
@@ -123,7 +123,7 @@ export const defaultValues: Partial<FormValues> = {
     responsavelLeituraFacialLabial: "",
     responsavelBnglBranOuVerdVerm: "",
     responsavelCaoGuia: "",
-    responsavelPrancha: "",
+    responsavelPranchaComAlt: "",
     responsavelOutraTecAssistiva: "",
     especifiqueOutraTecAssistiva: "",
 
@@ -796,7 +796,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         if (formValues.pranchaComunicacaoAlternativa && formValues.responsavelTemDeficiencia === "sim") {
             conditionalFields.push(
                 {
-                    name: "responsavelPrancha",
+                    name: "responsavelPranchaComAlt",
                     label: "O responsável utiliza Prancha de Comunicação Alternativa",
                     type: "checkbox" as const,
                     required: false,
@@ -956,7 +956,7 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             "responsavelCaoGuia"
         ])
         afterInsert(baseFields, conditionalFields, "pranchaComunicacaoAlternativa", [
-            "responsavelPrancha"
+            "responsavelPranchaComAlt"
         ])
         afterInsert(baseFields, conditionalFields, "outrasTecAssistiva", [
             "responsavelOutraTecAssistiva", "especifiqueOutraTecAssistiva"

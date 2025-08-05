@@ -98,12 +98,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             };
 
             const response = await fetchArrolamento(request);
-            /*
-                if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
-                    return;
-                }
-            */
+
 
             if (isGetArrolamentoResponse(response)) {
                 await handleSituacaoUsoResponse(response);
@@ -194,7 +189,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                         tempo_moradia_anos: Number(tempoMoradiaAnos ?? 0),
                         tempo_moradia_meses: Number(tempoMoradiaMeses ?? 0),
                         tempo_moradia_naosabe: tempoMoradiaNaoSabe === "sim",
-                        tempo_moradia_naosabe1: tempoMoradiaNaoSabe1 === "sim" ,
+                        tempo_moradia_naosabe1: tempoMoradiaNaoSabe1 === "sim",
 
                     },
                 },
@@ -356,7 +351,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                 const hasData = await hasArrolamento(request);
 
                 if (!hasData) {
-                    showErrorMessage("Nenhum Arrolamento Cadastrado");
+                    console.log("Nenhum Arrolamento Cadastrado");
                     return;
                 }
 
