@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -132,6 +132,9 @@ const FormArrolamento = ({
 	});
 
 	const { setForm, setMetadata } = useFormMetadata();
+
+
+
 	// Share the form and metadata once on mount
 	useEffect(() => {
 		setForm(form);
@@ -171,6 +174,7 @@ const FormArrolamento = ({
 		control: form.control,
 		name: "numberFamilies",
 	});
+
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
 
@@ -211,6 +215,52 @@ const FormArrolamento = ({
 		}
 		console.log(data);
 	};
+
+	const ignoreNextCloseRef = useRef(false);
+
+	const handleMetadataModalOpenChange = (isOpen: boolean) => {
+		if (isOpen) {
+			setIsMetadataModalOpen(true);
+			return;
+		}
+
+		if (ignoreNextCloseRef.current) {
+			ignoreNextCloseRef.current = false;
+			setIsMetadataModalOpen(false);
+			return;
+		}
+
+		// Fecha o modal imediatamente
+		setIsMetadataModalOpen(false);
+
+		// Remove o foco para o alert ganhar o foco corretamente
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+
+		// Exibe o alerta após fechar o modal
+		Swal.fire({
+			position: 'top-end', // canto superior direito
+			title: "Deseja realmente sair?",
+			text: "Os dados preenchidos serão perdidos.",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Sim, sair",
+			cancelButtonText: "Não, continuar preenchendo",
+		}).then((result) => {
+			if (result.isConfirmed) {
+				ignoreNextCloseRef.current = true; // Permite o próximo fechamento
+				// Redireciona para home
+				window.location.href = "/";
+			} else {
+				// Reabre o modal para continuar preenchendo
+				setIsMetadataModalOpen(true);
+			}
+		});
+	};
+
+
+
 
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
@@ -361,7 +411,10 @@ const FormArrolamento = ({
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
 
-					<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
+					<Dialog
+						open={isMetadataModalOpen}
+						onOpenChange={handleMetadataModalOpenChange}
+					>
 
 						<DialogContent
 							className="max-h-[90vh] overflow-y-auto "
