@@ -57,8 +57,9 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 numero_sei: seiFromStorage,
                 initial_date: initialDate,
                 end_date: endDate,
+                
             };
-
+            console.log("Requeest",request)
             const response = await fetchArrolamento(request);
 
             if (isGetArrolamentoResponse(response)) {

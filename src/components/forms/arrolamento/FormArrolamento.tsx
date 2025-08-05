@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -132,7 +132,8 @@ const FormArrolamento = ({
 	});
 
 	const { setForm, setMetadata } = useFormMetadata();
-
+	const [initialDate] = useState("")
+	const [endDate] = useState("")
 
 
 	// Share the form and metadata once on mount
@@ -216,9 +217,63 @@ const FormArrolamento = ({
 		console.log(data);
 	};
 
+	function isGetArrolamentoResponse(response: any): response is { arrolamentos: any[] } {
+		return response && Array.isArray(response.arrolamentos);
+	}
+
+	const fetchArrolamento = async (request: any) => {
+		return await survey_resource.GetArrolamento(request, async (req: any) => {
+			const searchParams = new URLSearchParams();
+			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+				if (value !== undefined && value !== "") {
+					searchParams.append(key, String(value));
+				}
+			}
+
+			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const res = await fetch(url, {
+				method: req.method,
+				headers: {
+					"Content-Type": "application/json",
+					...(req.headers || {}),
+				},
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`HTTP ${res.status}: ${text}`);
+			}
+
+			return res.json();
+		});
+	};
+
+	const fetchData = async () => {
+		const seiFromStorageRaw = localStorage.getItem("seiNumber");
+		const seiFromStorage = Number(seiFromStorageRaw);
+
+		try {
+			const request = {
+				numero_sei: seiFromStorage,
+				initial_date: initialDate,
+				end_date: endDate,
+
+			};
+			console.log(request)
+			const response = await fetchArrolamento(request);
+			if (isGetArrolamentoResponse(response)) {
+				//aqui abre ou fechar o alert
+			}
+
+		} catch (error) {
+			console.error("Erro ao buscar arrolamentos:", error);
+			console.log("Erro ao buscar dados do arrolamento");
+		}
+	};
+
 	const ignoreNextCloseRef = useRef(false);
 
-	const handleMetadataModalOpenChange = (isOpen: boolean) => {
+	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
 		if (isOpen) {
 			setIsMetadataModalOpen(true);
 			return;
@@ -230,17 +285,47 @@ const FormArrolamento = ({
 			return;
 		}
 
-		// Fecha o modal imediatamente
-		setIsMetadataModalOpen(false);
-
-		// Remove o foco para o alert ganhar o foco corretamente
 		if (document.activeElement instanceof HTMLElement) {
 			document.activeElement.blur();
 		}
 
-		// Exibe o alerta após fechar o modal
+		try {
+			// Pega os parâmetros
+			const seiFromStorageRaw = localStorage.getItem("seiNumber");
+			const numero_sei = Number(seiFromStorageRaw);
+		
+			const request = {
+				numero_sei,
+				initial_date: initialDate,
+				end_date: endDate,
+			};
+
+			console.log("Request para buscar arrolamento:", request);
+
+			const response = await fetchArrolamento(request);
+
+			if (isGetArrolamentoResponse(response)) {
+				const arrolamento = response.arrolamentos?.[0];
+
+				if (arrolamento) {
+					console.log("Arrolamento encontrado:", arrolamento);
+
+					localStorage.setItem("arrolamentoId", arrolamento.id);
+					localStorage.setItem("arrolamentoCreated_by", arrolamento.created_by);
+
+					setIsMetadataModalOpen(false);
+					return; // sai da função aqui, não mostra alerta
+				}
+			}
+		} catch (error) {
+			console.error("Erro ao verificar arrolamento:", error);
+		}
+
+		// Se chegou aqui, não encontrou arrolamento — mostra alerta
+		setIsMetadataModalOpen(false);
+
 		Swal.fire({
-			position: 'top-end', // canto superior direito
+			position: "top-end",
 			title: "Deseja realmente sair?",
 			text: "Os dados preenchidos serão perdidos.",
 			icon: "warning",
@@ -249,17 +334,13 @@ const FormArrolamento = ({
 			cancelButtonText: "Não, continuar preenchendo",
 		}).then((result) => {
 			if (result.isConfirmed) {
-				ignoreNextCloseRef.current = true; // Permite o próximo fechamento
-				// Redireciona para home
+				ignoreNextCloseRef.current = true;
 				window.location.href = "/";
 			} else {
-				// Reabre o modal para continuar preenchendo
 				setIsMetadataModalOpen(true);
 			}
 		});
 	};
-
-
 
 
 	// Define the form structure using FormFieldType for each field
