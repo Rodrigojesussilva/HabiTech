@@ -1922,6 +1922,305 @@ namespace survey_resource {
         }
     };
 
+    export const SendFormToSelagemIdentificacaoEspaco = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            identificacao_espaco_habitado: {
+                nome_espaco_habitado: string;
+                numero_selo: string;
+                selo_complemento: string;
+                selo_lote: string;
+                selo_setor: string;
+                selo_unidade: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificacao_espaco_habitado para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemIdentificacaoUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            identificacao_unidade: {
+                bairro: string;
+                cep: string;
+                cidade: string;
+                complemento: string;
+                distrito: string;
+                logradouro: string;
+                numero: string;
+                subprefeitura: string;
+                uf: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificacao_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemSituacaoUsoUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            situacao_uso_unidade: {
+                nome_responsavel: string;
+                qual_uso: string;
+                responsavel_identificado: boolean;
+                situacao: string;
+                telefone_responsavel: string;
+                tipos_uso: string;
+                uso: string;
+                uso_terreno: string;
+                uso_unidade: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar situacao_uso_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemCaracteristicasUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            caracteristicas_unidade: {
+                numero_comodos: string;
+                numero_pavimentos: string;
+                numero_sanitarios: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar caracteristicas_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemInfraUrbana = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            caracteristicas_infra_urbana: {
+                abastecimento_agua: string;
+                banheiro: string;
+                cozinha: string;
+                demais_comodos: string;
+                descricao_banheiro: string;
+                descricao_cozinha: string;
+                descricao_demais_comodos: string;
+                descricao_infiltracao_mofo: string;
+                descricao_ligacao_eletrica: string;
+                descricao_material: string;
+                descricao_pe_direito: string;
+                destino_domestico: string;
+                destino_organico: string;
+                destino_reciclavel: string;
+                esgotamento_sanitario: string;
+                iluminacao_natural: string;
+                infiltracao_mofo: string;
+                insalubridade: string;
+                janelas_externas: string;
+                ligacao_eletrica: string;
+                material_parede: string;
+                outro_abastecimento_agua: string;
+                outro_destino_domestico: string;
+                outro_destino_organico: string;
+                outro_destino_reciclavel: string;
+                outro_esgoto: string;
+                pe_direito: string;
+                separacao_residuos: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar caracteristicas_infra_urbana para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemOutrasInformacoes = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            outras_informacoes: {
+                texto: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar outras_informacoes para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemStatusNotas = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            status_notas: {
+                justificativa: string;
+                nome_supervisor: string;
+                observacao: string;
+                status: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar status_notas para selagem:", error);
+            throw error;
+        }
+    };
+
+
     // Sua função já exportada, que faz o POST para enviar o arquivo
     export const SendFileToUpload = async (
         baseUrl: string,

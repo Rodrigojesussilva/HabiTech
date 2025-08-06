@@ -411,7 +411,7 @@ const FormSelagem = ({
 								type="button"
 								onClick={async () => {
 
-									handleSetEndTime(); 
+									handleSetEndTime();
 									//setIsMetadataModalOpen(false);
 
 									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
@@ -479,7 +479,14 @@ const FormSelagem = ({
 									}
 
 
-									// Monta o objeto conforme a estrutura esperada pela API de selagem
+									
+									localStorage.setItem("seiNumberS", seiNumber);
+									
+									console.log("Valores armazenados no localStorage:");									
+									console.log("seiNumber:", localStorage.getItem("seiNumberS"));
+									
+									
+									
 									const dataToSend = {
 										created_by: questionario,
 										main_metadata: {
@@ -561,7 +568,7 @@ const FormSelagem = ({
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
-				</form>				
+				</form>
 
 			</Form>
 		</div >

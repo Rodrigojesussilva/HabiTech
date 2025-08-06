@@ -139,7 +139,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
     }, [form.watch(`families[${familyIndex}].anexoComprovanteRenda`)]);
 
-
     useEffect(() => {
         const valorCampo = form.getValues(`families[${familyIndex}].anexoCarteiraTrabalho`);
 
@@ -203,40 +202,22 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                             className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
                             onClick={async () => {
                                 try {
-                                    const fileContentComprovanteRenda = ComprovanteRenda; // base64 do arquivo
-
-                                    if (!fileContentComprovanteRenda) {
-                                        alert("ComprovanteRenda - Arquivo não selecionado ou vazio.");
-                                        return;
+                                    if (ComprovanteRenda) {
+                                        console.log("fileContentComprovanteRenda:", ComprovanteRenda);
+                                        await fetchDataAndUploadFile(ComprovanteRenda);
                                     }
 
-                                    console.log("fileContentComprovanteRenda:", fileContentComprovanteRenda);
-                                    // Aqui chama a função que faz tudo: busca arrolamento + upload
-                                    await fetchDataAndUploadFile(fileContentComprovanteRenda);
-
-                                    const fileContentCarteiraTrabalho = CarteiraTrabalho; // base64 do arquivo
-
-                                    if (!fileContentCarteiraTrabalho) {
-                                        alert("CarteiraTrabalho - Arquivo não selecionado ou vazio.");
-                                        return;
+                                    if (CarteiraTrabalho) {
+                                        console.log("fileContentCarteiraTrabalho:", CarteiraTrabalho);
+                                        await fetchDataAndUploadFile(CarteiraTrabalho);
                                     }
 
-                                    console.log("fileContentCarteiraTrabalho:", fileContentCarteiraTrabalho);
-                                    // Aqui chama a função que faz tudo: busca arrolamento + upload
-                                    await fetchDataAndUploadFile(fileContentCarteiraTrabalho);
-
-                                    const fileContentArea = Area; // base64 do arquivo
-
-                                    if (!fileContentArea) {
-                                        alert("CarteiraTrabalho - Arquivo não selecionado ou vazio.");
-                                        return;
+                                    if (Area) {
+                                        console.log("fileContentArea:", Area);
+                                        await fetchDataAndUploadFile(Area);
                                     }
 
-                                    console.log("fileContentArea:", fileContentArea);
-                                    // Aqui chama a função que faz tudo: busca arrolamento + upload
-                                    await fetchDataAndUploadFile(fileContentArea);
-
-                                    alert("Arquivo enviado com sucesso!");
+                                    alert("Arquivo(s) enviado(s) com sucesso!");
                                 } catch (error) {
                                     alert("Erro ao enviar arquivo, veja o console.");
                                     console.error(error);
@@ -245,8 +226,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                         >
                             Enviar Anexos
                         </button>
-
-
                     </div>
                 </CollapsibleContent>
             </Collapsible>

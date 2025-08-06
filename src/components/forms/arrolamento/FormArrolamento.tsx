@@ -248,29 +248,6 @@ const FormArrolamento = ({
 		});
 	};
 
-	const fetchData = async () => {
-		const seiFromStorageRaw = localStorage.getItem("seiNumber");
-		const seiFromStorage = Number(seiFromStorageRaw);
-
-		try {
-			const request = {
-				numero_sei: seiFromStorage,
-				initial_date: initialDate,
-				end_date: endDate,
-
-			};
-			console.log(request)
-			const response = await fetchArrolamento(request);
-			if (isGetArrolamentoResponse(response)) {
-				//aqui abre ou fechar o alert
-			}
-
-		} catch (error) {
-			console.error("Erro ao buscar arrolamentos:", error);
-			console.log("Erro ao buscar dados do arrolamento");
-		}
-	};
-
 	const ignoreNextCloseRef = useRef(false);
 
 	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
@@ -293,7 +270,7 @@ const FormArrolamento = ({
 			// Pega os parâmetros
 			const seiFromStorageRaw = localStorage.getItem("seiNumber");
 			const numero_sei = Number(seiFromStorageRaw);
-		
+
 			const request = {
 				numero_sei,
 				initial_date: initialDate,
@@ -303,7 +280,6 @@ const FormArrolamento = ({
 			console.log("Request para buscar arrolamento:", request);
 
 			const response = await fetchArrolamento(request);
-
 			if (isGetArrolamentoResponse(response)) {
 				const arrolamento = response.arrolamentos?.[0];
 

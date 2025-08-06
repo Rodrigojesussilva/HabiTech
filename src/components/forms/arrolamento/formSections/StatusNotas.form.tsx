@@ -59,7 +59,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 end_date: endDate,
                 
             };
-            console.log("Requeest",request)
+                        
             const response = await fetchArrolamento(request);
 
             if (isGetArrolamentoResponse(response)) {
@@ -206,9 +206,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         status,
     ]);
 
-
     return (
-
 
         <div className="text-left">
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
