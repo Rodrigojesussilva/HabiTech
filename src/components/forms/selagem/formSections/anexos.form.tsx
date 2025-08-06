@@ -204,8 +204,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                         />
                     ))}
 
-
-
                     <div className="mt-4 w-full flex justify-start">
                         <button
                             type="button"

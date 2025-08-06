@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -125,6 +125,8 @@ const FormSelagem = ({
 	});
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
 	const { setValue, watch } = useForm();
+	const [initialDate] = useState("")
+	const [endDate] = useState("")
 	// Acessa os valores dos campos
 	const naoAplica = watch("naoAplica");  // Assumindo que 'naoAplica' é o campo que será monitorado
 
@@ -218,6 +220,106 @@ const FormSelagem = ({
 			onSubmit(data);
 		}
 		console.log(data);
+	};	
+
+	function isGetSelagemResponse(response: any): response is { selagens: any[] } {
+		return response && Array.isArray(response.selagens);
+	}
+
+	const fetchSelagem = async (request: any) => {
+		return await survey_resource.GetSelagem(request, async (req: any) => {
+			const searchParams = new URLSearchParams();
+			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+				if (value !== undefined && value !== "") {
+					searchParams.append(key, String(value));
+				}
+			}
+
+			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const res = await fetch(url, {
+				method: req.method,
+				headers: {
+					"Content-Type": "application/json",
+					...(req.headers || {}),
+				},
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`HTTP ${res.status}: ${text}`);
+			}
+
+			return res.json();
+		});
+	};
+
+	const ignoreNextCloseRef = useRef(false);
+
+	const handleSelagemModalOpenChange = async (isOpen: boolean) => {
+		if (isOpen) {
+			setIsMetadataModalOpen(true); // deve existir este state
+			return;
+		}
+
+		if (ignoreNextCloseRef.current) {
+			ignoreNextCloseRef.current = false;
+			setIsMetadataModalOpen(false);
+			return;
+		}
+
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+
+		try {
+			const seiFromStorageRaw = localStorage.getItem("seiNumberS"); // nota: uso de seiNumberS aqui
+			const numero_sei = Number(seiFromStorageRaw);
+
+			const request = {
+				numero_sei,
+				initial_date: initialDate,
+				end_date: endDate,
+			};
+
+			console.log("Request para buscar selagem:", request);
+
+			const response = await fetchSelagem(request);
+			if (isGetSelagemResponse(response)) {
+				const selagem = response.selagens?.[0];
+
+				if (selagem) {
+					console.log("Selagem encontrada:", selagem);
+
+					localStorage.setItem("selagemId", selagem.id);
+					localStorage.setItem("selagemCreated_by", selagem.created_by);
+
+					setIsMetadataModalOpen(false);
+					return; // sai da função aqui, não mostra alerta
+				}
+			}
+		} catch (error) {
+			console.error("Erro ao verificar selagem:", error);
+		}
+
+		// Se chegou aqui, não encontrou selagem — mostra alerta
+		setIsMetadataModalOpen(false);
+
+		Swal.fire({
+			position: "top-end",
+			title: "Deseja realmente sair?",
+			text: "Os dados preenchidos serão perdidos.",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Sim, sair",
+			cancelButtonText: "Não, continuar preenchendo",
+		}).then((result) => {
+			if (result.isConfirmed) {
+				ignoreNextCloseRef.current = true;
+				window.location.href = "/";
+			} else {
+				setIsMetadataModalOpen(true);
+			}
+		});
 	};
 
 	// Define the form structure using FormFieldType for each field
@@ -375,7 +477,10 @@ const FormSelagem = ({
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
 
-					<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
+					<Dialog
+						open={isMetadataModalOpen}
+						onOpenChange={handleSelagemModalOpenChange}
+					>
 
 						<DialogContent
 							className="max-h-[90vh] overflow-y-auto "
@@ -479,14 +584,14 @@ const FormSelagem = ({
 									}
 
 
-									
+
 									localStorage.setItem("seiNumberS", seiNumber);
-									
-									console.log("Valores armazenados no localStorage:");									
+
+									console.log("Valores armazenados no localStorage:");
 									console.log("seiNumber:", localStorage.getItem("seiNumberS"));
-									
-									
-									
+
+
+
 									const dataToSend = {
 										created_by: questionario,
 										main_metadata: {
