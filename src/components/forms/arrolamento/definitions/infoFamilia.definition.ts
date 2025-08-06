@@ -7,6 +7,7 @@ function slugify(pais: string) {
 // Form validation schema
 export const infoFamiliaSchema = z.object({
     rendaFamiliar: z.string().optional(),
+    totalPessoas: z.string().optional(),
     criancas0a3: z.number().default(0),
     criancas4a6: z.number().default(0),
     criancas7a11: z.number().default(0),
@@ -27,7 +28,9 @@ export type FormValues = z.infer<typeof infoFamiliaSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
+    
     rendaFamiliar: "",
+    totalPessoas: "",
     criancas0a3: 0,
     criancas4a6: 0,
     criancas7a11: 0,

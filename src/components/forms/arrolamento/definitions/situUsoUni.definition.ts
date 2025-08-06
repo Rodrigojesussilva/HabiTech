@@ -3,6 +3,7 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
 export const situUsoUniSchema = z.object({
+    
     regime_ocupacao: z.string().optional(),
     valor_locacao: z.string().optional(),
     nsi_valor_locacao: z.boolean().optional(),

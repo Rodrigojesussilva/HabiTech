@@ -4,7 +4,7 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 // Form validation schema
 export const caractUnidadeSchema = z.object({
     numeroComodos: z.string().optional(),
-    numeroPavimento: z.string().optional(),
+    numeroPavimentos: z.string().optional(),
     numeroSanitario: z.string().optional(),
 
     selagem_id: z.string().optional(),
@@ -17,7 +17,7 @@ export type FormValues = z.infer<typeof caractUnidadeSchema>;
 // Default values
 export const defaultValues: Partial<FormValues> = {
     numeroComodos: "",
-    numeroPavimento:"",
+    numeroPavimentos:"",
     numeroSanitario: "",
 
     idLocal: "not",
@@ -42,7 +42,7 @@ export const caractUnidadeDefinition: FormConfig = {
                     step: 1,
                 },
                 {
-                    name: "numeroPavimento",
+                    name: "numeroPavimentos",
                     label: "Quantidade de Pavimentos na Unidade",
                     type: "numberSpinner", 
                     required: true,

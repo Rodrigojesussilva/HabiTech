@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -132,6 +132,10 @@ const FormArrolamento = ({
 	});
 
 	const { setForm, setMetadata } = useFormMetadata();
+	const [initialDate] = useState("")
+	const [endDate] = useState("")
+
+
 	// Share the form and metadata once on mount
 	useEffect(() => {
 		setForm(form);
@@ -171,6 +175,7 @@ const FormArrolamento = ({
 		control: form.control,
 		name: "numberFamilies",
 	});
+
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
 
@@ -211,6 +216,108 @@ const FormArrolamento = ({
 		}
 		console.log(data);
 	};
+
+	function isGetArrolamentoResponse(response: any): response is { arrolamentos: any[] } {
+		return response && Array.isArray(response.arrolamentos);
+	}
+
+	const fetchArrolamento = async (request: any) => {
+		return await survey_resource.GetArrolamento(request, async (req: any) => {
+			const searchParams = new URLSearchParams();
+			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+				if (value !== undefined && value !== "") {
+					searchParams.append(key, String(value));
+				}
+			}
+
+			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const res = await fetch(url, {
+				method: req.method,
+				headers: {
+					"Content-Type": "application/json",
+					...(req.headers || {}),
+				},
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`HTTP ${res.status}: ${text}`);
+			}
+
+			return res.json();
+		});
+	};
+
+	const ignoreNextCloseRef = useRef(false);
+
+	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
+		if (isOpen) {
+			setIsMetadataModalOpen(true);
+			return;
+		}
+
+		if (ignoreNextCloseRef.current) {
+			ignoreNextCloseRef.current = false;
+			setIsMetadataModalOpen(false);
+			return;
+		}
+
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+
+		try {
+			// Pega os parâmetros
+			const seiFromStorageRaw = localStorage.getItem("seiNumber");
+			const numero_sei = Number(seiFromStorageRaw);
+
+			const request = {
+				numero_sei,
+				initial_date: initialDate,
+				end_date: endDate,
+			};
+
+			console.log("Request para buscar arrolamento:", request);
+
+			const response = await fetchArrolamento(request);
+			if (isGetArrolamentoResponse(response)) {
+				const arrolamento = response.arrolamentos?.[0];
+
+				if (arrolamento) {
+					console.log("Arrolamento encontrado:", arrolamento);
+
+					localStorage.setItem("arrolamentoId", arrolamento.id);
+					localStorage.setItem("arrolamentoCreated_by", arrolamento.created_by);
+
+					setIsMetadataModalOpen(false);
+					return; // sai da função aqui, não mostra alerta
+				}
+			}
+		} catch (error) {
+			console.error("Erro ao verificar arrolamento:", error);
+		}
+
+		// Se chegou aqui, não encontrou arrolamento — mostra alerta
+		setIsMetadataModalOpen(false);
+
+		Swal.fire({
+			position: "top-end",
+			title: "Deseja realmente sair?",
+			text: "Os dados preenchidos serão perdidos.",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Sim, sair",
+			cancelButtonText: "Não, continuar preenchendo",
+		}).then((result) => {
+			if (result.isConfirmed) {
+				ignoreNextCloseRef.current = true;
+				window.location.href = "/";
+			} else {
+				setIsMetadataModalOpen(true);
+			}
+		});
+	};
+
 
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
@@ -361,7 +468,10 @@ const FormArrolamento = ({
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
 
-					<Dialog open={isMetadataModalOpen} onOpenChange={setIsMetadataModalOpen}>
+					<Dialog
+						open={isMetadataModalOpen}
+						onOpenChange={handleMetadataModalOpenChange}
+					>
 
 						<DialogContent
 							className="max-h-[90vh] overflow-y-auto "

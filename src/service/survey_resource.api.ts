@@ -648,7 +648,7 @@ namespace survey_resource {
     export type RequestMetadataProps = {
         service: string;
         method: string;
-    }
+    };
 
     export type RequestHandler = (requestHandler: RequestHandlerProps, meta: RequestMetadataProps) => Promise<unknown>;
 
@@ -788,7 +788,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'CreateFromArrolamento',
         }) as Promise<CreateFromArrolamentoResponse>;
-    }
+    };
 
     export const UpdateArrolamento = async (request: UpdateArrolamentoRequest, handler: RequestHandler): Promise<UpdateArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -827,7 +827,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'UpdateArrolamento',
         }) as Promise<UpdateArrolamentoResponse>;
-    }
+    };
 
     export const PatchArrolamento = async (request: PatchArrolamentoRequest, handler: RequestHandler): Promise<PatchArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -890,7 +890,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'PatchArrolamento',
         }) as Promise<PatchArrolamentoResponse>;
-    }
+    };
 
     export const DeleteArrolamento = async (request: DeleteArrolamentoRequest, handler: RequestHandler): Promise<DeleteArrolamentoResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}`;
@@ -929,7 +929,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'DeleteArrolamento',
         }) as Promise<DeleteArrolamentoResponse>;
-    }
+    };
 
     export const GetArrolamentoAttachments = async (request: GetArrolamentoAttachmentsRequest, handler: RequestHandler): Promise<GetArrolamentoAttachmentsResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}/attachments`;
@@ -973,7 +973,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetArrolamentoAttachments',
         }) as Promise<GetArrolamentoAttachmentsResponse>;
-    }
+    };
 
     export const RemoveArrolamentoAttachment = async (request: RemoveArrolamentoAttachmentRequest, handler: RequestHandler): Promise<RemoveArrolamentoAttachmentResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/arrolamentos/${request.id}/attachments`;
@@ -1011,7 +1011,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'RemoveArrolamentoAttachment',
         }) as Promise<RemoveArrolamentoAttachmentResponse>;
-    }
+    };
 
     export const GetSelagem = async (request: GetSelagemRequest, handler: RequestHandler): Promise<GetSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/v1/selagens`;
@@ -1075,7 +1075,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetSelagem',
         }) as Promise<GetSelagemResponse>;
-    }
+    };
 
     export const CreateSelagem = async (
         baseUrl: string,
@@ -1181,7 +1181,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'CreateFromSelagem',
         }) as Promise<CreateFromSelagemResponse>;
-    }
+    };
 
     export const UpdateSelagem = async (request: UpdateSelagemRequest, handler: RequestHandler): Promise<UpdateSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/v1/selagens/${request.id}`;
@@ -1220,7 +1220,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'UpdateSelagem',
         }) as Promise<UpdateSelagemResponse>;
-    }
+    };
 
     export const PatchSelagem = async (request: PatchSelagemRequest, handler: RequestHandler): Promise<PatchSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}`;
@@ -1304,7 +1304,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'PatchSelagem',
         }) as Promise<PatchSelagemResponse>;
-    }
+    };
 
     export const DeleteSelagem = async (request: DeleteSelagemRequest, handler: RequestHandler): Promise<DeleteSelagemResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}`;
@@ -1343,7 +1343,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'DeleteSelagem',
         }) as Promise<DeleteSelagemResponse>;
-    }
+    };
 
     export const GetSelagemAttachments = async (request: GetSelagemAttachmentsRequest, handler: RequestHandler): Promise<GetSelagemAttachmentsResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
@@ -1387,7 +1387,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'GetSelagemAttachments',
         }) as Promise<GetSelagemAttachmentsResponse>;
-    }
+    };
 
     export const RemoveSelagemAttachment = async (request: RemoveSelagemAttachmentRequest, handler: RequestHandler): Promise<RemoveSelagemAttachmentResponse | shared_message.ErrorResponse> => {
         const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
@@ -1425,7 +1425,7 @@ namespace survey_resource {
             service: 'SurveyResourceServiceService',
             method: 'RemoveSelagemAttachment',
         }) as Promise<RemoveSelagemAttachmentResponse>;
-    }
+    };
 
     export const SendFormToArrolamentoIdentRep = async (
         baseUrl: string,
@@ -1478,6 +1478,30 @@ namespace survey_resource {
                 family_index: number;
                 contato: {
                     email: string;
+                    nao_sabe_email: boolean;
+                    telefone1: string;
+                    telefone2: string;
+                    telefone3: string;
+                    telefone4: string;
+                    tipo_telefone1: string;
+                    tipo_telefone2: string;
+                    tipo_telefone3: string;
+                    tipo_telefone4: string;
+                    nome_recado_tel1: string;
+                    nome_recado_tel2: string;
+                    nome_recado_tel3: string;
+                    nome_recado_tel4: string;
+                    relacao_parentesco_tel1: string;
+                    relacao_parentesco_tel2: string;
+                    relacao_parentesco_tel3: string;
+                    relacao_parentesco_tel4: string;
+                    whatzap_telefone1: boolean;
+                    whatzap_telefone2: boolean;
+                    whatzap_telefone3: boolean;
+                    whatzap_telefone4: boolean;
+                    ativar_telefone2: boolean;
+                    ativar_telefone3: boolean;
+                    ativar_telefone4: boolean;
                 };
             };
         }
@@ -1504,6 +1528,760 @@ namespace survey_resource {
             return json;
         } catch (error) {
             console.error("Erro ao enviar formulário para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoSituacaoUso = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                situacao_uso: {
+                    regime_ocupacao: string;
+                    contato_proprietario: string;
+                    contrato_locacao: string;
+                    nome_proprietario: string;
+                    nsi_contato_proprietario: boolean;
+                    nsi_valor_locacao: boolean;
+                    valor_locacao: string;
+                };
+            };
+        }
+
+
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            const json = await response.json();
+            return json;
+        } catch (error) {
+            console.error("Erro ao enviar formulário para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoDoc = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                documentacao: {
+                    cidade: string;
+                    cpf: string;
+                    data_emissao_rg: string;
+                    data_expedicao_cin: string;
+                    data_expedicao_crnm: string;
+                    data_expedicao_passaporte: string;
+                    data_expedicao_rnm: string;
+                    documentacao: string;
+                    estado_emissao_rg: string;
+                    fonte_cpf: string;
+                    numero_cin: number;
+                    numero_crnm: string;
+                    numero_passaporte: string;
+                    numero_protocolo: string;
+                    numero_rnm: string;
+                    orgao_expedidor: string;
+                    pais_origem: string;
+                    possui_cin: boolean;
+                    rg: string;
+                    status_crnm: string;
+                    status_rnm: string;
+                    uf: string;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar formulário para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoEtnicoRacial = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                identificacao_etnico_racial: {
+                    etnico_racial: string;
+                    genero: string;
+                    genero_outro: string;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificação étnico-racial para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoNupcidade = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                nupcidade: {
+                    estado_civil: string;
+                    nome_companheiro: string;
+                    vive_com_companheiro: boolean;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar dados de nupcidade para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoPessoaDeficiente = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                pessoa_deficiente: {
+                    aparelho_auditivo: boolean;
+                    bengala_branca_ou_verde_vermelha: boolean;
+                    braille_equip_sintese_voz: boolean;
+                    cadeira_de_roda: boolean;
+                    cama_hospitalar: boolean;
+                    cao_guia: boolean;
+                    def_auditiva: boolean;
+                    def_fisica: boolean;
+                    def_intelectual_mental: boolean;
+                    def_mobilidade_reduzida: boolean;
+                    def_multiplas: boolean;
+                    def_outra: boolean;
+                    def_surdo: boolean;
+                    def_visual: boolean;
+                    especifique_outra_def: string;
+                    especifique_outra_tec_assistida: string;
+                    leitura_facial_labial: boolean;
+                    libras: boolean;
+                    lupa_lente_fonte_ampliada: boolean;
+                    muleta_bengala4pontas_andador: boolean;
+                    ortese_protese: boolean;
+                    outras_tec_assistiva: boolean;
+                    possui_laudo: string;
+                    prancha_comunicacao_alternativa: boolean;
+                    qtd_def_auditiva: number;
+                    qtd_def_fisica: number;
+                    qtd_def_intelectual_mental: number;
+                    qtd_def_mobilidade_reduzida: number;
+                    qtd_def_multiplas: number;
+                    qtd_def_surdo: number;
+                    qtd_def_visual: number;
+                    qtd_pessoas_com_def_fam: number;
+                    responsavel_aparelho_auditivo: boolean;
+                    responsavel_bengala_branca_ou_verde_vermelha: boolean;
+                    responsavel_braille_equip_sintese_voz: boolean;
+                    responsavel_cadeira_de_roda: boolean;
+                    responsavel_cama_hospitalar: boolean;
+                    responsavel_cao_guia: boolean;
+                    responsavel_def_auditiva: boolean;
+                    responsavel_def_fisica: boolean;
+                    responsavel_def_intelectual: boolean;
+                    responsavel_def_mobilidade: boolean;
+                    responsavel_def_multipla: boolean;
+                    responsavel_def_outra: boolean;
+                    responsavel_def_surdo_cegueira: boolean;
+                    responsavel_def_visual: boolean;
+                    responsavel_leitura_facial_labial: boolean;
+                    responsavel_libras: boolean;
+                    responsavel_lupa_lente_fonte_ampliada: boolean;
+                    responsavel_muleta_bengala4pontas_andador: boolean;
+                    responsavel_ortese_protese: boolean;
+                    responsavel_outra_tec_assistiva: boolean;
+                    responsavel_prancha: boolean;
+                    responsavel_tem_deficiencia: boolean;
+                    tem_deficiencia: boolean;
+                    utiliza_tecnologia_assistida: boolean;
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(
+                "Erro ao enviar dados de pessoa com deficiência para arrolamento:",
+                error
+            );
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoInformacaoFamilia = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+                informacao_familia: {
+                    total_pessoas: number;
+                    renda_familiar: string;
+                    criancas_0a3: number;
+                    criancas_4a6: number;
+                    criancas_7a11: number;
+                    adolescentes_12a18: number;
+                    adultos_19a59: number;
+                    idosos_60: number;
+                    pessoas_com_deficiencia_cronica: number;
+                    gestantes: number;
+                    pessoas_imigrantes: number;
+                    nacionalidades_selecionadas: string[];
+                    numeros_por_pais: string[];
+                };
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar dados de informação da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoOutrasInf = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+            };
+            outras_informacoes: {
+                texto: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar outras informações da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToArrolamentoStatusNotas = async (
+        baseUrl: string,
+        arrolamentoId: string,
+        formData: {
+            created_by: string;
+            form: {
+                family_index: number;
+            };
+            status_notas: {
+                justificativa: string;
+                nome_supervisor: string;
+                observacao: string;
+                status: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar status_notas da família para arrolamento:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemIdentificacaoEspaco = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            identificacao_espaco_habitado: {
+                nome_espaco_habitado: string;
+                numero_selo: string;
+                selo_complemento: string;
+                selo_lote: string;
+                selo_setor: string;
+                selo_unidade: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificacao_espaco_habitado para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemIdentificacaoUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            identificacao_unidade: {
+                bairro: string;
+                cep: string;
+                cidade: string;
+                complemento: string;
+                distrito: string;
+                logradouro: string;
+                numero: string;
+                subprefeitura: string;
+                uf: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar identificacao_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemSituacaoUsoUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            situacao_uso_unidade: {
+                nome_responsavel: string;
+                qual_uso: string;
+                responsavel_identificado: boolean;
+                situacao: string;
+                telefone_responsavel: string;
+                tipos_uso: string;
+                uso: string;
+                uso_terreno: string;
+                uso_unidade: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar situacao_uso_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemCaracteristicasUnidade = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            caracteristicas_unidade: {
+                numero_comodos: string;
+                numero_pavimentos: string;
+                numero_sanitarios: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar caracteristicas_unidade para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemInfraUrbana = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            caracteristicas_infra_urbana: {
+                abastecimento_agua: string;
+                banheiro: string;
+                cozinha: string;
+                demais_comodos: string;
+                descricao_banheiro: string;
+                descricao_cozinha: string;
+                descricao_demais_comodos: string;
+                descricao_infiltracao_mofo: string;
+                descricao_ligacao_eletrica: string;
+                descricao_material: string;
+                descricao_pe_direito: string;
+                destino_domestico: string;
+                destino_organico: string;
+                destino_reciclavel: string;
+                esgotamento_sanitario: string;
+                iluminacao_natural: string;
+                infiltracao_mofo: string;
+                insalubridade: string;
+                janelas_externas: string;
+                ligacao_eletrica: string;
+                material_parede: string;
+                outro_abastecimento_agua: string;
+                outro_destino_domestico: string;
+                outro_destino_organico: string;
+                outro_destino_reciclavel: string;
+                outro_esgoto: string;
+                pe_direito: string;
+                separacao_residuos: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar caracteristicas_infra_urbana para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemOutrasInformacoes = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            outras_informacoes: {
+                texto: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar outras_informacoes para selagem:", error);
+            throw error;
+        }
+    };
+
+    export const SendFormToSelagemStatusNotas = async (
+        baseUrl: string,
+        selagemId: string,
+        formData: {
+            created_by: string;
+            status_notas: {
+                justificativa: string;
+                nome_supervisor: string;
+                observacao: string;
+                status: string;
+            };
+        }
+    ): Promise<any> => {
+        try {
+            const path = `/survey-resource/v1/selagens/${selagemId}`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify(formData),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao enviar status_notas para selagem:", error);
+            throw error;
+        }
+    };
+
+
+    // Sua função já exportada, que faz o POST para enviar o arquivo
+    export const SendFileToUpload = async (
+        baseUrl: string,
+        entityId: string,
+        fileContent: string
+    ): Promise<any> => {
+        try {
+            const path = `/file-input/v1/files/upload`;
+
+            const headers = {
+                "Content-Type": "application/json",
+            };
+
+            // Remove prefixo base64 caso exista
+            const cleanedFileContent = fileContent.replace(/^data:.*;base64,/, "");
+
+            const body = {
+                entity_id: entityId,
+                file: cleanedFileContent,
+                usage: "SURVEY",
+            };
+
+            console.log("Enviando corpo do request:", body);
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+            }
+
+            const jsonResponse = await response.json();
+            console.log("Resposta do upload:", jsonResponse);
+
+            return jsonResponse;
+        } catch (error) {
+            console.error("Erro ao enviar arquivo para upload:", error);
             throw error;
         }
     };

@@ -33,8 +33,12 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const naoSeAplicaEntrevistado = form.watch(`families[${familyIndex}].naoSeAplicaEntrevistado`);
     const nomeSocialEntrevistado = form.watch(`families[${familyIndex}].nomeSocialEntrevistado`);
     const descrevParentesco = form.watch(`families.${familyIndex}.DescrevParentesco`);
+    const pessoaEmancipada = form.watch(`families.${familyIndex}.pessoaEmancipada`);
+    const certidaoEmancipacao = form.watch(`families.${familyIndex}.certidaoEmancipacao`);
+
     const alertAberto = React.useRef(false);
     const [alertShown, setAlertShown] = useState(false);
+    const triggeredByBlurRef = useRef(false);
 
     // 👇 Armazena os valores anteriores
     const prevValuesRef = useRef<Record<string, any>>({
@@ -47,7 +51,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         naoSeAplicaEntrevistado: naoSeAplicaEntrevistado,
         nomeSocialEntrevistado: nomeSocialEntrevistado,
         descrevParentesco: descrevParentesco,
+        pessoaEmancipada: pessoaEmancipada,
+        certidaoEmancipacao: certidaoEmancipacao
     });
+
     //auxilia a fetchData
     function isGetArrolamentoResponse(
         response: any
@@ -69,10 +76,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
             const response = await fetchArrolamento(request);
 
-            if (!response || (typeof response === "object" && Object.keys(response).length === 0)) {
-                showErrorMessage("Nenhum Arrolamento Cadastrado");
-                return;
-            }
 
             if (isGetArrolamentoResponse(response)) {
                 await handleArrolamentoResponse(response);
@@ -151,7 +154,9 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     const createIdentificacaoResponsavel = () => {
         const valorResponsavel = (responsavel || "").trim().toLowerCase();
+        const valorEmancipado = (pessoaEmancipada || "").trim().toLowerCase();
         const isResponsavel = valorResponsavel === "sim";
+        const isEmancipado = valorEmancipado === "sim";
 
         const formatarDataParaBR = (data: string): string => {
             if (!data) return "";
@@ -168,12 +173,28 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             nome_social_aplicavel: isResponsavel ? false : !!naoSeAplicaEntrevistado,
             nome_completo_entrevistado: isResponsavel ? "" : nomeCompletoEntrevistado || "",
             descrev_parentesco: isResponsavel ? "" : descrevParentesco || "",
+            pessoa_emancipada: isEmancipado,
+            certidao_emancipacao: certidaoEmancipacao,
             idade: parseInt(idadeResp || "0", 10),
         };
-    };   
+    };
+
+    const hasArrolamento = async (request: any): Promise<boolean> => {
+        try {
+            const response = await fetchArrolamento(request);
+
+            const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
+
+            return !isEmpty;
+        } catch (error) {
+            console.error("Erro ao verificar arrolamentos:", error);
+            return false;
+        }
+    };
 
     useEffect(() => {
-        const handleBlur = () => {
+
+        const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -186,6 +207,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 [`families[${familyIndex}].naoSeAplicaEntrevistado`]: naoSeAplicaEntrevistado,
                 [`families[${familyIndex}].nomeSocialEntrevistado`]: nomeSocialEntrevistado,
                 [`families.${familyIndex}.DescrevParentesco`]: descrevParentesco,
+                [`families.${familyIndex}.DescrevParentesco`]: pessoaEmancipada,
+                [`families.${familyIndex}.DescrevParentesco`]: certidaoEmancipacao,
             };
 
             let shouldFetch = false;
@@ -200,16 +223,22 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             }
 
             if (shouldFetch) {
-                const questionario = localStorage.getItem("questionario");
                 const seiNumber = localStorage.getItem("seiNumber");
-                const sealNumber = localStorage.getItem("sealNumber");
-                const numberFamilies = localStorage.getItem("numberFamilies");
+                const request = {
+                    numero_sei: Number(seiNumber),
+                    initial_date: initialDate,
+                    end_date: endDate,
+                };
 
-                console.log("questionario:", questionario);
-                console.log("seiNumber:", seiNumber);
-                console.log("sealNumber:", sealNumber);
-                console.log("numberFamilies:", numberFamilies);
+                const hasData = await hasArrolamento(request); // ✅ uso aqui da função externa
 
+                if (!hasData) {
+                    console.log("Nenhum Arrolamento Cadastrado");
+                    return;
+                }
+
+                // Só chama se tiver arrolamento
+                triggeredByBlurRef.current = true;
                 fetchData();
             }
         };
@@ -228,8 +257,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         naoSeAplicaEntrevistado,
         nomeSocialEntrevistado,
         descrevParentesco,
+        pessoaEmancipada,
+        certidaoEmancipacao
     ]);
-    
+
     //proibir o digitar numeros e caracteres especiais nomeSocialEntrevistado
     useEffect(() => {
         const path = `families[${familyIndex}].nomeSocialEntrevistado`;

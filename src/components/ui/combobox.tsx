@@ -48,21 +48,29 @@ export function Combobox({
 
           <div className="flex items-center gap-1">
             {selectedOption && (
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   onChange("");
                 }}
-                className="text-muted-foreground hover:text-foreground"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onChange("");
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground cursor-pointer"
                 aria-label="Limpar seleção"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </span>
             )}
             <ChevronsUpDown className="h-4 w-4 opacity-50" />
           </div>
         </button>
+
       </PopoverTrigger>
 
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">

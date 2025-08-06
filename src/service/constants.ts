@@ -5,11 +5,11 @@ const isLocalDevelopment = window.location.hostname === 'localhost' || window.lo
 export const API_CONFIG = {
   // Production URLs (Angerona Cloud)
   PRODUCTION: {
-    SURVEY_RESOURCE: "https://api-sehab.angeronacloud.com.br",
-    SELAGEM: "https://api-sehab.angeronacloud.com.br", 
-    AUTH: "https://api-sehab.angeronacloud.com.br",
-    FILE: "https://api-sehab.angeronacloud.com.br",
-    USER: "https://api-sehab.angeronacloud.com.br"
+    SURVEY_RESOURCE: "https://api-sehab.develop.habitasampa.inf.br",
+    SELAGEM: "https://api-sehab.develop.habitasampa.inf.br", 
+    AUTH: "https://api-sehab.develop.habitasampa.inf.br",
+    FILE: "https://api-sehab.develop.habitasampa.inf.br",
+    USER: "https://api-sehab.develop.habitasampa.inf.br"
   },
   
   // Local Development URLs (Docker services)
@@ -57,3 +57,6 @@ export const switchToLocal = () => {
   localStorage.removeItem('FORCE_PRODUCTION')
   console.log('🏠 Switched to LOCAL APIs. Refresh page to apply.')
 }
+
+//export const API_BASE_URL = "https://api-sehab.develop.habitasampa.inf.br"
+

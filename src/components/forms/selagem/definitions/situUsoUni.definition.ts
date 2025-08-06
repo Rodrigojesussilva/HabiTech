@@ -7,7 +7,7 @@ export const situUsoUniSchema = z.object({
     usoUnidade: z.string().optional(),
     qualUso: z.string().optional(),
     quaisTipos: z.string().optional(),
-
+    uso: z.string().optional(),
     nome_responsavel: z.string().optional(),
     telefone_responsavel: z.string().optional(),
     responsavel_nao_identificado: z.boolean().optional(),
@@ -24,11 +24,11 @@ export const defaultValues: Partial<FormValues> = {
     usoUnidade: "select",
     qualUso: "",
     quaisTipos: "",
-
-    nome_responsavel: "", 
-    telefone_responsavel: "", 
-    responsavel_nao_identificado: false, 
-    uso_terreno: "", 
+    uso: "",
+    nome_responsavel: "",
+    telefone_responsavel: "",
+    responsavel_nao_identificado: false,
+    uso_terreno: "",
 
     idLocal: "not",
 };
@@ -100,7 +100,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         formValues.usoUnidade === "UsoMisto" ||
         formValues.usoUnidade === "Servico" ||
         formValues.usoUnidade === "Institucional" ||
-        formValues.usoUnidade === "Industrial" 
+        formValues.usoUnidade === "Industrial"
     ) {
         usoUnidadeConditionals.push({
             name: "qualUso",
@@ -113,7 +113,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
     if (formValues.usoUnidade === "Outros") {
         usoUnidadeConditionals.push({
-            name: "qualUso",
+            name: "uso",
             label: "Descreva o uso da unidade:",
             type: "text",
             required: true,
