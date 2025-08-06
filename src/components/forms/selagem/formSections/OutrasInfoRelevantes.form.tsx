@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface outrasInfoRelevantesFormProps {
     id?: string;
@@ -49,7 +49,7 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {

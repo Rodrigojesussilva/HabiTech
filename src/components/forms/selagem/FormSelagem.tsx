@@ -41,7 +41,7 @@ import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/
 import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
 import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
-import { SURVEY_RESOURCE_URL, CURRENT_API, API_BASE_URL } from "../../../service/constants";
+import { SURVEY_RESOURCE_URL, CURRENT_API, API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
 import { loadSelagemData, LoadSelagemDataParams } from './helpers/apiMapper';
@@ -262,7 +262,7 @@ const FormSelagem = ({
 				}
 			}
 
-			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 			const res = await fetch(url, {
 				method: req.method,
 				headers: {

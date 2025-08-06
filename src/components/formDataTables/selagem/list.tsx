@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Selagem, columns } from "./columns"
 import { DataTable } from "./data-table"
 import survey_resource from "../../../service/survey_resource.api"
-import { SURVEY_RESOURCE_URL } from "../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../service/constants"
 import Loader from "../../loader/Loader"
 import ApiEnvironmentSwitcher from "../../debug/ApiEnvironmentSwitcher"
 
@@ -102,7 +102,7 @@ export default function DemoPage() {
           }
         }
 
-        const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
         const res = await fetch(url, {
           method: req.method,
           headers: {
