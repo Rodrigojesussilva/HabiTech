@@ -156,7 +156,7 @@ export default function DemoPage() {
         </div>
 
         <p className="text-sm text-gray-500">
-          Visualize ou modifique os dados de selagens. <strong>Use o botão "🧪 Carregar Mock" para testar a edição!</strong>
+          Visualize ou modifique os dados de selagens. 
         </p>
       </div>
 

@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface outrasInfoRelevantesFormProps {
     id?: string;
@@ -125,7 +125,7 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
         };
 
         try {
-            await survey_resource.SendFormToSelagemOutrasInformacoes(API_BASE_URL, selagemId, payload);
+            await survey_resource.SendFormToSelagemOutrasInformacoes(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
         } catch (error) {
             console.error("Erro ao enviar outras informações:", error);
             showErrorMessage("Erro ao enviar o campo 'outrasInformacoes'");

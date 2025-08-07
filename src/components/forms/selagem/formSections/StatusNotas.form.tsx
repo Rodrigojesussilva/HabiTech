@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface PessoaDefFormProps {
     id?: string;
@@ -136,7 +136,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         };
 
         try {
-            await survey_resource.SendFormToSelagemStatusNotas(API_BASE_URL, selagemId, payload);
+            await survey_resource.SendFormToSelagemStatusNotas(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
         } catch (error) {
             console.error("Erro ao enviar status_notas:", error);
             showErrorMessage("Erro ao enviar os dados de status_notas");

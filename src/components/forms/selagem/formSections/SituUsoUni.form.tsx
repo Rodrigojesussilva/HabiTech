@@ -9,7 +9,7 @@ import { formatCurrency, ensureValidSelectValue, formatarTelefone } from "@/comp
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface SituUsoUniFormProps {
     id?: string;
@@ -138,7 +138,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
             try {
                 console.log("Payload Situação de Uso da Unidade:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToSelagemSituacaoUsoUnidade(API_BASE_URL, selagemId, payload);
+                await survey_resource.SendFormToSelagemSituacaoUsoUnidade(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
             } catch (error) {
                 console.error("Erro ao enviar situação de uso da unidade:", error);
                 showErrorMessage("Erro ao enviar os dados de situação de uso da unidade");

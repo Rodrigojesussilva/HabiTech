@@ -139,6 +139,14 @@ const FormSelagem = ({
 	const { setValue, watch } = useForm();
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
+	
+	// Log para debugar valores das datas
+	console.log("📅 [FormSelagem] Valores de data inicializados:", {
+		initialDate: initialDate,
+		endDate: endDate,
+		initialDate_empty: initialDate === "",
+		endDate_empty: endDate === ""
+	});
 	// Acessa os valores dos campos
 	const naoAplica = watch("naoAplica");  // Assumindo que 'naoAplica' é o campo que será monitorado
 
@@ -254,29 +262,84 @@ const FormSelagem = ({
 	}
 
 	const fetchSelagem = async (request: any) => {
+		console.log("🔍 [fetchSelagem] Iniciando busca com request:", request);
+		
 		return await survey_resource.GetSelagem(request, async (req: any) => {
 			const searchParams = new URLSearchParams();
+			
+			// Log dos parâmetros de query antes do processamento
+			console.log("📋 [fetchSelagem] Query parameters recebidos:", req.query_parameters);
+			
 			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
 				if (value !== undefined && value !== "") {
 					searchParams.append(key, String(value));
+					console.log(`✅ [fetchSelagem] Adicionando parâmetro: ${key} = ${value}`);
+				} else {
+					console.log(`⚠️  [fetchSelagem] Ignorando parâmetro vazio/undefined: ${key} = ${value}`);
 				}
 			}
 
-			            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-			const res = await fetch(url, {
-				method: req.method,
-				headers: {
-					"Content-Type": "application/json",
-					...(req.headers || {}),
-				},
+			const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			
+			// Log detalhado da requisição
+			console.log("🌐 [fetchSelagem] URL final:", url);
+			console.log("🔧 [fetchSelagem] Método:", req.method);
+			console.log("📤 [fetchSelagem] Headers:", {
+				"Content-Type": "application/json",
+				...(req.headers || {}),
 			});
+			console.log("📊 [fetchSelagem] SURVEY_RESOURCE_BASE_URL:", SURVEY_RESOURCE_BASE_URL);
+			
+			try {
+				const res = await fetch(url, {
+					method: req.method,
+					headers: {
+						"Content-Type": "application/json",
+						...(req.headers || {}),
+					},
+				});
 
-			if (!res.ok) {
-				const text = await res.text();
-				throw new Error(`HTTP ${res.status}: ${text}`);
+				// Log do status da resposta
+				console.log("📥 [fetchSelagem] Status da resposta:", res.status);
+				console.log("📥 [fetchSelagem] Status text:", res.statusText);
+				console.log("📥 [fetchSelagem] Headers da resposta:", Object.fromEntries(res.headers.entries()));
+
+				if (!res.ok) {
+					const text = await res.text();
+					console.error("❌ [fetchSelagem] Erro HTTP:", {
+						status: res.status,
+						statusText: res.statusText,
+						body: text,
+						url: url
+					});
+					throw new Error(`HTTP ${res.status}: ${text}`);
+				}
+
+				const jsonResponse = await res.json();
+				console.log("✅ [fetchSelagem] Resposta JSON:", jsonResponse);
+				
+				// Log específico sobre selagens encontradas
+				if (jsonResponse?.selagens) {
+					console.log(`📊 [fetchSelagem] Total de selagens encontradas: ${jsonResponse.selagens.length}`);
+					if (jsonResponse.selagens.length > 0) {
+						console.log("📋 [fetchSelagem] Primeira selagem:", jsonResponse.selagens[0]);
+					} else {
+						console.warn("⚠️  [fetchSelagem] Nenhuma selagem encontrada no resultado");
+					}
+				} else {
+					console.warn("⚠️  [fetchSelagem] Resposta não contém array 'selagens'");
+				}
+				
+							return jsonResponse;
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+			console.error("💥 [fetchSelagem] Erro durante fetch:", {
+				error: errorMessage,
+				url: url,
+				request: req
+			});
+				throw error;
 			}
-
-			return res.json();
 		});
 	};
 
@@ -308,24 +371,60 @@ const FormSelagem = ({
 				end_date: endDate,
 			};
 
-			console.log("Request para buscar selagem:", request);
+			console.log("🎯 [handleSelagemModalOpenChange] Request para buscar selagem:", request);
+			console.log("📊 [handleSelagemModalOpenChange] Detalhes do request:", {
+				numero_sei: numero_sei,
+				numero_sei_type: typeof numero_sei,
+				initial_date: initialDate,
+				initial_date_type: typeof initialDate,
+				end_date: endDate,
+				end_date_type: typeof endDate,
+				seiFromStorageRaw: seiFromStorageRaw
+			});
 
 			const response = await fetchSelagem(request);
+			console.log("📨 [handleSelagemModalOpenChange] Response completa:", response);
+			
 			if (isGetSelagemResponse(response)) {
+				console.log("✅ [handleSelagemModalOpenChange] Response é válida (contém array selagens)");
 				const selagem = response.selagens?.[0];
 
 				if (selagem) {
-					console.log("Selagem encontrada:", selagem);
+					console.log("🎉 [handleSelagemModalOpenChange] Selagem encontrada:", selagem);
+					console.log("💾 [handleSelagemModalOpenChange] Salvando no localStorage:", {
+						selagemId: selagem.id,
+						selagemCreated_by: selagem.created_by
+					});
 
 					localStorage.setItem("selagemId", selagem.id);
 					localStorage.setItem("selagemCreated_by", selagem.created_by);
 
 					setIsMetadataModalOpen(false);
 					return; // sai da função aqui, não mostra alerta
+				} else {
+					console.warn("⚠️  [handleSelagemModalOpenChange] Array selagens está vazio ou primeira selagem é null/undefined");
 				}
+			} else {
+				console.error("❌ [handleSelagemModalOpenChange] Response não é válida (não passa no isGetSelagemResponse):", {
+					response: response,
+					hasSelagens: (response as any)?.selagens !== undefined,
+					selagensIsArray: Array.isArray((response as any)?.selagens)
+				});
 			}
 		} catch (error) {
-			console.error("Erro ao verificar selagem:", error);
+			const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+			const errorStack = error instanceof Error ? error.stack : undefined;
+			const seiFromStorageRaw = localStorage.getItem("seiNumberS");
+			const numero_sei = Number(seiFromStorageRaw);
+			console.error("💥 [handleSelagemModalOpenChange] Erro ao verificar selagem:", {
+				error: errorMessage,
+				stack: errorStack,
+				request: {
+					numero_sei,
+					initial_date: initialDate,
+					end_date: endDate,
+				}
+			});
 		}
 
 		// Se chegou aqui, não encontrou selagem — mostra alerta
@@ -500,12 +599,7 @@ const FormSelagem = ({
 
 	return (
 		<div ref={ref} className="text-left" nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
-			{/* API Status Indicator (fixed position) */}
-			<ApiStatusIndicator />
-			
-			{/* Debug Panels (only in localhost) */}
-			<ApiConnectionTester className="mb-4" />
-			<SelagemDebugPanel className="mb-4" />
+	
 			
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -658,7 +752,7 @@ const FormSelagem = ({
 									};
 
 									console.log("📤 Dados preparados para envio:", dataToSend);
-									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_BASE_URL);
+									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_URL);
 									console.log("🔧 Configuração de ambiente:", {
 										hostname: window.location.hostname,
 										isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
@@ -694,7 +788,7 @@ const FormSelagem = ({
 											message: errorMessage,
 											stack: errorStack,
 											dataToSend: dataToSend,
-											apiUrl: SURVEY_RESOURCE_BASE_URL
+											apiUrl: SURVEY_RESOURCE_URL
 										});
 										
 										Swal.fire({

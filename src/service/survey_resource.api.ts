@@ -1223,7 +1223,7 @@ namespace survey_resource {
     };
 
     export const PatchSelagem = async (request: PatchSelagemRequest, handler: RequestHandler): Promise<PatchSelagemResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}`;
+        const path = `/v1/selagens/${request.id}`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1307,7 +1307,7 @@ namespace survey_resource {
     };
 
     export const DeleteSelagem = async (request: DeleteSelagemRequest, handler: RequestHandler): Promise<DeleteSelagemResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}`;
+        const path = `/v1/selagens/${request.id}`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1346,7 +1346,7 @@ namespace survey_resource {
     };
 
     export const GetSelagemAttachments = async (request: GetSelagemAttachmentsRequest, handler: RequestHandler): Promise<GetSelagemAttachmentsResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
+        const path = `/v1/selagens/${request.id}/attachments`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1390,7 +1390,7 @@ namespace survey_resource {
     };
 
     export const RemoveSelagemAttachment = async (request: RemoveSelagemAttachmentRequest, handler: RequestHandler): Promise<RemoveSelagemAttachmentResponse | shared_message.ErrorResponse> => {
-        const path = `/survey-resource/v1/selagens/${request.id}/attachments`;
+        const path = `/v1/selagens/${request.id}/attachments`;
 
         const request_fields = Object.entries(request);
         const { headers, query_parameters, body } = request_fields.reduce((acc, [key, value]) => {
@@ -1958,7 +1958,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2001,7 +2001,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2044,7 +2044,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2081,7 +2081,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2143,7 +2143,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2178,7 +2178,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",
@@ -2216,7 +2216,7 @@ namespace survey_resource {
         }
     ): Promise<any> => {
         try {
-            const path = `/survey-resource/v1/selagens/${selagemId}`;
+            const path = `/v1/selagens/${selagemId}`;
 
             const headers = {
                 "Content-Type": "application/json",

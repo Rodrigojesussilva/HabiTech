@@ -10,7 +10,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import { formatarNumeroComTresDecimais, formatarNumeroComQuatroDecimais, formatarNumeroComDoisDecimais } from "@/components/forms/selagem/helpers/identEspacoHabitado.helper";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface IdentRespFormProps {
     id?: string;
@@ -131,7 +131,7 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
 
             try {
                 console.log("Payload Selagem:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToSelagemIdentificacaoEspaco(API_BASE_URL, selagemId, payload);
+                await survey_resource.SendFormToSelagemIdentificacaoEspaco(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
             } catch (error) {
                 console.error("Erro ao enviar identificação do espaço habitado:", error);
                 showErrorMessage("Erro ao enviar os dados de identificação do espaço habitado");

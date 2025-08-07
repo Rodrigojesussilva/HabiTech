@@ -10,7 +10,7 @@ import { getMergedFormSections } from "@/components/forms/selagem/definitions/Ca
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface IdentEticRacGeneFormProps {
   id?: string;
@@ -194,7 +194,7 @@ const CaracInfraUrbUnidForm = ({
       };
 
       try {
-        await survey_resource.SendFormToSelagemInfraUrbana(API_BASE_URL, selagemId, payload);
+        await survey_resource.SendFormToSelagemInfraUrbana(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
       } catch (error) {
         console.error("Erro ao enviar características da unidade:", error);
         showErrorMessage("Erro ao enviar os dados de características da unidade");

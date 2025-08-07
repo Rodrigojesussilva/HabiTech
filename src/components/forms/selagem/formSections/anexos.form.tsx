@@ -8,7 +8,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "@/service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "@/service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "@/service/constants"
 
 // Optional: Import country data if used in the component
 
@@ -172,7 +172,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
             localStorage.setItem("selagemId", selagemId);
 
-            const uploadResponse = await survey_resource.SendFileToUpload(API_BASE_URL, selagemId, fileBase64);
+            const uploadResponse = await survey_resource.SendFileToUpload(SURVEY_RESOURCE_BASE_URL, selagemId, fileBase64);
 
             console.log("Upload realizado com sucesso:", uploadResponse);
         } catch (error) {

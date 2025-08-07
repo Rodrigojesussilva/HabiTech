@@ -10,7 +10,7 @@ import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidade
 import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface InfoContatoFormProps {
     id?: string;
@@ -151,7 +151,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
             try {
                 console.log("Payload Selagem:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToSelagemIdentificacaoUnidade(API_BASE_URL, selagemId, payload);
+                await survey_resource.SendFormToSelagemIdentificacaoUnidade(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
             } catch (error) {
                 console.error("Erro ao enviar identificação da unidade:", error);
                 showErrorMessage("Erro ao enviar os dados de identificação da unidade");
