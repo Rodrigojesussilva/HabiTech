@@ -16,7 +16,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import { PencilIcon, TrashIcon, EyeIcon } from "lucide-react"
+import { PencilIcon, TrashIcon, EyeIcon, PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Selagem } from "./columns"
 
@@ -25,6 +25,7 @@ interface DataTableProps<TData, TValue> {
 	data: TData[]
 	onView?: (row: TData) => void
 	onEdit?: (row: TData) => void
+	onNewVisit?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -32,6 +33,7 @@ export function DataTable<TData, TValue>({
 	data,
 	onView,
 	onEdit,
+	onNewVisit,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -97,6 +99,15 @@ export function DataTable<TData, TValue>({
 													title={isCompleted ? 'Esta selagem já foi concluída e não pode ser editada' : 'Editar selagem'}
 												>
 													<PencilIcon className="w-4 h-4" />
+												</Button>
+												<Button 
+													className={`p-2 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+													variant="ghost"
+													onClick={() => onNewVisit?.(row.original)}
+													disabled={isCompleted}
+													title={isCompleted ? 'Esta selagem já foi concluída' : 'Nova visita'}
+												>
+													<PlusIcon className="w-4 h-4" />
 												</Button>
 												<Button 
 													className="cursor-pointer p-2" 

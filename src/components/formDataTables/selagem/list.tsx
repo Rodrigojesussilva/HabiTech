@@ -38,6 +38,53 @@ export default function DemoPage() {
     navigate(`/edit-selagem/${selagem.id}`)
   }
 
+  const handleNewVisit = async (selagem: Selagem) => {
+    if (selagem.completed) {
+      alert("Esta selagem já foi concluída e não pode receber novas visitas.")
+      return
+    }
+
+    const confirm = window.confirm(`Criar nova visita para a selagem ${selagem.id}?\n\nA nova visita será criada com base nos dados da última visita.`)
+    if (!confirm) return
+
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('authToken') || ''
+
+      const response = await survey_resource.CreateFromSelagem({
+        id: selagem.id,
+        created_by: localStorage.getItem('userEmail') || selagem.created_by,
+        authorization_token: token,
+      }, async (req: any) => {
+        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+        const res = await fetch(url, {
+          method: req.method,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(req.headers || {}),
+          },
+          body: JSON.stringify(req.body || {}),
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`HTTP ${res.status}: ${text}`)
+        }
+
+        return res.json()
+      })
+
+      console.log('✅ Nova visita criada:', response)
+      await fetchData()
+      alert('Nova visita criada com sucesso!')
+    } catch (error) {
+      console.error('Erro ao criar nova visita:', error)
+      alert('Erro ao criar nova visita. Verifique os logs.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   const clearData = () => {
     setData([])
@@ -166,7 +213,7 @@ export default function DemoPage() {
       </div>
 
       <div className="container mx-auto p-10">
-        <DataTable columns={columns} data={data} onView={handleView} onEdit={handleEdit} />
+        <DataTable columns={columns} data={data} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} />
       </div>
     </>
   )
