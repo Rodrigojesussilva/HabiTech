@@ -58,7 +58,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />
-                <Route path="/edit-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} />} />
+                <Route path="/edit-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
                 <Route path="/lista-arrolamentos" element={<DemoPage />} />
                 <Route path="/lista-selagens" element={<DemoPageS />} />
