@@ -106,6 +106,9 @@ const FormSelagem = ({
 	const [isLoadingData, setIsLoadingData] = useState(false)
 	const [loadedSelagemData, setLoadedSelagemData] = useState<any>(null)
 	
+	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
+	const isViewMode = loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
+	
 	const interviewerNameFromStorage = localStorage.getItem('userEmail') || '';
 
 	const form = useForm<FormValues>({
@@ -611,15 +614,17 @@ const FormSelagem = ({
 					>
 
 						<DialogContent
-							className="max-h-[90vh] overflow-y-auto "
+							className={`max-h-[90vh] overflow-y-auto ${isViewMode ? 'bg-gray-50' : ''}`}
 						>
 
 							<DialogHeader>
 								<DialogTitle>
-									{isEditMode ? `✏️ Editando Selagem ${selagemId}` : "➕ Nova Selagem"}
+									{isViewMode ? `👁️ Visualizando Selagem ${selagemId}` : 
+									 isEditMode ? `✏️ Editando Selagem ${selagemId}` : "➕ Nova Selagem"}
 								</DialogTitle>
 								<DialogDescription>
-									{isEditMode 
+									{isViewMode ? "Visualização somente leitura" :
+									 isEditMode 
 										? `Modifique os dados da selagem existente${loadedSelagemData ? ' (dados carregados)' : ' (carregando...)'}`
 										: "Preencha os campos abaixo:"
 									}
@@ -633,7 +638,7 @@ const FormSelagem = ({
 										section={{
 											...section,
 											fields: section.fields.map(field => {
-												return field;
+												return { ...field, readonly: isViewMode || field.readonly };
 											})
 										}}
 										formControl={form.control}
@@ -645,16 +650,29 @@ const FormSelagem = ({
 									/>
 								</div>
 							))}
-							<Button
-								type="button"
-								onClick={async () => {
-									console.log("🚀 Iniciando criação de nova selagem...");
+							{/* IMPLEMENTAÇÃO SIMPLES DA TABELA DE CONTROLE */}
+							{isViewMode ? (
+								// Modo VISUALIZAÇÃO: Apenas fecha o modal
+								<Button
+									type="button"
+									onClick={() => setIsMetadataModalOpen(false)}
+									className="mt-4"
+									variant="secondary"
+								>
+									Fechar
+								</Button>
+							) : (
+								// Modo NOVO/EDIÇÃO: Lógica completa de criação/patch
+								<Button
+									type="button"
+									onClick={async () => {
+										console.log("🚀 Iniciando criação/edição de selagem...");
 
-									handleSetEndTime();
-									//setIsMetadataModalOpen(false);
+										handleSetEndTime();
+										//setIsMetadataModalOpen(false);
 
-									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
-									console.log("📋 Valores do formulário:", { questionario, seiNumber, sealNumber, numberFamilies });
+										const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
+										console.log("📋 Valores do formulário:", { questionario, seiNumber, sealNumber, numberFamilies });
 
 									const values = form.getValues(); // pegar os valores do formulário
 									let hasError = false;
@@ -732,90 +750,172 @@ const FormSelagem = ({
 
 									console.log("✅ Validação passou - preparando dados para envio...");
 
-
-
 									localStorage.setItem("seiNumberS", seiNumber);
+									console.log("📋 Modo de operação:", isEditMode ? "EDIÇÃO (PATCH)" : "CRIAÇÃO (POST)");
 
-									console.log("Valores armazenados no localStorage:");
-									console.log("seiNumber:", localStorage.getItem("seiNumberS"));
+									// LÓGICA CONDICIONAL: POST vs PATCH baseada na tabela de controle
+									if (isEditMode && selagemId) {
+										// MODO EDIÇÃO: Atualizar metadados usando PATCH direto (mesmo padrão dos outros componentes)
+										const mainMetadataFormData = {
+											created_by: questionario,
+											main_metadata: {
+												numero_sei: values.naoAplica ? "N/A" : seiNumber,
+												numero_sei_nao_aplicavel: Boolean(values.naoAplica),
+											}
+										};
 
+										// Se tem sealNumber, também atualizar identificacao_espaco_habitado
+										const espacoHabitadoFormData = sealNumber ? {
+											created_by: questionario,
+											identificacao_espaco_habitado: {
+												numero_selo: sealNumber,
+											}
+										} : null;
 
+										console.log("📤 Dados para PATCH main_metadata:", mainMetadataFormData);
+										if (espacoHabitadoFormData) {
+											console.log("📤 Dados para PATCH identificacao_espaco_habitado:", espacoHabitadoFormData);
+										}
 
-									const dataToSend = {
-										created_by: questionario,
-										main_metadata: {
-											numero_sei: values.naoAplica ? "N/A" : seiNumber,
-											numero_selo: sealNumber,
-											quantidade_familias: numberFamilies,
-										},
-										// authorization_token: "seu_token_aqui", // se usar token, inclua aqui
-									};
+										try {
+											// PATCH 1: Atualizar main_metadata
+											console.log("🔄 Atualizando main_metadata para selagem:", selagemId);
+											const path = `/v1/selagens/${selagemId}`;
+											const url = `${SURVEY_RESOURCE_BASE_URL}${path}`;
 
-									console.log("📤 Dados preparados para envio:", dataToSend);
-									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_URL);
-									console.log("🔧 Configuração de ambiente:", {
-										hostname: window.location.hostname,
-										isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
-										forceProduction: localStorage.getItem('FORCE_PRODUCTION'),
-										currentAPI: CURRENT_API,
-										surveyResourceUrl: SURVEY_RESOURCE_URL
-									});
+											const response1 = await fetch(url, {
+												method: "PATCH",
+												headers: {
+													"Content-Type": "application/json",
+												},
+												body: JSON.stringify(mainMetadataFormData),
+											});
 
-									try {
-										console.log("🚀 Chamando survey_resource.CreateSelagem com URL:", SURVEY_RESOURCE_BASE_URL);
-										const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_BASE_URL, dataToSend);
-										console.log("✅ Resposta da API:", json);
-										setIsMetadataModalOpen(false);
-										Swal.fire({
-											position: "top-end",
-											icon: "success",
-											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-										      Selagem cadastrada com sucesso
-                                             </div>`,
-											showConfirmButton: false,
-											timer: 1500,
-											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+											if (!response1.ok) {
+												const errorText = await response1.text();
+												console.error("❌ Erro PATCH main_metadata:", response1.status, errorText);
+												throw new Error(`Erro na requisição main_metadata: ${response1.status} - ${errorText}`);
+											}
+
+											// PATCH 2: Atualizar numero_selo se necessário
+											if (espacoHabitadoFormData) {
+												console.log("🔄 Atualizando numero_selo...");
+												const response2 = await fetch(url, {
+													method: "PATCH",
+													headers: {
+														"Content-Type": "application/json",
+													},
+													body: JSON.stringify(espacoHabitadoFormData),
+												});
+
+												if (!response2.ok) {
+													const errorText = await response2.text();
+													console.error("❌ Erro PATCH identificacao_espaco_habitado:", response2.status, errorText);
+													throw new Error(`Erro na requisição numero_selo: ${response2.status} - ${errorText}`);
+												}
+											}
+
+											console.log("✅ Selagem atualizada com sucesso");
+											setIsMetadataModalOpen(false);
+											Swal.fire({
+												position: "top-end",
+												icon: "success",
+												html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Selagem atualizada com sucesso
+												</div>`,
+												showConfirmButton: false,
+												timer: 1500,
+												customClass: {
+													popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+												},
+											});
+
+										} catch (error) {
+											const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+											console.error("❌ Erro ao atualizar selagem:", error);
+											
+											Swal.fire({
+												icon: "error",
+												title: "Erro ao atualizar selagem",
+												html: `
+													<div class="text-lg text-center break-words w-full -translate-y-2">
+													Erro ao atualizar os dados
+													</div>
+													<div class="text-sm text-center break-words w-full mt-2">
+													${errorMessage}<br/>
+													Veja o console para mais detalhes.
+													</div>
+												`,
+												showConfirmButton: true,
+												confirmButtonText: "Ok",
+												customClass: {
+													popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
+												},
+											});
+										}
+									} else {
+										// MODO CRIAÇÃO: Usar POST para criar nova selagem (lógica original)
+										const dataToSend = {
+											created_by: questionario,
+											main_metadata: {
+												numero_sei: values.naoAplica ? "N/A" : seiNumber,
+												numero_selo: sealNumber,
+												quantidade_familias: numberFamilies,
 											},
-										});
+											// authorization_token: "seu_token_aqui",
+										};
 
-									} catch (error) {
-										const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-										const errorStack = error instanceof Error ? error.stack : undefined;
-										
-										console.error("❌ Erro detalhado ao criar selagem:", {
-											error: error,
-											message: errorMessage,
-											stack: errorStack,
-											dataToSend: dataToSend,
-											apiUrl: SURVEY_RESOURCE_URL
-										});
-										
-										Swal.fire({
-											icon: "error",
-											title: "Erro ao criar selagem",
-											html: `
-												<div class="text-lg text-center break-words w-full -translate-y-2">
-												Erro ao enviar os dados
-												</div>
-												<div class="text-sm text-center break-words w-full mt-2">
-												${errorMessage}<br/>
-												Veja o console para mais detalhes.
-												</div>
-  `,
-											showConfirmButton: true,
-											confirmButtonText: "Ok",
-											customClass: {
-												popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
-											},
-										});
+										console.log("📤 Dados para POST (criação):", dataToSend);
+										console.log("🌐 URL da API:", SURVEY_RESOURCE_URL);
 
+										try {
+											console.log("🚀 Chamando survey_resource.CreateSelagem");
+											const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_BASE_URL, dataToSend);
+											console.log("✅ Selagem criada com sucesso:", json);
+											setIsMetadataModalOpen(false);
+											Swal.fire({
+												position: "top-end",
+												icon: "success",
+												html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+													Selagem cadastrada com sucesso
+												</div>`,
+												showConfirmButton: false,
+												timer: 1500,
+												customClass: {
+													popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+												},
+											});
+
+										} catch (error) {
+											const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+											console.error("❌ Erro ao criar selagem:", error);
+											
+											Swal.fire({
+												icon: "error",
+												title: "Erro ao criar selagem",
+												html: `
+													<div class="text-lg text-center break-words w-full -translate-y-2">
+													Erro ao enviar os dados
+													</div>
+													<div class="text-sm text-center break-words w-full mt-2">
+													${errorMessage}<br/>
+													Veja o console para mais detalhes.
+													</div>
+												`,
+												showConfirmButton: true,
+												confirmButtonText: "Ok",
+												customClass: {
+													popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
+												},
+											});
+										}
 									}
-								}}
-								className="mt-4"
-							>
-								Concluir
-							</Button>
+									}}
+									className="mt-4"
+								>
+									{isEditMode ? "Atualizar Selagem" : "Abrir Visita"}
+								</Button>
+							)}
 
 						</DialogContent>
 					</Dialog>
