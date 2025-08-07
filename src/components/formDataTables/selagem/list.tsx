@@ -38,17 +38,116 @@ export default function DemoPage() {
     navigate(`/edit-selagem/${selagem.id}`)
   }
 
-  const handleNewVisit = async (selagem: Selagem) => {
-    if (selagem.completed) {
-      alert("Esta selagem já foi concluída e não pode receber novas visitas.")
-      return
-    }
-
-    const confirm = window.confirm(`Criar nova visita para a selagem ${selagem.id}?\n\nA nova visita será criada com base nos dados da última visita.`)
+  const handleDelete = async (selagem: Selagem) => {
+    const confirm = window.confirm(`Tem certeza que deseja deletar a selagem ${selagem.id}?`)
     if (!confirm) return
 
     try {
       setLoading(true)
+      const token = localStorage.getItem('authToken') || ''
+      await survey_resource.DeleteSelagem({ id: selagem.id, authorization_token: token }, async (req: any) => {
+        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+        const res = await fetch(url, {
+          method: req.method,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(req.headers || {}),
+          },
+          body: JSON.stringify(req.body || {}),
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`HTTP ${res.status}: ${text}`)
+        }
+
+        return res.json()
+      })
+
+      await fetchData()
+      alert('Selagem deletada com sucesso!')
+    } catch (error) {
+      console.error('Erro ao deletar selagem:', error)
+      alert('Erro ao deletar selagem. Verifique os logs.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleNewVisit = async (selagem: Selagem) => {
+    if (!selagem.completed) {
+      alert("Apenas selagens concluídas podem receber nova visita.")
+      return
+    }
+
+    // Verificar se esta linha representa a visita mais recente
+    // Estratégia: buscar TODAS as visitas pelo mesmo número SEI e comparar o visit_count máximo
+    try {
+      setLoading(true)
+      const numeroSei = selagem.survey?.main_metadata?.numero_sei
+      if (!numeroSei) {
+        alert('Número SEI não encontrado para validação da visita mais recente.')
+        setLoading(false)
+        return
+      }
+
+      const response = await survey_resource.GetSelagem({ numero_sei: numeroSei }, async (req) => {
+        const searchParams = new URLSearchParams()
+        for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+          if (value !== undefined && value !== "") {
+            searchParams.append(key, String(value))
+          }
+        }
+
+        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const res = await fetch(url, {
+          method: req.method,
+          headers: {
+            "Content-Type": "application/json",
+            ...(req.headers || {}),
+          },
+        })
+
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(`HTTP ${res.status}: ${text}`)
+        }
+
+        return res.json()
+      })
+
+      if (isGetSelagemResponse(response)) {
+        const selagensMesmoSei = (response.selagens ?? [])
+        if (selagensMesmoSei.length > 0) {
+          const latest = selagensMesmoSei.reduce((acc: any, cur: any) => {
+            if (!acc) return cur
+            return (cur.visit_count ?? 0) > (acc.visit_count ?? 0) ? cur : acc
+          }, null)
+
+          if (latest && latest.id !== selagem.id) {
+            alert(`Já existe uma visita mais recente (visita ${latest.visit_count}). Selecione a última visita para criar uma nova.`)
+            setLoading(false)
+            return
+          }
+
+          if (latest && !latest.completed) {
+            alert('A visita mais recente ainda não está concluída. Conclua-a antes de criar uma nova visita.')
+            setLoading(false)
+            return
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao validar visita mais recente:', e)
+      // Em caso de erro de validação, não prosseguir
+      setLoading(false)
+      return
+    }
+
+    const confirm = window.confirm(`Criar nova visita para a selagem ${selagem.id}?\n\nA nova visita será criada com base nos dados da última visita.`)
+    if (!confirm) { setLoading(false); return }
+
+    try {
       const token = localStorage.getItem('authToken') || ''
 
       const response = await survey_resource.CreateFromSelagem({
@@ -75,6 +174,60 @@ export default function DemoPage() {
       })
 
       console.log('✅ Nova visita criada:', response)
+
+      // Garantir que a nova visita fique em andamento (não concluída)
+      try {
+        const newId = (response as any)?.selagem?.id
+        const createdBy = localStorage.getItem('userEmail') || selagem.created_by
+        if (newId && createdBy) {
+          await survey_resource.PatchSelagem(
+            {
+              id: newId,
+              created_by: createdBy,
+              status_notas: {
+                status: "",
+                justificativa: "",
+                nome_supervisor: "",
+                observacao: "",
+              },
+              authorization_token: token,
+              main_metadata: {},
+              identificacao_espaco_habitado: {},
+              identificacao_unidade: {},
+              situacao_uso_unidade: {},
+              caracteristicas_unidade: {},
+              caracteristicas_infra_urbana: {},
+              outras_informacoes: {},
+            },
+            async (req: any) => {
+              const searchParams = new URLSearchParams()
+              for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                  searchParams.append(key, String(value))
+                }
+              }
+              const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+              const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(req.headers || {}),
+                },
+              })
+
+              if (!res.ok) {
+                const text = await res.text()
+                throw new Error(`HTTP ${res.status}: ${text}`)
+              }
+
+              return res.json()
+            }
+          )
+        }
+      } catch (e) {
+        console.warn('Aviso: não foi possível marcar a nova visita como em andamento automaticamente.', e)
+      }
+
       await fetchData()
       alert('Nova visita criada com sucesso!')
     } catch (error) {
@@ -213,7 +366,7 @@ export default function DemoPage() {
       </div>
 
       <div className="container mx-auto p-10">
-        <DataTable columns={columns} data={data} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} />
+        <DataTable columns={columns} data={data} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} onDelete={handleDelete} />
       </div>
     </>
   )

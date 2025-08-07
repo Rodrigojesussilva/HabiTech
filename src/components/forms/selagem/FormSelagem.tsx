@@ -107,6 +107,8 @@ const FormSelagem = ({
 	const isEditMode = Boolean(selagemId)
 	const [isLoadingData, setIsLoadingData] = useState(false)
 	const [loadedSelagemData, setLoadedSelagemData] = useState<any>(null)
+	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false)
+	const [finalizing, setFinalizing] = useState(false)
 	
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
@@ -453,6 +455,77 @@ const FormSelagem = ({
 		});
 	};
 
+	const handleFinalizeVisit = async () => {
+		if (!selagemId) return;
+		try {
+			setFinalizing(true)
+			const token = localStorage.getItem('authToken') || ''
+			const createdByFromStorage = localStorage.getItem('userEmail') || ''
+			const createdBy = createdByFromStorage || loadedSelagemData?.created_by || interviewerNameFromStorage
+
+			if (!createdBy) {
+				Swal.fire({ icon: 'error', title: 'Usuário não identificado', text: 'Não foi possível identificar o usuário criador (created_by). Faça login novamente.' })
+				setFinalizing(false)
+				return
+			}
+
+			// Coleta status atual se existir no form, senão usa 'Concluida'
+			let statusFromForm: string | undefined
+			try {
+				// Se existir em alguma família, tentamos pegar
+				const firstFamily: any = (form.getValues() as any)?.families?.[0] || {}
+				statusFromForm = firstFamily?.status || firstFamily?.statusNotas?.status
+			} catch {}
+
+			const payload = {
+				id: String(selagemId),
+				created_by: createdBy,
+				main_metadata: {},
+				identificacao_espaco_habitado: {},
+				identificacao_unidade: {},
+				situacao_uso_unidade: {},
+				caracteristicas_unidade: {},
+				caracteristicas_infra_urbana: {},
+				outras_informacoes: {},
+				status_notas: {
+					status: statusFromForm || 'Concluida',
+					justificativa: '',
+					nome_supervisor: '',
+					observacao: ''
+				},
+				authorization_token: token,
+			}
+
+			await survey_resource.UpdateSelagem(payload as any, async (req: any) => {
+				const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+				const res = await fetch(url, {
+					method: req.method,
+					headers: {
+						'Content-Type': 'application/json',
+						...(req.headers || {}),
+					},
+					body: JSON.stringify(req.body || {}),
+				})
+
+				if (!res.ok) {
+					const text = await res.text()
+					throw new Error(`HTTP ${res.status}: ${text}`)
+				}
+
+				return res.json()
+			})
+
+			setIsFinalizeModalOpen(false)
+			Swal.fire({ icon: 'success', title: 'Visita finalizada!', timer: 1400, showConfirmButton: false })
+			setLoadedSelagemData((prev: any) => ({ ...(prev || {}), status: 'finalizado', readonly: true }))
+		} catch (error) {
+			console.error('Erro ao finalizar visita:', error)
+			Swal.fire({ icon: 'error', title: 'Erro ao finalizar visita', text: 'Tente novamente.' })
+		} finally {
+			setFinalizing(false)
+		}
+	}
+
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
 		{
@@ -604,8 +677,24 @@ const FormSelagem = ({
 
 	return (
 		<div ref={ref} className="text-left" nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
-	
-			
+			{/* Modal de confirmação */}
+			<Dialog open={isFinalizeModalOpen} onOpenChange={setIsFinalizeModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Finalizar visita?</DialogTitle>
+						<DialogDescription>
+							Tem certeza que deseja finalizar esta visita? Após finalizar, os campos ficarão bloqueados.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2">
+						<Button variant="outline" onClick={() => setIsFinalizeModalOpen(false)} disabled={finalizing}>Cancelar</Button>
+						<Button onClick={handleFinalizeVisit} disabled={finalizing} className="bg-green-600 hover:bg-green-700">
+							{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					{/* Dialog for metadata fields */}
@@ -955,6 +1044,18 @@ const FormSelagem = ({
 							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
+
+					{/* Botão Finalizar Visita no final do formulário */}
+					<div className="flex justify-end mt-6">
+						<Button
+							variant="default"
+							onClick={(e) => { e.preventDefault(); setIsFinalizeModalOpen(true) }}
+							disabled={isViewMode || !isEditMode}
+							className="bg-green-600 hover:bg-green-700"
+						>
+							Finalizar Visita
+						</Button>
+					</div>
 				</form>
 
 			</Form>

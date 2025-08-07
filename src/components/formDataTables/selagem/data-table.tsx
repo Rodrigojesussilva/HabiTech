@@ -26,6 +26,7 @@ interface DataTableProps<TData, TValue> {
 	onView?: (row: TData) => void
 	onEdit?: (row: TData) => void
 	onNewVisit?: (row: TData) => void
+	onDelete?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -34,6 +35,7 @@ export function DataTable<TData, TValue>({
 	onView,
 	onEdit,
 	onNewVisit,
+	onDelete,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -101,11 +103,11 @@ export function DataTable<TData, TValue>({
 													<PencilIcon className="w-4 h-4" />
 												</Button>
 												<Button 
-													className={`p-2 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+													className={`p-2 ${!isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
 													variant="ghost"
 													onClick={() => onNewVisit?.(row.original)}
-													disabled={isCompleted}
-													title={isCompleted ? 'Esta selagem já foi concluída' : 'Nova visita'}
+													disabled={!isCompleted}
+													title={!isCompleted ? 'Disponível somente quando concluída' : 'Nova visita'}
 												>
 													<PlusIcon className="w-4 h-4" />
 												</Button>
@@ -113,6 +115,7 @@ export function DataTable<TData, TValue>({
 													className="cursor-pointer p-2" 
 													variant="ghost"
 													title="Deletar selagem"
+													onClick={() => onDelete?.(row.original)}
 												>
 													<TrashIcon className="w-4 h-4" />
 												</Button>
