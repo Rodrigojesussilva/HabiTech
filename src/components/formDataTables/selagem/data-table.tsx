@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table"
 import { PencilIcon, TrashIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Selagem } from "./columns"
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
@@ -72,16 +73,31 @@ export function DataTable<TData, TValue>({
 									</TableCell>
 								))}
 								<TableCell className="flex items-center justify-center gap-2">
-									<Button 
-										className="cursor-pointer p-2" 
-										variant="ghost"
-										onClick={() => onEdit?.(row.original)}
-									>
-										<PencilIcon className="w-4 h-4" />
-									</Button>
-									<Button className="cursor-pointer p-2" variant="ghost">
-										<TrashIcon className="w-4 h-4" />
-									</Button>
+									{(() => {
+										const item = row.original as Selagem
+										const isCompleted = item.completed
+										
+										return (
+											<>
+												<Button 
+													className={`p-2 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+													variant="ghost"
+													onClick={() => onEdit?.(row.original)}
+													disabled={isCompleted}
+													title={isCompleted ? 'Esta selagem já foi concluída e não pode ser editada' : 'Editar selagem'}
+												>
+													<PencilIcon className="w-4 h-4" />
+												</Button>
+												<Button 
+													className="cursor-pointer p-2" 
+													variant="ghost"
+													title="Deletar selagem"
+												>
+													<TrashIcon className="w-4 h-4" />
+												</Button>
+											</>
+										)
+									})()}
 								</TableCell>
 							</TableRow>
 						))

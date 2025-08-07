@@ -658,7 +658,7 @@ const FormSelagem = ({
 									};
 
 									console.log("📤 Dados preparados para envio:", dataToSend);
-									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_URL);
+									console.log("🌐 URL da API que será usada:", SURVEY_RESOURCE_BASE_URL);
 									console.log("🔧 Configuração de ambiente:", {
 										hostname: window.location.hostname,
 										isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
@@ -668,8 +668,8 @@ const FormSelagem = ({
 									});
 
 									try {
-										console.log("🚀 Chamando survey_resource.CreateSelagem com URL:", SURVEY_RESOURCE_URL);
-										const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_URL, dataToSend);
+										console.log("🚀 Chamando survey_resource.CreateSelagem com URL:", SURVEY_RESOURCE_BASE_URL);
+										const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_BASE_URL, dataToSend);
 										console.log("✅ Resposta da API:", json);
 										setIsMetadataModalOpen(false);
 										Swal.fire({
@@ -694,7 +694,7 @@ const FormSelagem = ({
 											message: errorMessage,
 											stack: errorStack,
 											dataToSend: dataToSend,
-											apiUrl: SURVEY_RESOURCE_URL
+											apiUrl: SURVEY_RESOURCE_BASE_URL
 										});
 										
 										Swal.fire({
