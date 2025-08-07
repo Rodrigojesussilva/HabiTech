@@ -6,9 +6,10 @@ import { useLocation } from "react-router-dom"; // Importa hook de rota
 interface FormContainerProps {
 	FormComponent: React.ComponentType<any>;
 	openModalOnMount?: boolean;
+	viewMode?: boolean;
 }
 
-const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalOnMount = true }) => {
+const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalOnMount = true, viewMode = false }) => {
 	const formRef = useRef<HTMLDivElement>(null);
 	const location = useLocation();
 
@@ -50,6 +51,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalO
 					activeFamilyIndex={activeFamilyIndex}
 					mostrarSecoes={mostrarSecoes}
 					onChangeMostrarSecoes={handleChangeMostrarSecoes}
+					viewMode={viewMode}
 				/>
 			</Card>
 		</div>

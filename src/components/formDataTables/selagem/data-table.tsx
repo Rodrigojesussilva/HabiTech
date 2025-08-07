@@ -16,19 +16,21 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import { PencilIcon, TrashIcon } from "lucide-react"
+import { PencilIcon, TrashIcon, EyeIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Selagem } from "./columns"
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
+	onView?: (row: TData) => void
 	onEdit?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	onView,
 	onEdit,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
@@ -79,6 +81,14 @@ export function DataTable<TData, TValue>({
 										
 										return (
 											<>
+												<Button 
+													className="cursor-pointer p-2" 
+													variant="ghost"
+													onClick={() => onView?.(row.original)}
+													title="Visualizar selagem"
+												>
+													<EyeIcon className="w-4 h-4" />
+												</Button>
 												<Button 
 													className={`p-2 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
 													variant="ghost"

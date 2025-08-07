@@ -91,6 +91,7 @@ interface FormArrolamentoProps {
 	isMetadataModalOpen: boolean;
 	setIsMetadataModalOpen: (open: boolean) => void;
 	activeFamilyIndex: number;
+	viewMode?: boolean;
 }
 
 const FormSelagem = ({
@@ -99,7 +100,8 @@ const FormSelagem = ({
 	onSubmit,
 	isMetadataModalOpen,
 	setIsMetadataModalOpen,
-	activeFamilyIndex
+	activeFamilyIndex,
+	viewMode = false
 }: FormArrolamentoProps) => {
 	const { id: selagemId } = useParams<{ id: string }>()
 	const isEditMode = Boolean(selagemId)
@@ -107,7 +109,7 @@ const FormSelagem = ({
 	const [loadedSelagemData, setLoadedSelagemData] = useState<any>(null)
 	
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
-	const isViewMode = loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
+	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
 	
 	const interviewerNameFromStorage = localStorage.getItem('userEmail') || '';
 

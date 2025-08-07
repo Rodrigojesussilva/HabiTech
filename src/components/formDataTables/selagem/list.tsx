@@ -20,6 +20,11 @@ export default function DemoPage() {
   const [endDate, setEndDate] = useState("")
   const [createdBy, setCreatedBy] = useState("")
 
+  const handleView = (selagem: Selagem) => {
+    console.log("👁️ Visualizando selagem:", selagem)
+    navigate(`/view-selagem/${selagem.id}`)
+  }
+
   const handleEdit = (selagem: Selagem) => {
     console.log("🚀 Tentando editar selagem:", selagem)
     
@@ -161,7 +166,7 @@ export default function DemoPage() {
       </div>
 
       <div className="container mx-auto p-10">
-        <DataTable columns={columns} data={data} onEdit={handleEdit} />
+        <DataTable columns={columns} data={data} onView={handleView} onEdit={handleEdit} />
       </div>
     </>
   )
