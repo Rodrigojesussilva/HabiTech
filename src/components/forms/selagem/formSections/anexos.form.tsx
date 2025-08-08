@@ -20,6 +20,7 @@ type AttachmentItem = {
   mime?: string
   size?: number
   url?: string
+  dataUrl?: string
   metadado?: Record<string, any>
 }
 
@@ -69,6 +70,19 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Anexos] Falha ao salvar localmente:', e)
     }
   }
+  const removeLocalAttachment = (sid: string, field: string, id: string) => {
+    try {
+      const key = localKey(sid)
+      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
+      if (current[field]) {
+        current[field] = current[field].filter(a => a.id !== id)
+        localStorage.setItem(key, JSON.stringify(current))
+        console.log('[Anexos] Removido localmente:', { key, field, id })
+      }
+    } catch (e) {
+      console.warn('[Anexos] Falha ao remover localmente:', e)
+    }
+  }
   const loadFromLocal = (sid: string) => {
     try {
       const key = localKey(sid)
@@ -95,16 +109,21 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
     try {
       setLoading(true)
-      const response = await survey_resource.GetSelagemAttachments({ id: currentSelagemId, authorization_token: token, download_mode: 'metadata_only' as any }, async (req: any) => {
+      // Primeira tentativa: pedir URLs assinadas
+      const response = await survey_resource.GetSelagemAttachments({ id: currentSelagemId, authorization_token: token, download_mode: 'signed_url' as any }, async (req: any) => {
         const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
         const headers: Record<string, string> = { 'Content-Type': 'application/json' }
         const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
         if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
-        const res = await fetch(url, { method: req.method, headers })
+        const res = await fetch(`${url}?download_mode=signed_url`, { method: req.method, headers })
         if (!res.ok) throw new Error(await res.text())
         return res.json()
       })
       const list = (response as any)?.attachments || []
+      if (!Array.isArray(list) || list.length === 0) {
+        // Fallback: metadata_only
+        throw new Error('Empty signed_url response; falling back to metadata_only')
+      }
       const grouped: Record<string, AttachmentItem[]> = {}
       for (const f of list) {
         const meta = f.metadado || {}
@@ -116,14 +135,50 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           filename: f.filename || f.name || 'arquivo',
           mime: f.mime,
           size: f.size,
-          url: f.url,
+          url: f.url, // deve vir com URL assinada
           metadado: meta,
         })
       }
       setAttachmentsByField(grouped)
     } catch (e) {
-      console.error('[Anexos] Erro ao carregar anexos do backend, caindo para localStorage:', e)
-      loadFromLocal(currentSelagemId)
+      console.warn('[Anexos] signed_url indisponível, usando fallback:', e)
+      try {
+        const { currentSelagemId, token } = ensureIds()
+        if (!token) {
+          loadFromLocal(currentSelagemId)
+        } else {
+          const response2 = await survey_resource.GetSelagemAttachments({ id: currentSelagemId, authorization_token: token, download_mode: 'metadata_only' as any }, async (req: any) => {
+            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+            const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+            if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+            const res = await fetch(`${url}?download_mode=metadata_only`, { method: req.method, headers })
+            if (!res.ok) throw new Error(await res.text())
+            return res.json()
+          })
+          const list2 = (response2 as any)?.attachments || []
+          const grouped2: Record<string, AttachmentItem[]> = {}
+          for (const f of list2) {
+            const meta = f.metadado || {}
+            if (meta.section !== SECTION_KEY) continue
+            const key = meta.field || 'outros'
+            if (!grouped2[key]) grouped2[key] = []
+            grouped2[key].push({
+              id: f.id,
+              filename: f.filename || f.name || 'arquivo',
+              mime: f.mime,
+              size: f.size,
+              url: undefined,
+              metadado: meta,
+            })
+          }
+          setAttachmentsByField(grouped2)
+        }
+      } catch (e2) {
+        console.error('[Anexos] Fallback metadata/local falhou:', e2)
+        const { currentSelagemId } = ensureIds()
+        loadFromLocal(currentSelagemId)
+      }
     } finally {
       setLoading(false)
     }
@@ -174,7 +229,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       try {
         const id = uploaded?.file?.id || uploaded?.id || `temp_${Date.now()}`
         const url = uploaded?.file?.url || uploaded?.url
-        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, metadado }
+        const dataUrl = `data:${file.type};base64,${base64}`
+        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, dataUrl, metadado }
         setAttachmentsByField(prev => {
           const next = { ...prev }
           if (!next[fieldName]) next[fieldName] = []
@@ -199,27 +255,79 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
-  const handleRemove = async (attachmentId: string) => {
+  const handleRemove = async (attachmentId: string, fieldName: string) => {
     try {
       const { currentSelagemId, token } = ensureIds()
-      if (!currentSelagemId || !token) return
-      await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
-        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-        const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
-        if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
-        const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
-        if (!res.ok) throw new Error(await res.text())
-        return res.json()
+      if (!currentSelagemId) return
+      if (token) {
+        await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
+          const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+          const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+          if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+          const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
+          if (!res.ok) throw new Error(await res.text())
+          return res.json()
+        })
+      }
+      // Remoção local e atualização de estado
+      setAttachmentsByField(prev => {
+        const next = { ...prev }
+        next[fieldName] = (next[fieldName] || []).filter(a => a.id !== attachmentId)
+        return next
       })
-      await loadAttachments()
+      removeLocalAttachment(currentSelagemId, fieldName, attachmentId)
     } catch (e) {
       console.error('Erro ao remover anexo:', e)
     }
   }
 
-  // REMOVIDO: upload no onChange. Vamos concentrar no botão abaixo
-  // useEffect(() => { ... })
+  const openAttachment = async (fieldName: string, id: string) => {
+    const items = attachmentsByField[fieldName] || []
+    const a = items.find(x => x.id === id)
+    if (!a) return
+    const filename = a.metadado?.filename || a.filename || 'anexo'
+    try {
+      let blob: Blob | null = null
+      if (a.url) {
+        const res = await fetch(a.url)
+        if (!res.ok) throw new Error(await res.text())
+        blob = await res.blob()
+      } else if (a.dataUrl) {
+        const resp = await fetch(a.dataUrl)
+        blob = await resp.blob()
+      }
+      if (!blob) throw new Error('Sem dados para download')
+      const href = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = href
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(href)
+    } catch (e) {
+      console.error('[Anexos] Falha ao baixar anexo:', e)
+      Swal.fire({ icon: 'error', title: 'Erro ao baixar anexo' })
+    }
+  }
+
+  const renderAttachmentList = (fieldName: string) => {
+    const items = attachmentsByField[fieldName] || []
+    if (!items.length) return null
+    return (
+      <ul className="mt-2 space-y-1">
+        {items.map((a) => (
+          <li key={a.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
+            <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
+            <span className="flex items-center gap-2">
+              <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+            </span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 
   const handleSendAll = async () => {
     try {
@@ -256,27 +364,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
-  const renderAttachmentList = (fieldName: string) => {
-    const items = attachmentsByField[fieldName] || []
-    if (!items.length) return null
-    return (
-      <ul className="mt-2 space-y-1">
-        {items.map((a) => (
-          <li key={a.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
-            <span className="truncate mr-2">{a.filename}</span>
-            <span className="flex items-center gap-2">
-              {a.url && (
-                <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">abrir</a>
-              )}
-              <button type="button" className="text-red-600" onClick={() => handleRemove(a.id)}>remover</button>
-            </span>
-          </li>
-        ))}
-      </ul>
-    )
-  }
-
-
   return (
     <div className="text-left">
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -298,7 +385,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                 familyIndex={familyIndex}
               />
               {/* listas por campo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <div>
                   <div className="text-xs font-medium text-gray-600">Anexos-Selo</div>
                   {renderAttachmentList('anexoSelo')}
