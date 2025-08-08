@@ -1,4 +1,4 @@
-import  { useState } from "react"
+import  { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Selagem, columns } from "./columns"
 import { DataTable } from "./data-table"
@@ -64,7 +64,7 @@ export default function DemoPage() {
         return res.json()
       })
 
-      await fetchData()
+      await fetchData(true)
       alert('Selagem deletada com sucesso!')
     } catch (error) {
       console.error('Erro ao deletar selagem:', error)
@@ -91,7 +91,8 @@ export default function DemoPage() {
         return
       }
 
-      const response = await survey_resource.GetSelagem({ numero_sei: numeroSei }, async (req) => {
+      const token = localStorage.getItem('authToken') || ''
+      const response = await survey_resource.GetSelagem({ numero_sei: numeroSei, authorization_token: token }, async (req) => {
         const searchParams = new URLSearchParams()
         for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
           if (value !== undefined && value !== "") {
@@ -100,12 +101,15 @@ export default function DemoPage() {
         }
 
         const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const headersToSend: Record<string, string> = {
+          "Content-Type": "application/json",
+        }
+        const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+        if (tokenFromReq) headersToSend['Authorization'] = `Bearer ${tokenFromReq}`
+
         const res = await fetch(url, {
           method: req.method,
-          headers: {
-            "Content-Type": "application/json",
-            ...(req.headers || {}),
-          },
+          headers: headersToSend,
         })
 
         if (!res.ok) {
@@ -210,7 +214,7 @@ export default function DemoPage() {
         console.warn('Aviso: não foi possível marcar a nova visita como em andamento automaticamente.', e)
       }
 
-      await fetchData()
+      await fetchData(true)
       alert('Nova visita criada com sucesso!')
     } catch (error) {
       console.error('Erro ao criar nova visita:', error)
@@ -220,7 +224,6 @@ export default function DemoPage() {
     }
   }
 
-
   const clearData = () => {
     setData([])
     setCreatedBy("")
@@ -228,21 +231,24 @@ export default function DemoPage() {
     setEndDate("")
   }
 
-  const fetchData = async () => {
-    if (!createdBy.trim()) {
-      setData([])
-      setInitialDate("")
-      setEndDate("")
-      return
-    }
-
+  const fetchData = async (ignoreCreatedByFilter: boolean = false) => {
+    // Não retornar mais cedo; vamos sempre buscar usando um intervalo amplo quando não houver filtros
     setLoading(true)
     try {
-      const request = {
-        created_by: createdBy.trim(),
-        initial_date: initialDate,
-        end_date: endDate,
+      const token = localStorage.getItem('authToken') || ''
+
+      // Regra: SOMENTE um parâmetro de filtro por vez
+      // - Se houver created_by, NÃO enviar datas
+      // - Caso contrário, enviar apenas intervalo amplo de datas
+      let request: any = {}
+      if (createdBy.trim()) {
+        request = { created_by: createdBy.trim() }
+      } else {
+        const initial = initialDate || '1900-01-01'
+        const end = endDate || '2100-01-01'
+        request = { initial_date: initial, end_date: end }
       }
+      if (token) request.authorization_token = token
 
       const response = await survey_resource.GetSelagem(request, async (req) => {
         const searchParams = new URLSearchParams()
@@ -253,12 +259,15 @@ export default function DemoPage() {
         }
 
         const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+        const headersToSend: Record<string, string> = {
+          "Content-Type": "application/json",
+        }
+        const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+        if (tokenFromReq) headersToSend['Authorization'] = `Bearer ${tokenFromReq}`
+
         const res = await fetch(url, {
           method: req.method,
-          headers: {
-            "Content-Type": "application/json",
-            ...(req.headers || {}),
-          },
+          headers: headersToSend,
         })
 
         if (!res.ok) {
@@ -268,7 +277,6 @@ export default function DemoPage() {
 
         return res.json()
       })
-
 
       if (isGetSelagemResponse(response)) {
         const mapped = (response.selagens ?? []).map((item: any): Selagem => ({
@@ -288,7 +296,6 @@ export default function DemoPage() {
 
         setData(mapped)
       } else if (response && Object.keys(response).length === 0) {
-        // Resposta vazia, mas sem erro
         console.warn("Resposta vazia: nenhuma selagem encontrada.")
         setData([])
       } else {
@@ -303,6 +310,12 @@ export default function DemoPage() {
       setLoading(false)
     }
   }
+
+  // Buscar automaticamente ao montar, sem filtro
+  useEffect(() => {
+    fetchData(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
@@ -325,7 +338,7 @@ export default function DemoPage() {
           </div>
 
           <button
-            onClick={fetchData}
+            onClick={() => fetchData(true)}
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
