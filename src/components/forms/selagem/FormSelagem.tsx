@@ -128,7 +128,7 @@ const FormSelagem = ({
 			timeElapsed: "",
 			sealNumber: "",
 			numberFamilies: 1,
-			firstVisitStart: new Date().toLocaleString('pt-BR', {
+			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
 				day: '2-digit',
 				month: '2-digit',
 				year: 'numeric',
@@ -456,7 +456,11 @@ const FormSelagem = ({
 	};
 
 	const handleFinalizeVisit = async () => {
-		if (!selagemId) return;
+		const effectiveSelagemId = selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId') || ''
+		if (!effectiveSelagemId) {
+			Swal.fire({ icon: 'error', title: 'Registro sem ID', text: 'Não foi possível identificar o ID da selagem para finalizar. Salve os metadados primeiro.' })
+			return
+		}
 		try {
 			setFinalizing(true)
 			const token = localStorage.getItem('authToken') || ''
@@ -477,13 +481,12 @@ const FormSelagem = ({
 			// Coleta status atual se existir no form, senão usa 'Concluida'
 			let statusFromForm: string | undefined
 			try {
-				// Se existir em alguma família, tentamos pegar
 				const firstFamily: any = (form.getValues() as any)?.families?.[0] || {}
 				statusFromForm = firstFamily?.status || firstFamily?.statusNotas?.status
 			} catch {}
 
 			const payload = {
-				id: String(selagemId),
+				id: String(effectiveSelagemId),
 				created_by: createdBy,
 				main_metadata: {},
 				identificacao_espaco_habitado: {},
@@ -503,12 +506,17 @@ const FormSelagem = ({
 
 			await survey_resource.UpdateSelagem(payload as any, async (req: any) => {
 				const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+				// Monta headers explicitamente para evitar erro de tipagem e garantir Authorization
+				const headersToSend: Record<string, string> = {
+					'Content-Type': 'application/json',
+				}
+				const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+				if (tokenFromReq) {
+					headersToSend['Authorization'] = `Bearer ${tokenFromReq}`
+				}
 				const res = await fetch(url, {
 					method: req.method,
-					headers: {
-						'Content-Type': 'application/json',
-						...(req.headers || {}),
-					},
+					headers: headersToSend,
 					body: JSON.stringify(req.body || {}),
 				})
 
@@ -522,7 +530,7 @@ const FormSelagem = ({
 
 			setIsFinalizeModalOpen(false)
 			Swal.fire({ icon: 'success', title: 'Visita finalizada!', timer: 1400, showConfirmButton: false })
-			setLoadedSelagemData((prev: any) => ({ ...(prev || {}), status: 'finalizado', readonly: true }))
+			setLoadedSelagemData((prev: any) => ({ ...(prev || {}), id: effectiveSelagemId, status: 'finalizado', readonly: true }))
 		} catch (error) {
 			console.error('Erro ao finalizar visita:', error)
 			Swal.fire({ icon: 'error', title: 'Erro ao finalizar visita', text: 'Tente novamente.' })
@@ -762,10 +770,9 @@ const FormSelagem = ({
 								<Button
 									type="button"
 									onClick={async () => {
-										console.log("🚀 Iniciando criação/edição de selagem...");
+																							console.log("🚀 Iniciando criação/edição de selagem...");
 
-										handleSetEndTime();
-										//setIsMetadataModalOpen(false);
+													//setIsMetadataModalOpen(false);
 
 										const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
 										console.log("📋 Valores do formulário:", { questionario, seiNumber, sealNumber, numberFamilies });
@@ -968,6 +975,10 @@ const FormSelagem = ({
 											console.log("🚀 Chamando survey_resource.CreateSelagem");
 											const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_BASE_URL, dataToSend);
 											console.log("✅ Selagem criada com sucesso:", json);
+											if (json?.selagem?.id) {
+												setLoadedSelagemData(json.selagem)
+												localStorage.setItem('selagemId', json.selagem.id)
+											}
 											setIsMetadataModalOpen(false);
 											Swal.fire({
 												position: "top-end",
