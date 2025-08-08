@@ -469,6 +469,11 @@ const FormSelagem = ({
 				return
 			}
 
+			// Preenche a data/hora de término no formulário
+			const endAt = formatDate()
+			form.setValue('firstVisitEnd', endAt)
+			form.setValue('endTime', endAt)
+
 			// Coleta status atual se existir no form, senão usa 'Concluida'
 			let statusFromForm: string | undefined
 			try {
@@ -1050,7 +1055,7 @@ const FormSelagem = ({
 						<Button
 							variant="default"
 							onClick={(e) => { e.preventDefault(); setIsFinalizeModalOpen(true) }}
-							disabled={isViewMode || !isEditMode}
+							disabled={isViewMode}
 							className="bg-green-600 hover:bg-green-700"
 						>
 							Finalizar Visita

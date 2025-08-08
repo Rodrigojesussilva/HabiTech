@@ -15,6 +15,8 @@ export type Selagem = {
       numero_sei: string
     }
   }
+  status_text?: string
+  is_latest?: boolean
 }
 
 export const columns: ColumnDef<Selagem>[] = [

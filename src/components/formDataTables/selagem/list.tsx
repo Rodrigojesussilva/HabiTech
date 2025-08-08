@@ -180,49 +180,31 @@ export default function DemoPage() {
         const newId = (response as any)?.selagem?.id
         const createdBy = localStorage.getItem('userEmail') || selagem.created_by
         if (newId && createdBy) {
-          await survey_resource.PatchSelagem(
-            {
-              id: newId,
+          const url = `${SURVEY_RESOURCE_BASE_URL}/v1/selagens/${newId}`
+          const res = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
               created_by: createdBy,
               status_notas: {
-                status: "",
+                status: null,
                 justificativa: "",
                 nome_supervisor: "",
                 observacao: "",
               },
-              authorization_token: token,
-              main_metadata: {},
-              identificacao_espaco_habitado: {},
-              identificacao_unidade: {},
-              situacao_uso_unidade: {},
-              caracteristicas_unidade: {},
-              caracteristicas_infra_urbana: {},
-              outras_informacoes: {},
-            },
-            async (req: any) => {
-              const searchParams = new URLSearchParams()
-              for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
-                if (value !== undefined && value !== "") {
-                  searchParams.append(key, String(value))
-                }
-              }
-              const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
-              const res = await fetch(url, {
-                method: req.method,
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(req.headers || {}),
-                },
-              })
+            }),
+          })
+          if (!res.ok) {
+            const text = await res.text()
+            throw new Error(`HTTP ${res.status}: ${text}`)
+          }
+          await res.json()
 
-              if (!res.ok) {
-                const text = await res.text()
-                throw new Error(`HTTP ${res.status}: ${text}`)
-              }
-
-              return res.json()
-            }
-          )
+          // Redirecionar imediatamente para edição da nova visita
+          navigate(`/edit-selagem/${newId}`)
         }
       } catch (e) {
         console.warn('Aviso: não foi possível marcar a nova visita como em andamento automaticamente.', e)
