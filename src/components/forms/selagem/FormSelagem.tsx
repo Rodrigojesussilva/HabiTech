@@ -79,6 +79,7 @@ const formSchema = z.object({
 	secondVisit: z.string(),
 	thirdVisit: z.string(),
 	families: z.array(familySchema),
+	visitNumber: z.string().optional(),
 });
 
 // Define the form data type from the schema
@@ -139,6 +140,7 @@ const FormSelagem = ({
 			secondVisit: "",
 			thirdVisit: "",
 			families: [{}],
+			visitNumber: "",
 		},
 	});
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
@@ -555,6 +557,16 @@ const FormSelagem = ({
 					sidebarform: true,
 					sidebarlabel: "",
 					showinmodal: true,
+				} as FormFieldType,
+				{
+					name: "visitNumber",
+					label: "Visita Nº",
+					type: "text",
+					readonly: true,
+					required: false,
+					sidebarform: true,
+					showinmodal: false,
+					sidebarlabel: "Visita",
 				} as FormFieldType,
 				{
 					name: "firstVisitStart",
@@ -978,6 +990,9 @@ const FormSelagem = ({
 											if (json?.selagem?.id) {
 												setLoadedSelagemData(json.selagem)
 												localStorage.setItem('selagemId', json.selagem.id)
+												if (json.selagem.visit_count !== undefined) {
+													form.setValue('visitNumber', String(json.selagem.visit_count))
+												}
 											}
 											setIsMetadataModalOpen(false);
 											Swal.fire({

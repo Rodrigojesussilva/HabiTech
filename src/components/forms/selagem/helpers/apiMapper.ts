@@ -164,6 +164,7 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
     }).replace(',', ' -') : "",
     secondVisit: "",
     thirdVisit: "",
+    visitNumber: selagemData.visit_count != null ? String(selagemData.visit_count) : "",
     families: [{
       // Identificação Espaço Habitado (schema: identEspacoHabitadoSchema)
       nomeEspacoHabitado: identEspaco.nome_espaco_habitado || "",
