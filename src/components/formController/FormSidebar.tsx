@@ -22,6 +22,23 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 		label: string
 	}[]>([]);
 	const [activeSection, setActiveSection] = useState<string | null>(null);
+	// Estado para forçar re-render quando o form mudar (ex.: form.reset)
+	const [formVersion, setFormVersion] = useState(0);
+	
+	// Assinar mudanças do formulário para re-renderizar valores do sidebar
+	useEffect(() => {
+		if (!form) return;
+		const subscription: any = (form as any).watch(() => {
+			setFormVersion((v) => v + 1);
+		});
+		return () => {
+			if (typeof subscription === 'function') {
+				subscription();
+			} else if (subscription && typeof subscription.unsubscribe === 'function') {
+				subscription.unsubscribe();
+			}
+		};
+	}, [form]);
 	
 
 	// Quando o formulário for montado, ele vai nos dizer quais seções existem
@@ -67,7 +84,6 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 	}
 	return (
 		
-	
 		
 		<Card className="hidden lg:block md:block min-w-[250px] max-w-[350px] w-auto h-[calc(100vh-6rem)] sticky self-start top-20 px-2 m-4 overflow-y-auto">
 			<h4 className="text-primary text-sm pt-4 pl-2 pb-2  font-bold text-left"> Dados de controle</h4>

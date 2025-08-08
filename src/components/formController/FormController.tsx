@@ -5,13 +5,15 @@ import { useLocation } from "react-router-dom"; // Importa hook de rota
 
 interface FormContainerProps {
 	FormComponent: React.ComponentType<any>;
+	openModalOnMount?: boolean;
+	viewMode?: boolean;
 }
 
-const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
+const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalOnMount = true, viewMode = false }) => {
 	const formRef = useRef<HTMLDivElement>(null);
 	const location = useLocation();
 
-	const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(true);
+	const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(openModalOnMount);
 	const [activeFamilyIndex, setActiveFamilyIndex] = useState(0);
 	const [mostrarSecoes, setMostrarSecoes] = useState(true);
 
@@ -23,11 +25,11 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 		setMostrarSecoes(value);
 	};
 
-	// 🔁 Sempre que mudar de rota, reabrir o modal
+	// 🔁 Sempre que mudar de rota, reabrir o modal (se permitido)
 	useEffect(() => {
-		setIsMetadataModalOpen(true);
+		setIsMetadataModalOpen(openModalOnMount);
 		setActiveFamilyIndex(0); 
-	}, [location.pathname]);
+	}, [location.pathname, openModalOnMount]);
 
 	return (
 		<div className="flex flex-wrap lg:flex-nowrap md:flex-nowrap gap-0">
@@ -49,6 +51,7 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent }) => {
 					activeFamilyIndex={activeFamilyIndex}
 					mostrarSecoes={mostrarSecoes}
 					onChangeMostrarSecoes={handleChangeMostrarSecoes}
+					viewMode={viewMode}
 				/>
 			</Card>
 		</div>
