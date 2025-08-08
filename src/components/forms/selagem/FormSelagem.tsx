@@ -10,7 +10,7 @@ import {
 
 import { useEffect, useState, useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
 	Dialog,
 	DialogContent,
@@ -105,11 +105,14 @@ const FormSelagem = ({
 	viewMode = false
 }: FormArrolamentoProps) => {
 	const { id: selagemId } = useParams<{ id: string }>()
+	const navigate = useNavigate()
 	const isEditMode = Boolean(selagemId)
 	const [isLoadingData, setIsLoadingData] = useState(false)
 	const [loadedSelagemData, setLoadedSelagemData] = useState<any>(null)
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false)
 	const [finalizing, setFinalizing] = useState(false)
+	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
+	const [saving, setSaving] = useState(false)
 	
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
@@ -555,12 +558,18 @@ const FormSelagem = ({
 			setIsFinalizeModalOpen(false)
 			Swal.fire({ icon: 'success', title: 'Visita finalizada!', timer: 1400, showConfirmButton: false })
 			setLoadedSelagemData((prev: any) => ({ ...(prev || {}), id: effectiveSelagemId, status: 'finalizado', readonly: true }))
+			navigate('/lista-selagens')
 		} catch (error) {
 			console.error('Erro ao finalizar visita:', error)
 			Swal.fire({ icon: 'error', title: 'Erro ao finalizar visita', text: 'Tente novamente.' })
 		} finally {
 			setFinalizing(false)
 		}
+	}
+
+	const handleSaveVisit = async () => {
+		setIsSaveModalOpen(false)
+		navigate('/lista-selagens')
 	}
 
 	// Define the form structure using FormFieldType for each field
@@ -737,6 +746,24 @@ const FormSelagem = ({
 						<Button variant="outline" onClick={() => setIsFinalizeModalOpen(false)} disabled={finalizing}>Cancelar</Button>
 						<Button onClick={handleFinalizeVisit} disabled={finalizing} className="bg-green-600 hover:bg-green-700">
 							{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Modal de salvar */}
+			<Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Salvar alterações?</DialogTitle>
+						<DialogDescription>
+							Deseja salvar as alterações desta visita?
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2">
+						<Button variant="outline" onClick={() => setIsSaveModalOpen(false)} disabled={saving}>Cancelar</Button>
+						<Button onClick={handleSaveVisit} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+							{saving ? 'Salvando...' : 'Salvar'}
 						</Button>
 					</div>
 				</DialogContent>
@@ -1088,8 +1115,16 @@ const FormSelagem = ({
 						</div>
 					))}
 
-					{/* Botão Finalizar Visita no final do formulário */}
-					<div className="flex justify-end mt-6">
+					{/* Botões de ação no final do formulário */}
+					<div className="flex justify-end mt-6 gap-2">
+						<Button
+							variant="default"
+							onClick={(e) => { e.preventDefault(); setIsSaveModalOpen(true) }}
+							disabled={isViewMode}
+							className="bg-blue-600 hover:bg-blue-700"
+						>
+							Salvar
+						</Button>
 						<Button
 							variant="default"
 							onClick={(e) => { e.preventDefault(); setIsFinalizeModalOpen(true) }}

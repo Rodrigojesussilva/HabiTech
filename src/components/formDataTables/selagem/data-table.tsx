@@ -51,19 +51,19 @@ export function DataTable<TData, TValue>({
 	})
 
 	return (
-		<div className="rounded-lg border bg-white">
-			<Table className="rounded-lg border bg-white">
+		<div className="rounded-lg border bg-white overflow-x-auto">
+			<Table className="rounded-lg border bg-white min-w-[640px] text-xs md:text-sm">
 				<TableHeader className="rounded-lg border bg-white">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow className="rounded-lg border bg-white" key={headerGroup.id}>
 							{headerGroup.headers.map((header) => (
-								<TableHead className="bg-secondary border text-center text-primary" key={header.id}>
+								<TableHead className={`bg-secondary border text-center text-primary px-1 py-1 md:px-2 md:py-1 ${(header.column.columnDef as any).meta?.headerClassName ?? ''}`} key={header.id}>
 									{header.isPlaceholder
 										? null
 										: flexRender(header.column.columnDef.header, header.getContext())}
 								</TableHead>
 							))}
-							<TableHead className="bg-secondary border text-center text-primary" key="actions">
+							<TableHead className="bg-secondary border text-center text-primary px-1 py-1 md:px-2 md:py-1" key="actions">
 								Ações
 							</TableHead>
 						</TableRow>
@@ -74,11 +74,11 @@ export function DataTable<TData, TValue>({
 						table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}>
+									<TableCell className={`${(cell.column.columnDef as any).meta?.cellClassName ?? ''} px-1 py-1 md:px-2 md:py-1`} key={cell.id}>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
-								<TableCell className="flex items-center justify-center gap-2">
+								<TableCell className="flex items-center justify-center gap-0.5 md:gap-1 px-1 py-1 md:px-2 md:py-1">
 									{(() => {
 										const item = row.original as Selagem
 										const isCompleted = item.completed
@@ -86,7 +86,7 @@ export function DataTable<TData, TValue>({
 										return (
 											<>
 												<Button 
-													className="cursor-pointer p-2" 
+													className="cursor-pointer p-0.5 md:p-1" 
 													variant="ghost"
 													onClick={() => onView?.(row.original)}
 													title="Visualizar selagem"
@@ -94,7 +94,7 @@ export function DataTable<TData, TValue>({
 													<EyeIcon className="w-4 h-4" />
 												</Button>
 												<Button 
-													className={`p-2 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+													className={`p-0.5 md:p-1 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
 													variant="ghost"
 													onClick={() => onEdit?.(row.original)}
 													disabled={isCompleted}
@@ -103,7 +103,7 @@ export function DataTable<TData, TValue>({
 													<PencilIcon className="w-4 h-4" />
 												</Button>
 												<Button 
-													className={`p-2 ${!isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+													className={`p-0.5 md:p-1 ${!isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
 													variant="ghost"
 													onClick={() => onNewVisit?.(row.original)}
 													disabled={!isCompleted}
@@ -112,7 +112,7 @@ export function DataTable<TData, TValue>({
 													<PlusIcon className="w-4 h-4" />
 												</Button>
 												<Button 
-													className="cursor-pointer p-2" 
+													className="cursor-pointer p-0.5 md:p-1" 
 													variant="ghost"
 													title="Deletar selagem"
 													onClick={() => onDelete?.(row.original)}

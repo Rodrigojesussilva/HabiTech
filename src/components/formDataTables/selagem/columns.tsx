@@ -20,7 +20,6 @@ export type Selagem = {
 }
 
 export const columns: ColumnDef<Selagem>[] = [
-  
   {
     accessorKey: "survey_id",
     header: ({ column }) => (
@@ -32,42 +31,7 @@ export const columns: ColumnDef<Selagem>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-  },
-  {
-    accessorKey: "created_by",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Criado por
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-  },
-  {
-    accessorKey: "visit_count",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Contagem de Visitas
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-  },
-  {
-    accessorKey: "created_at",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Criado em
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    meta: { headerClassName: "", cellClassName: "" }, // sempre visível
   },
   {
     accessorFn: row => row.survey.main_metadata.numero_sei,
@@ -81,6 +45,20 @@ export const columns: ColumnDef<Selagem>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    meta: { headerClassName: "", cellClassName: "" }, // sempre visível
+  },
+  {
+    accessorKey: "visit_count",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Visita
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    meta: { headerClassName: "hidden md:table-cell", cellClassName: "hidden md:table-cell" },
   },
   {
     accessorKey: "completed",
@@ -107,5 +85,32 @@ export const columns: ColumnDef<Selagem>[] = [
         </div>
       )
     },
+    meta: { headerClassName: "", cellClassName: "" },
+  },
+  {
+    accessorKey: "created_by",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Criado por
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    meta: { headerClassName: "hidden lg:table-cell", cellClassName: "hidden lg:table-cell" },
+  },
+  {
+    accessorKey: "created_at",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Criado em
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    meta: { headerClassName: "hidden xl:table-cell", cellClassName: "hidden xl:table-cell" },
   },
 ]
