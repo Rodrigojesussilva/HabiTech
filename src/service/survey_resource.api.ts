@@ -2245,14 +2245,19 @@ namespace survey_resource {
     export const SendFileToUpload = async (
         baseUrl: string,
         entityId: string,
-        fileContent: string
+        fileContent: string,
+        metadado?: Record<string, any>,
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/file-input/v1/files/upload`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) {
+                headers["Authorization"] = `Bearer ${authorization_token}`;
+            }
 
             // Remove prefixo base64 caso exista
             const cleanedFileContent = fileContent.replace(/^data:.*;base64,/, "");
@@ -2261,6 +2266,7 @@ namespace survey_resource {
                 entity_id: entityId,
                 file: cleanedFileContent,
                 usage: "SURVEY",
+                metadado: metadado || {},
             };
 
             console.log("Enviando corpo do request:", body);
