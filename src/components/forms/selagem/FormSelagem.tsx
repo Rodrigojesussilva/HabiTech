@@ -72,7 +72,7 @@ const formSchema = z.object({
 	startTime: z.string(),
 	endTime: z.string(),
 	timeElapsed: z.string(),
-	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }),
+	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }).optional(),
 	numberFamilies: z.number().min(0),
 	firstVisitStart: z.string(),
 	firstVisitEnd: z.string(),
@@ -144,6 +144,28 @@ const FormSelagem = ({
 		},
 	});
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
+
+	// Calcula automaticamente o número de selagem a partir dos campos da família ativa
+	useEffect(() => {
+		const subscription: any = (form as any).watch((allValues: any) => {
+			try {
+				const families = allValues?.families || [];
+				const current = families?.[activeFamilyIndex] || {};
+				// Seja fiel ao valor exibido no componente: usar exatamente families[...].numeroSelo
+				const composed = (current?.numeroSelo ?? "").toString();
+				const currentSeal = form.getValues("sealNumber") || "";
+				if (composed !== currentSeal) {
+					// Limpa o campo antes de atualizar para evitar concatenação visual
+					form.setValue("sealNumber", "", { shouldDirty: true, shouldValidate: false });
+					form.setValue("sealNumber", composed, { shouldDirty: true, shouldValidate: false });
+				}
+			} catch {}
+		});
+		return () => {
+			if (typeof subscription === 'function') subscription();
+			else if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe();
+		};
+	}, [form, activeFamilyIndex]);
 
 	const { setValue, watch } = useForm();
 	const [initialDate] = useState("")
@@ -612,7 +634,7 @@ const FormSelagem = ({
 					type: "text",
 					required: true,
 					sidebarform: true,
-					showinmodal: true
+					showinmodal: false
 				} as FormFieldType,
 
 				{
@@ -820,17 +842,7 @@ const FormSelagem = ({
 										form.clearErrors("seiNumber");
 									}
 
-									if (!values.sealNumber || values.sealNumber.trim() === '') {
-										console.warn("❌ Campo sealNumber vazio:", values.sealNumber);
-										form.setError("sealNumber", {
-											type: "manual",
-											message: "O campo Número do Selo é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										console.log("✅ Campo sealNumber OK:", values.sealNumber);
-										form.clearErrors("sealNumber");
-									}
+									// Removida validação obrigatória de sealNumber
 
 									if (!values.numberFamilies || values.numberFamilies <= 0) {
 										console.warn("❌ Campo numberFamilies inválido:", values.numberFamilies);
