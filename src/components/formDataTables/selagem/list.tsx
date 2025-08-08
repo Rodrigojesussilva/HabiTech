@@ -30,7 +30,7 @@ export default function DemoPage() {
     
     // Verificar se a selagem está concluída
     if (selagem.completed) {
-      alert(`❌ Esta selagem já foi concluída e não pode ser editada!\n\nSelagem: ${selagem.id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}\nConcluída em: ${selagem.completed_at ? new Date(selagem.completed_at).toLocaleString('pt-BR') : 'Data não disponível'}`)
+      alert(`❌ Esta selagem já foi concluída e não pode ser editada!\n\nSelagem: ${selagem.survey_id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}\nConcluída em: ${selagem.completed_at ? new Date(selagem.completed_at).toLocaleString('pt-BR') : 'Data não disponível'}`)
       return
     }
     

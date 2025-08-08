@@ -294,7 +294,7 @@ export const loadSelagemData = async (params: LoadSelagemDataParams): Promise<vo
       Swal.fire({
         icon: 'success',
         title: 'Dados Carregados!',
-        text: `Selagem ${selagemId} carregada com sucesso`,
+        text: `Selagem ${selagemData.survey_id ?? selagemId} carregada com sucesso`,
         timer: 2000,
         showConfirmButton: false
       })
@@ -321,7 +321,7 @@ export const loadSelagemData = async (params: LoadSelagemDataParams): Promise<vo
         Swal.fire({
           icon: 'info',
           title: 'Dados Mock Carregados!',
-          text: `Selagem ${selagemId} carregada com dados de teste (API indisponível)`,
+          text: `Selagem ${selagemData.survey_id ?? selagemId} carregada com dados de teste (API indisponível)`,
           timer: 3000,
           showConfirmButton: false
         })

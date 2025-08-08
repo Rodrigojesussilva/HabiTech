@@ -756,10 +756,10 @@ const FormSelagem = ({
 						>
 
 							<DialogHeader>
-								<DialogTitle>
-									{isViewMode ? `👁️ Visualizando Selagem ${selagemId}` : 
-									 isEditMode ? `✏️ Editando Selagem ${selagemId}` : "➕ Nova Selagem"}
-								</DialogTitle>
+																				<DialogTitle>
+													{isViewMode ? `👁️ Visualizando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : 
+													 isEditMode ? `✏️ Editando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : "➕ Nova Selagem"}
+												</DialogTitle>
 								<DialogDescription>
 									{isViewMode ? "Visualização somente leitura" :
 									 isEditMode 
@@ -1060,7 +1060,7 @@ const FormSelagem = ({
 								<>
 									<span>Editando Selagem</span>
 									{isLoadingData && <span className="text-sm text-blue-600 animate-pulse">(Carregando dados...)</span>}
-									{loadedSelagemData && <span className="text-sm text-green-600">({selagemId})</span>}
+									{loadedSelagemData && <span className="text-sm text-green-600">({loadedSelagemData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
 								</>
 							) : (
 								<span>Nova Selagem</span>
