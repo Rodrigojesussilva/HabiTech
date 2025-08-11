@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { SURVEY_RESOURCE_URL, CURRENT_API, API_CONFIG } from '../../service/constants'
+import { SURVEY_RESOURCE_URL, CURRENT_API } from '../../service/constants'
 import survey_resource from '../../service/survey_resource.api'
 
 interface ApiConnectionTesterProps {

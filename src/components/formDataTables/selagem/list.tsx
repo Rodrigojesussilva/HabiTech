@@ -234,6 +234,7 @@ export default function DemoPage() {
   const fetchData = async (ignoreCreatedByFilter: boolean = false) => {
     // Não retornar mais cedo; vamos sempre buscar usando um intervalo amplo quando não houver filtros
     setLoading(true)
+    console.log("ignoreCreatedByFilter", ignoreCreatedByFilter);
     try {
       const token = localStorage.getItem('authToken') || ''
 

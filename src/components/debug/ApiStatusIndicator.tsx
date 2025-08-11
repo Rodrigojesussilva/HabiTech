@@ -1,5 +1,5 @@
 import React from 'react'
-import { SURVEY_RESOURCE_URL, CURRENT_API } from '../../service/constants'
+import { SURVEY_RESOURCE_URL } from '../../service/constants'
 
 interface ApiStatusIndicatorProps {
   className?: string

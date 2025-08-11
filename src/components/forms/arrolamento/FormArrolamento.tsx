@@ -45,7 +45,7 @@ import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/in
 import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
 import { statusNotasSchema } from "@/components/forms/arrolamento/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.definition";
-import { SURVEY_RESOURCE_URL } from "../../../service/constants";
+import { API_BASE_URL, SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 // Define the schema for a single family, integrating IdentResp schema
@@ -229,7 +229,7 @@ const FormArrolamento = ({
 					searchParams.append(key, String(value));
 				}
 			}
-
+			
 			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 			const res = await fetch(url, {
 				method: req.method,

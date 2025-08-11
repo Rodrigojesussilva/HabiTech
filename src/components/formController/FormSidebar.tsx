@@ -24,7 +24,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 	const [activeSection, setActiveSection] = useState<string | null>(null);
 	// Estado para forçar re-render quando o form mudar (ex.: form.reset)
 	const [formVersion, setFormVersion] = useState(0);
-	
+	console.log("formVersion", formVersion);
 	// Assinar mudanças do formulário para re-renderizar valores do sidebar
 	useEffect(() => {
 		if (!form) return;
