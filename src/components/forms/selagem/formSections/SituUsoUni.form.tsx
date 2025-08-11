@@ -89,8 +89,9 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     };
 
     const fetchSelagemData = async () => {
-        const seiFromStorageRaw = localStorage.getItem("seiNumber");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        console.log("Acessando fetchSelagemData ");
+        const seiFromStorageRaw = localStorage.getItem("seiNumberS");
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -100,8 +101,12 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             };
 
             const response = await fetchSelagem(request);
+            console.log("Resposta de fetchSelagem:", response);
 
-            if (isGetSelagemResponse(response)) {
+            const passedCheck = isGetSelagemResponse(response);
+            console.log("Passou isGetSelagemResponse?", passedCheck);
+
+            if (passedCheck) {
                 await handleSelagemResponse(response);
             }
         } catch (error) {
@@ -110,7 +115,9 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     };
 
+
     const handleSelagemResponse = async (response: any) => {
+        console.log("Acessando handleSelagemResponse")
         const selagem = response.selagens?.[0];
         if (selagem) {
             const selagemId = selagem.id;
@@ -127,7 +134,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                     nome_responsavel: nomeResponsavel,
                     qual_uso: qualUso,
                     responsavel_identificado: responsavelIdentificado,
-                    situacao,
+                    situacao: situacao,
                     telefone_responsavel: telefoneResponsavel,
                     tipos_uso: tiposUso,
                     uso,
@@ -180,7 +187,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     useEffect(() => {
 
         form.setValue(`families[${familyIndex}].quaisTipos`, "");
-        form.setValue(`families[${familyIndex}].uso`, "");         
+        form.setValue(`families[${familyIndex}].uso`, "");
         form.setValue(`families[${familyIndex}].qualUso`, "");
 
     }, [usoUnidade, familyIndex]);
@@ -188,6 +195,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
     useEffect(() => {
         const handleBlur = async () => {
+            console.log("Acessando User efect")
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -217,7 +225,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumberS");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

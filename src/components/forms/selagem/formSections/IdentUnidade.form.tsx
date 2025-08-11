@@ -96,7 +96,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
     const fetchSelagemData = async () => {
         const seiFromStorageRaw = localStorage.getItem("seiNumberS");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -212,7 +212,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumberS");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

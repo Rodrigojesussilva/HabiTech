@@ -80,7 +80,7 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
 
     const fetchSelagemData = async () => {
         const seiFromStorageRaw = localStorage.getItem("seiNumberS");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -154,7 +154,7 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
 
                 const seiNumber = localStorage.getItem("seiNumberS");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

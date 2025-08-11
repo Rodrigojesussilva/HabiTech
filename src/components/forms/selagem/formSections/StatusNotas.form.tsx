@@ -88,7 +88,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
     const fetchSelagemData = async () => {
         const seiFromStorageRaw = localStorage.getItem("seiNumberS");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -137,6 +137,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         };
 
         try {
+            console.log("Payload Selagem:", JSON.stringify(payload, null, 2));
             await survey_resource.SendFormToSelagemStatusNotas(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
         } catch (error) {
             console.error("Erro ao enviar status_notas:", error);
@@ -189,7 +190,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumberS");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };
@@ -215,7 +216,6 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         observacao,
         status,
     ]);
-
 
     return (
         <div className="text-left">
