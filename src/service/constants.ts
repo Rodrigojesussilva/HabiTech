@@ -23,7 +23,7 @@ export const API_CONFIG = {
 }
 
 // Auto-detect environment or allow manual override
-const USE_LOCAL_BACKEND = isLocalDevelopment && !localStorage.getItem('FORCE_PRODUCTION')
+const USE_LOCAL_BACKEND = isLocalDevelopment && !localStorage.getItem('FORCE_PRODUCTION') && false
 
 // Current API URLs based on environment
 export const CURRENT_API = USE_LOCAL_BACKEND ? API_CONFIG.LOCAL : API_CONFIG.PRODUCTION
