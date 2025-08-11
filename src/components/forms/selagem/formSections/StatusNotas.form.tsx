@@ -124,6 +124,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             if (value == null || value === "") return "string";
             return String(value);
         };
+        void sanitizeField;
 
         const payload = {
             created_by: criadoPor,

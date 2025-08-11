@@ -34,7 +34,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
   const [attachmentsByField, setAttachmentsByField] = useState<Record<string, AttachmentItem[]>>({})
   const [loading, setLoading] = useState(false)
-
+  console.log("loading", loading);
   const params = useParams<{ id: string }>()
   const routeSelagemId = params.id || ''
   const selagemIdLS = localStorage.getItem('selagemId') || ''

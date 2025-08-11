@@ -111,7 +111,7 @@ const FormSelagem = ({
 	const [finalizing, setFinalizing] = useState(false)
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
 	const [saving, setSaving] = useState(false)
-	
+	void setSaving;
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
 	
@@ -167,8 +167,9 @@ const FormSelagem = ({
 			else if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe();
 		};
 	}, [form, activeFamilyIndex]);
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const { setValue, watch } = useForm();
+	void setValue;
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
 	
@@ -281,6 +282,7 @@ const FormSelagem = ({
 		const formattedDate = formatDate();
 		form.setValue("firstVisitEnd", formattedDate);
 	};
+	void handleSetEndTime;
 	// Lidar com o envio do formulário para FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {

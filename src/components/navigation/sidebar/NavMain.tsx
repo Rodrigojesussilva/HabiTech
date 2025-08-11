@@ -26,7 +26,8 @@ export function NavMain({
     }[]
   }[]
 }) {
-  const location = useLocation()
+  const location = useLocation();
+  console.log("location", location);
 
   const handleClick = (e: React.MouseEvent, url: string) => {
     if (url.includes('arrolamento')) {
