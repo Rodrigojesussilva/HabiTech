@@ -8,6 +8,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
+import useViewMode from '@/hooks/useViewMode'
 
 
 interface IdentRespFormProps {
@@ -18,6 +19,8 @@ interface IdentRespFormProps {
 }
 
 const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes }: IdentRespFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -63,6 +66,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -126,10 +130,18 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     const handleArrolamentoResponse = async (response: any) => {
-        if (response.arrolamentos && response.arrolamentos.length > 0) {
-            const primeiroArrolamento = response.arrolamentos[0];
-            const arrolamentoId = primeiroArrolamento.id;
-            const criadoPor = primeiroArrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][IdentResp] View/Completed: PATCH bloqueado'); return; }
+        let primeiroArrolamento = (response && response.arrolamentos && response.arrolamentos[0]) || null;
+        if (!primeiroArrolamento) {
+            const idLS = localStorage.getItem('arrolamentoId') || ''
+            const createdByLS = localStorage.getItem('arrolamentoCreated_by') || ''
+            if (!idLS) { console.log('[Arrolamento][IdentResp] Sem contexto (response vazio e localStorage sem id). Abortando.'); return; }
+            primeiroArrolamento = { id: idLS, created_by: createdByLS }
+        }
+        const completedResp = !!(primeiroArrolamento?.completed || (primeiroArrolamento?.status_notas && primeiroArrolamento.status_notas.status === 'Concluida'))
+        if (completedResp) { console.log('[Arrolamento][IdentResp] Registro concluído no response. Abortando PATCH.'); return; }
+        const arrolamentoId = primeiroArrolamento.id;
+        const criadoPor = primeiroArrolamento.created_by;
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -146,7 +158,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             };
 
             try {
-                console.log('[Arrolamento][IdentResp] PATCH prepared:', {
+                console.log('[Arrolamento][IdentResp] PATCH prepared (final):', {
                     arrolamentoId,
                     createdBy,
                     tokenPresent: !!token,
@@ -156,9 +168,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 console.log('[Arrolamento][IdentResp] PATCH success')
             } catch (error) {
                 console.error("[Arrolamento][IdentResp] PATCH error:", error);
-                showErrorMessage("Erro ao enviar os dados");
+                if (!isViewMode) showErrorMessage("Erro ao enviar os dados");
             }
-        }
     };
 
     const createIdentificacaoResponsavel = () => {
@@ -190,6 +201,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][IdentResp] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -202,6 +215,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
 
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
@@ -257,6 +271,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isViewMode,
         dataNascimento,
         idadeResp,
         nomeCompleto,

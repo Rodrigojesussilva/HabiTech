@@ -9,6 +9,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 interface PessoaDefFormProps {
     id?: string;
     sectionIndex?: number;
@@ -17,6 +18,8 @@ interface PessoaDefFormProps {
 
 
 const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -157,6 +160,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -218,11 +222,18 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     const handlePessoaDeficienteResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (!arrolamento) return;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][PessoaDef] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (!target) return;
+        if (!arrolamento) console.log('[Arrolamento][PessoaDef] PATCH: usando contexto localStorage id=', fallbackId)
+        const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+        if (completedResp) { console.log('[Arrolamento][PessoaDef] Registro concluído. Abortando PATCH.'); return; }
 
-        const arrolamentoId = arrolamento.id;
-        const criadoPor = arrolamento.created_by;
+        const arrolamentoId = (target as any).id;
+        const criadoPor = (target as any).created_by;
 
         localStorage.setItem("arrolamentoId", arrolamentoId);
         localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -302,18 +313,20 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         };
 
         try {
-            console.log("Payload Pessoa Deficiente:", JSON.stringify(payload, null, 2));
+            console.log('[Arrolamento][PessoaDef] PATCH prepared (final):', payload);
             const token = localStorage.getItem('authToken') || ''
             await survey_resource.SendFormToArrolamentoPessoaDeficiente(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
         } catch (error) {
             console.error("Erro ao enviar dados de pessoa com deficiência:", error);
-            showErrorMessage("Erro ao enviar os dados de pessoa com deficiência");
+            if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de pessoa com deficiência");
         }
     };
 
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][PessoaDef] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -326,6 +339,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
 
@@ -426,6 +440,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isViewMode,
         temPessoaDeficienciaFam,
         qtdPessoasComDefFam,
         responsavelTemDeficiencia,

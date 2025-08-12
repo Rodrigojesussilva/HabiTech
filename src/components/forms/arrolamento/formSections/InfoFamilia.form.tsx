@@ -14,6 +14,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 
 interface InfoFamiliaFormProps {
@@ -22,6 +23,8 @@ interface InfoFamiliaFormProps {
     familyIndex: number;
 }
 const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamiliaFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -29,6 +32,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
+    const firstBlurSkippedRef = useRef(false);
 
     function slugify(pais: string) {
         return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
@@ -79,6 +83,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -140,10 +145,17 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     };
 
     const handleInformacaoFamiliaResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][InfoFamilia] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][InfoFamilia] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][InfoFamilia] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
             const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
             const token = localStorage.getItem('authToken') || ''
 
@@ -182,12 +194,12 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             };
 
             try {
-                console.log('[Arrolamento][InfoFamilia] PATCH prepared:', { arrolamentoId, createdBy, tokenPresent: !!token, payload })
+                console.log('[Arrolamento][InfoFamilia] PATCH prepared (final):', { arrolamentoId, createdBy, tokenPresent: !!token, payload })
                 const res = await survey_resource.SendFormToArrolamentoInformacaoFamilia(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
                 console.log('[Arrolamento][InfoFamilia] PATCH success:', res)
             } catch (error) {
                 console.error("[Arrolamento][InfoFamilia] PATCH error:", error);
-                showErrorMessage("Erro ao enviar os dados da família");
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados da família");
             }
         }
     };
@@ -195,6 +207,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][InfoFamilia] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -207,7 +221,13 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
     };
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
         const handleBlur = async () => {
+            // Evita PATCH no primeiro blur ao entrar no formulário
+            if (!firstBlurSkippedRef.current) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -263,6 +283,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isViewMode,
         totalPessoas,
         rendaFamiliar,
         criancas0a3,

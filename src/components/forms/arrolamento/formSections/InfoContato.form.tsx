@@ -11,6 +11,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL, API_BASE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
+import useViewMode from '@/hooks/useViewMode'
 
 interface InfoContatoFormProps {
     id?: string;
@@ -19,6 +20,8 @@ interface InfoContatoFormProps {
 }
 
 const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 
     const [mostrarContato, setMostrarContato] = useState(false);
     const [initialDate] = useState("")
@@ -96,6 +99,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -157,10 +161,17 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     const handleContatoResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Contato] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][Contato] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][Contato] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
             const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
             const token = localStorage.getItem('authToken') || ''
 
@@ -203,18 +214,20 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
             try {
 
-                console.log('[Arrolamento][Contato] PATCH prepared:', { arrolamentoId, createdBy, tokenPresent: !!token, formPayload })
+                console.log('[Arrolamento][Contato] PATCH prepared (final):', { arrolamentoId, createdBy, tokenPresent: !!token, formPayload })
                 const res = await survey_resource.SendFormToArrolamentoContato(SURVEY_RESOURCE_URL, arrolamentoId, formPayload as any, token);
                 console.log('[Arrolamento][Contato] PATCH success:', res)
             } catch (error) {
                 console.error("[Arrolamento][Contato] PATCH error:", error);
-                showErrorMessage("Erro ao enviar os dados");
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados");
             }
         }
     };
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][Contato] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
             return !isEmpty;
@@ -225,6 +238,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
 
@@ -293,6 +307,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isViewMode,
         email,
         telefone1, telefone2, telefone3, telefone4,
         tipoTelefone1, tipoTelefone2, tipoTelefone3, tipoTelefone4,

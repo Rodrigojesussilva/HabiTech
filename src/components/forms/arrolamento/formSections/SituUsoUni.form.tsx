@@ -10,6 +10,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 interface SituUsoUniFormProps {
     id?: string;
     sectionIndex?: number;
@@ -17,6 +18,8 @@ interface SituUsoUniFormProps {
 }
 
 const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -85,6 +88,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -149,10 +153,17 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     };
 
     const handleSituacaoUsoResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][SituacaoUso] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][SituacaoUso] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][SituacaoUso] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -196,18 +207,20 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             };
 
             try {
-                console.log("Payload Pessoa Deficiente:", JSON.stringify(situacaoUsoPayload, null, 2));
+                console.log('[Arrolamento][SituacaoUso] PATCH prepared (final):', situacaoUsoPayload);
                 const token = localStorage.getItem('authToken') || ''
                 await survey_resource.SendFormToArrolamentoSituacaoUso(SURVEY_RESOURCE_URL, arrolamentoId, situacaoUsoPayload, token);
             } catch (error) {
                 console.error("Erro ao enviar situação de uso:", error);
-                showErrorMessage("Erro ao enviar os dados de situação de uso");
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de situação de uso");
             }
         }
     };
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][SituacaoUso] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -299,6 +312,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     ]);
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
 
@@ -366,6 +380,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isViewMode,
         regimeOcupacao,
         contatoProprietario,
         contratoLocacao,

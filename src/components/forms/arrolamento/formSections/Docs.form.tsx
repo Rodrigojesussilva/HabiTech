@@ -12,6 +12,7 @@ import { mask, unMask } from 'remask';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
@@ -19,6 +20,8 @@ interface DocsFormProps {
 }
 
 const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
+	const isViewMode = useViewMode();
+	const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
 	const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
 	const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
@@ -90,6 +93,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	};
 
 	const fetchData = async () => {
+		if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
 		const seiFromStorageRaw = localStorage.getItem("seiNumber");
 		const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -152,10 +156,17 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	};
 
 	const handleDocumentacaoResponse = async (response: any) => {
-		const arrolamento = response.arrolamentos?.[0];
-		if (arrolamento) {
-			const arrolamentoId = arrolamento.id;
-			const criadoPor = arrolamento.created_by;
+		if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
+		const arrolamento = response.arrolamentos?.[0] || null;
+		const fallbackId = localStorage.getItem('arrolamentoId') || ''
+		const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+		const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+		if (target) {
+			if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
+			const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+			if (completedResp) { console.log('[Arrolamento][Docs] Registro concluído. Abortando PATCH.'); return; }
+			const arrolamentoId = (target as any).id;
+			const criadoPor = (target as any).created_by;
 
 			localStorage.setItem("arrolamentoId", arrolamentoId);
 			localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -198,19 +209,21 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			};
 
 			try {
-				console.log("Payload final enviado:", JSON.stringify(documentacaoPayload, null, 2));
+				console.log('[Arrolamento][Docs] PATCH prepared (final):', documentacaoPayload);
 				const token = localStorage.getItem('authToken') || ''
 				await survey_resource.SendFormToArrolamentoDoc(SURVEY_RESOURCE_URL, arrolamentoId, documentacaoPayload, token);
 				// showSuccessMessage("Documentação enviada com sucesso");
 			} catch (error) {
 				console.error("Erro ao enviar documentação:", error);
-				showErrorMessage("Erro ao enviar os dados de documentação");
+				if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de documentação");
 			}
 		}
 	};
 
 	const hasArrolamento = async (request: any): Promise<boolean> => {
 		try {
+			const idLS = localStorage.getItem('arrolamentoId')
+			if (idLS) { console.log('[Arrolamento][Docs] hasArrolamento: usando contexto localStorage id=', idLS); return true }
 			const response = await fetchArrolamento(request);
 
 			const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -222,6 +235,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	};
 	useEffect(() => {
+		if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
 		const handleBlur = async () => {
 			const activeFieldName = document.activeElement?.getAttribute("name");
 
@@ -287,6 +301,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			window.removeEventListener("blur", handleBlur, true);
 		};
 	}, [
+		isViewMode,
 		Cidade,
 		Cpf,
 		dataExpedicaoRg,

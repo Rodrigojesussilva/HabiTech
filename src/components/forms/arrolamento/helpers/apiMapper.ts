@@ -2,9 +2,7 @@ export type ArrolamentoApiData = any
 
 function toBrDate(isoOrBr?: string): string {
   if (!isoOrBr) return ''
-  // If already DD/MM/YYYY, return
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoOrBr)) return isoOrBr
-  // Try YYYY-MM-DD
   const m = isoOrBr.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (m) return `${m[3]}/${m[2]}/${m[1]}`
   return isoOrBr
@@ -20,6 +18,8 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
   const contato = firstForm.contato || {}
   const situacaoUso = firstForm.situacao_uso || {}
   const etnico = firstForm.identificacao_etnico_racial || {}
+  const doc = firstForm.documentacao || {}
+  const pessoaDef = firstForm.pessoa_deficiente || {}
 
   const families0: Record<string, any> = {
     // Identificação do responsável
@@ -30,10 +30,38 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     DescrevParentesco: ident.descrev_parentesco || '',
     nomeSocialEntrevistado: ident.nome_social || '',
     naoSeAplicaEntrevistado: ident.nome_social_aplicavel === false ? true : false,
+    // Esses campos podem não existir no backend; mantém vazios caso não haja origem explícita
+    nomeCompletoEntrevistado: firstForm?.nome_completo_entrevistado || '',
+    pessoaEmancipada: firstForm?.pessoa_emancipada === true ? 'sim' : firstForm?.pessoa_emancipada === false ? 'nao' : '',
+    certidaoEmancipacao: firstForm?.certidao_emancipacao || '',
+    idadeResp: ident.idade ?? '',
 
-    // Contato (mapeamento básico)
+    // Contato
     email: contato.email || '',
     naoSabeEmail: !!contato.nao_sabe_email,
+    telefone1: contato.telefone1 || '',
+    telefone2: contato.telefone2 || '',
+    telefone3: contato.telefone3 || '',
+    telefone4: contato.telefone4 || '',
+    tipoTelefone1: contato.tipo_telefone1 || '',
+    tipoTelefone2: contato.tipo_telefone2 || '',
+    tipoTelefone3: contato.tipo_telefone3 || '',
+    tipoTelefone4: contato.tipo_telefone4 || '',
+    nomeRecado1: contato.nome_recado_tel1 || '',
+    nomeRecado2: contato.nome_recado_tel2 || '',
+    nomeRecado3: contato.nome_recado_tel3 || '',
+    nomeRecado4: contato.nome_recado_tel4 || '',
+    escrevParentesco1: contato.relacao_parentesco_tel1 || '',
+    escrevParentesco2: contato.relacao_parentesco_tel2 || '',
+    escrevParentesco3: contato.relacao_parentesco_tel3 || '',
+    escrevParentesco4: contato.relacao_parentesco_tel4 || '',
+    telefone1WhatsApp: !!contato.whatzap_telefone1,
+    telefone2WhatsApp: !!contato.whatzap_telefone2,
+    telefone3WhatsApp: !!contato.whatzap_telefone3,
+    telefone4WhatsApp: !!contato.whatzap_telefone4,
+    ativarTelefone2: !!contato.ativar_telefone2,
+    ativarTelefone3: !!contato.ativar_telefone3,
+    ativarTelefone4: !!contato.ativar_telefone4,
 
     // Informação Família
     totalPessoas: infoFamilia.total_pessoas ?? '',
@@ -47,16 +75,119 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     pessoasComDoencasCronicas: infoFamilia.pessoas_com_deficiencia_cronica ?? '',
     gestantes: infoFamilia.gestantes ?? '',
     pessoasImigrantes: infoFamilia.pessoas_imigrantes ?? '',
+    nacionalidadesSelecionadas: Array.isArray(infoFamilia.nacionalidades_selecionadas) ? infoFamilia.nacionalidades_selecionadas : [],
+    // numeros_por_pais chega como array; aqui mantemos como está e deixamos a UI sincronizar
+    numerosPorPais: infoFamilia.numeros_por_pais ?? [],
 
-    // Situação e uso (básico)
+    // Situação e uso
     regime_ocupacao: situacaoUso.regime_ocupacao ?? '',
     valor_locacao: situacaoUso.valor_locacao ?? '',
     nsi_valor_locacao: !!situacaoUso.nsi_valor_locacao,
+    contrato_locacao: situacaoUso.contrato_locacao ?? '',
+    nome_proprietario: situacaoUso.nome_proprietario ?? '',
+    contato_proprietario: situacaoUso.contato_proprietario ?? '',
+    nsi_contato_proprietario: !!situacaoUso.nsi_contato_proprietario,
+    documentoComprovacao: situacaoUso.documento_comprovacao ?? '',
+    descricaoDocumento: situacaoUso.descricao_documento ?? '',
+    nome_proprietario_cedida: situacaoUso.nome_proprietario_cedida ?? '',
+    telefone_proprietario_cedida: situacaoUso.telefone_proprietario_cedida ?? '',
+    tempoMoradiaAnos: situacaoUso.tempo_moradia_anos ?? '',
+    tempoMoradiaMeses: situacaoUso.tempo_moradia_meses ?? '',
+    tempoMoradiaNaoSabe: situacaoUso.tempo_moradia_naosabe ? 'sim' : '',
+    tempoMoradiaNaoSabe1: situacaoUso.tempo_moradia_naosabe1 ? 'sim' : '',
+    cozinhaCompartilhada: situacaoUso.cozinha_compartilhada ? 'sim' : '',
+    banheiroCompartilhado: situacaoUso.banheiro_compartilhado ? 'sim' : '',
+    separaResiduos: situacaoUso.separa_residuos ?? '',
+    destinoReciclavel: situacaoUso.destino_reciclavel ?? '',
+    outroDestinoReciclavel: situacaoUso.outro_destino_reciclavel ?? '',
+    destinoOrganico: situacaoUso.destino_organico ?? '',
+    outroDestinoOrganico: situacaoUso.outro_destino_organico ?? '',
+    destinoDomestico: situacaoUso.destino_domestico ?? '',
+    outroDestinoDomestico: situacaoUso.outro_destino_domestico ?? '',
 
-    // Étnico-racial (básico)
-    etnicoRacial: etnico.etnico_racial ?? '',
-    genero: etnico.genero ?? '',
-    generoOutro: etnico.genero_outro ?? '',
+    // Documentação
+    cidade: doc.cidade || '',
+    cpf: doc.cpf || '',
+    dataExpedicaoRg: toBrDate(doc.data_emissao_rg),
+    dataExpedicaoCIN: toBrDate(doc.data_expedicao_cin),
+    dataExpedicaoCrnm: toBrDate(doc.data_expedicao_crnm),
+    dataExpedicaoPassaporte: toBrDate(doc.data_expedicao_passaporte),
+    dataExpedicaoRnm: toBrDate(doc.data_expedicao_rnm),
+    documentacao: doc.documentacao || '',
+    estadoEmissaoRg: doc.estado_emissao_rg || '',
+    fonteCpf: doc.fonte_cpf || '',
+    cin: doc.numero_cin ? String(doc.numero_cin) : '',
+    numeroCrnm: doc.numero_crnm || '',
+    numeroPassaporte: doc.numero_passaporte || '',
+    numeroProtocolo: doc.numero_protocolo || '',
+    numeroRnm: doc.numero_rnm || '',
+    orgaoExpedidor: doc.orgao_expedidor || '',
+    paisOrigem: doc.pais_origem || '',
+    possuiCIN: doc.possui_cin ? 'sim' : '',
+    rg: doc.rg || '',
+    statusCrnm: doc.status_crnm || '',
+    statusRnm: doc.status_rnm || '',
+    uf: doc.uf || '',
+
+    // Pessoa com deficiência (mapear para selects/checkboxes do form)
+    tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
+    responsavelPossuiLaudo: pessoaDef.possui_laudo || '',
+    responsavelTemDeficiencia: pessoaDef.responsavel_tem_deficiencia ? 'sim' : '',
+    temPessoaDeficienciaFam: pessoaDef.tem_deficiencia ? 'sim' : '',
+
+    aparelhoAuditivo: !!pessoaDef.aparelho_auditivo,
+    bengalaBrancaOuVerdeVermelha: !!pessoaDef.bengala_branca_ou_verde_vermelha,
+    brailleEquipSinteseVoz: !!pessoaDef.braille_equip_sintese_voz,
+    cadeiraRoda: !!pessoaDef.cadeira_de_roda,
+    camaHospitalar: !!pessoaDef.cama_hospitalar,
+    caoGuia: !!pessoaDef.cao_guia,
+    defAuditiva: !!pessoaDef.def_auditiva,
+    defFisica: !!pessoaDef.def_fisica,
+    defIntelectualMental: !!pessoaDef.def_intelectual_mental,
+    defMobilidadeReduzida: !!pessoaDef.def_mobilidade_reduzida,
+    defMultiplas: !!pessoaDef.def_multiplas,
+    defOutra: !!pessoaDef.def_outra,
+    defSurdoCegueira: !!pessoaDef.def_surdo,
+    defVisual: !!pessoaDef.def_visual,
+    especifiqueOutras: pessoaDef.especifique_outra_def || '',
+    especifiqueOutraTecAssistiva: pessoaDef.especifique_outra_tec_assistida || '',
+    leituraFacialLabial: !!pessoaDef.leitura_facial_labial,
+    libras: !!pessoaDef.libras,
+    lupaLenteFontaAmpliada: !!pessoaDef.lupa_lente_fonte_ampliada,
+    muletaBengala4pontasAndador: !!pessoaDef.muleta_bengala4pontas_andador,
+    ortesesProteses: !!pessoaDef.ortese_protese,
+    outrasTecAssistiva: !!pessoaDef.outras_tec_assistiva,
+    pranchaComunicacaoAlternativa: !!pessoaDef.prancha_comunicacao_alternativa,
+
+    quantAuditiva: pessoaDef.qtd_def_auditiva ?? 0,
+    quantFisica: pessoaDef.qtd_def_fisica ?? 0,
+    quantIntelectual: pessoaDef.qtd_def_intelectual_mental ?? 0,
+    quantMobilidade: pessoaDef.qtd_def_mobilidade_reduzida ?? 0,
+    quantMultiplas: pessoaDef.qtd_def_multiplas ?? 0,
+    quantSurdo: pessoaDef.qtd_def_surdo ?? 0,
+    quantVisual: pessoaDef.qtd_def_visual ?? 0,
+
+    responsavelAparelhoAuditivo: !!pessoaDef.responsavel_aparelho_auditivo,
+    responsavelBnglBranOuVerdVerm: !!pessoaDef.responsavel_bengala_branca_ou_verde_vermelha,
+    responsavelBrailleEquipSinteseVoz: !!pessoaDef.responsavel_braille_equip_sintese_voz,
+    responsavelCadeiraRoda: !!pessoaDef.responsavel_cadeira_de_roda,
+    responsavelCamaHospitalar: !!pessoaDef.responsavel_cama_hospitalar,
+    responsavelCaoGuia: !!pessoaDef.responsavel_cao_guia,
+    responsavelPranchaComAlt: !!pessoaDef.responsavel_prancha,
+    responsavelDefAuditiva: !!pessoaDef.responsavel_def_auditiva,
+    responsavelDefFisica: !!pessoaDef.responsavel_def_fisica,
+    responsavelDefIntelectual: !!pessoaDef.responsavel_def_intelectual,
+    responsavelDefMobilidade: !!pessoaDef.responsavel_def_mobilidade,
+    responsavelDefMultipla: !!pessoaDef.responsavel_def_multipla,
+    responsavelDefOutra: !!pessoaDef.responsavel_def_outra,
+    responsavelDefSurdoCegueira: !!pessoaDef.responsavel_def_surdo_cegueira,
+    responsavelDefVisual: !!pessoaDef.responsavel_def_visual,
+    responsavelLeituraFacialLabial: !!pessoaDef.responsavel_leitura_facial_labial,
+    responsavelLibras: !!pessoaDef.responsavel_libras,
+    responsavelLupaLenteFontaAmpliada: !!pessoaDef.responsavel_lupa_lente_fonte_ampliada,
+    responsavelMuletaBengala4pontasAndador: !!pessoaDef.responsavel_muleta_bengala4pontas_andador,
+    responsavelOrteseProtese: !!pessoaDef.responsavel_ortese_protese,
+    responsavelOutraTecAssistiva: !!pessoaDef.responsavel_outra_tec_assistiva,
   }
 
   return {

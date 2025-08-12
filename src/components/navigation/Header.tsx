@@ -17,12 +17,6 @@ export default function Header({ children }: HeaderProps) {
   };
 
   const navigateToForm = (formPath: string) => {
-    // Bloquear arrolamento por enquanto
-    if (formPath.includes('arrolamento')) {
-      Swal.fire({ icon: 'info', title: 'Indisponível', text: 'Funcionalidade de Arrolamento temporariamente desativada.' })
-      setIsMenuOpen(false);
-      return;
-    }
     navigate(formPath);
     setIsMenuOpen(false);
   };

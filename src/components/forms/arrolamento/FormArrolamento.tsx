@@ -234,6 +234,7 @@ const FormArrolamento = ({
  			if (!params.id) return;
  			try {
  				const token = localStorage.getItem('authToken') || ''
+ 				console.log('[Arrolamento][Load] starting GET by id', { id: params.id, tokenPresent: !!token })
  				const response = await survey_resource.GetArrolamento({ id: params.id, authorization_token: token }, async (req: any) => {
  					const searchParams = new URLSearchParams()
  					for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
@@ -245,9 +246,13 @@ const FormArrolamento = ({
  					const headers: Record<string, string> = { "Content-Type": "application/json" }
  					const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
  					if (tokenFromReq) headers['Authorization'] = `Bearer ${tokenFromReq}`
+ 					console.log('[Arrolamento][Load] GET request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined } })
  					const res = await fetch(url, { method: req.method, headers })
- 					if (!res.ok) throw new Error(await res.text())
- 					return res.json()
+ 					const text = await res.text()
+ 					let json: any = null; try { json = text ? JSON.parse(text) : null } catch {}
+ 					console.log('[Arrolamento][Load] GET response', { status: res.status, ok: res.ok, body: json ?? text })
+ 					if (!res.ok) throw new Error(text)
+ 					return json
  				})
  				const arrs = (response as any)?.arrolamentos || []
  				const item = arrs[0]
@@ -259,6 +264,8 @@ const FormArrolamento = ({
  					setLoadedArrolamentoData(item)
  					localStorage.setItem('arrolamentoId', item.id)
  					localStorage.setItem('arrolamentoCreated_by', item.created_by || '')
+ 					const isCompleted = !!(item.completed || (item.status_notas && item.status_notas.status === 'Concluida'))
+ 					localStorage.setItem('arrolamentoCompleted', String(isCompleted))
  					form.setValue('visitNumber', item.visit_count != null ? String(item.visit_count) : '')
  					Swal.fire({ icon: 'success', title: 'Dados carregados', text: `Arrolamento: ${item.survey_id}`, timer: 1400, showConfirmButton: false })
  				}
@@ -367,18 +374,17 @@ const FormArrolamento = ({
  	}
 
  	const handleSaveVisit = async () => {
- 		try {
- 			setSaving(true)
- 			const result = await Swal.fire({
- 				icon: 'question', title: 'Salvar alterações?', showCancelButton: true, confirmButtonText: 'Salvar', cancelButtonText: 'Cancelar'
- 			})
- 			if (result.isConfirmed) {
- 				navigate('/lista-arrolamentos')
- 			}
- 		} finally {
- 			setSaving(false)
- 		}
- 	}
+    try {
+      setSaving(true)
+      // Apenas fecha o modal de salvar; os PATCHs são automáticos por campo
+      setIsSaveModalOpen(false)
+      Swal.fire({
+        position: 'top-end', icon: 'success', title: 'Alterações salvas', showConfirmButton: false, timer: 1200
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
 	// Modal de metadados: handler simples
 	const handleMetadataModalOpenChange = (isOpen: boolean) => {
@@ -665,7 +671,19 @@ return (
 
 								try {
 									const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
-									console.log("Resposta da API:", json);
+									console.log("[Arrolamento][Create] Resposta da API:", json);
+									const newId = (json && (json.arrolamento?.id || json.id)) || ''
+									const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
+									const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
+									if (newId) {
+										localStorage.setItem('arrolamentoId', newId)
+										localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
+										localStorage.setItem('arrolamentoCompleted', 'false')
+										setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
+										console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
+									} else {
+										console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
+									}
 									setIsMetadataModalOpen(false);
 									Swal.fire({
 										position: "top-end",
@@ -775,9 +793,9 @@ return (
  				<Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
  					<DialogContent>
  						<DialogHeader>
- 							<DialogTitle>Salvar alterações?</DialogTitle>
+ 							<DialogTitle>Salvar</DialogTitle>
  							<DialogDescription>
- 								Deseja salvar as alterações desta visita?
+ 								Pressione salvar para fechar.
  							</DialogDescription>
  						</DialogHeader>
  						<div className="flex justify-end gap-2">
