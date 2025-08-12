@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 
 interface NupcidadeFormProps {
     id?: string;
@@ -90,7 +90,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -131,7 +131,8 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
 
             try {
                 console.log("Payload Nupcidade:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToArrolamentoNupcidade(API_BASE_URL, arrolamentoId, payload);
+                const token = localStorage.getItem('authToken') || ''
+                await survey_resource.SendFormToArrolamentoNupcidade(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar dados de nupcidade:", error);
                 showErrorMessage("Erro ao enviar os dados de nupcidade");

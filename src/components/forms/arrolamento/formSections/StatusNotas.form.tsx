@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 
 interface PessoaDefFormProps {
     id?: string;
@@ -91,7 +91,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -133,7 +133,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
             try {
                 console.log("Payload Status Notas:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToArrolamentoStatusNotas(API_BASE_URL, arrolamentoId, payload);
+                const token = localStorage.getItem('authToken') || ''
+                await survey_resource.SendFormToArrolamentoStatusNotas(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar status_notas:", error);
                 showErrorMessage("Erro ao enviar status_notas da família");

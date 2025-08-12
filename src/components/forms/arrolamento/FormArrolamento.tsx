@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
+import { useParams, useNavigate } from "react-router-dom";
+import useViewMode from '@/hooks/useViewMode';
 
 import IdentRespForm from "./formSections/IdentResp.form"
 import InfoContatoForm from "./formSections/InfoContato.form"
@@ -48,6 +50,7 @@ import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.
 import { API_BASE_URL, SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
+import { mapArrolamentoToFormData } from './helpers/apiMapper'
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -77,6 +80,7 @@ const formSchema = z.object({
 	firstVisitEnd: z.string(),
 	secondVisit: z.string(),
 	thirdVisit: z.string(),
+ 	visitNumber: z.string().optional(),
 	families: z.array(familySchema),
 });
 
@@ -104,6 +108,14 @@ const FormArrolamento = ({
 	mostrarSecoes,
 	onChangeMostrarSecoes
 }: FormArrolamentoProps) => {
+ 	const navigate = useNavigate();
+ 	const params = useParams();
+ 	const isViewMode = useViewMode();
+ 	const [loadedArrolamentoData, setLoadedArrolamentoData] = useState<any>(null);
+ 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
+ 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+ 	const [finalizing, setFinalizing] = useState(false);
+ 	const [saving, setSaving] = useState(false);
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -127,6 +139,7 @@ const FormArrolamento = ({
 			firstVisitEnd: "",
 			secondVisit: "",
 			thirdVisit: "",
+ 			visitNumber: "",
 			families: [{}],
 		},
 	});
@@ -135,6 +148,12 @@ const FormArrolamento = ({
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
 
+ 	// If editing, avoid pre-filling firstVisitStart
+ 	useEffect(() => {
+ 		if (params.id) {
+ 			form.setValue('firstVisitStart', '');
+ 		}
+ 	}, [params.id]);
 
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -209,6 +228,47 @@ const FormArrolamento = ({
 		}
 	}, [numberFamilies, familyFields.length, append, remove]);
 
+ 	// Load record by id to show survey_id and visit_count
+ 	useEffect(() => {
+ 		const load = async () => {
+ 			if (!params.id) return;
+ 			try {
+ 				const token = localStorage.getItem('authToken') || ''
+ 				const response = await survey_resource.GetArrolamento({ id: params.id, authorization_token: token }, async (req: any) => {
+ 					const searchParams = new URLSearchParams()
+ 					for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+ 						if (value !== undefined && value !== "") {
+ 							searchParams.append(key, String(value))
+ 						}
+ 					}
+ 					const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+ 					const headers: Record<string, string> = { "Content-Type": "application/json" }
+ 					const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+ 					if (tokenFromReq) headers['Authorization'] = `Bearer ${tokenFromReq}`
+ 					const res = await fetch(url, { method: req.method, headers })
+ 					if (!res.ok) throw new Error(await res.text())
+ 					return res.json()
+ 				})
+ 				const arrs = (response as any)?.arrolamentos || []
+ 				const item = arrs[0]
+ 				if (item) {
+ 					console.log('[Arrolamento][Load] GET success:', item)
+ 					const mapped = mapArrolamentoToFormData(item)
+ 					console.log('[Arrolamento][Load] mapped form data:', mapped)
+ 					form.reset(mapped)
+ 					setLoadedArrolamentoData(item)
+ 					localStorage.setItem('arrolamentoId', item.id)
+ 					localStorage.setItem('arrolamentoCreated_by', item.created_by || '')
+ 					form.setValue('visitNumber', item.visit_count != null ? String(item.visit_count) : '')
+ 					Swal.fire({ icon: 'success', title: 'Dados carregados', text: `Arrolamento: ${item.survey_id}`, timer: 1400, showConfirmButton: false })
+ 				}
+ 			} catch (e) {
+ 				console.warn('Falha ao carregar arrolamento para exibição do cabeçalho:', e)
+ 			}
+ 		}
+ 		load()
+ 	}, [params.id])
+
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
 		if (onSubmit) {
@@ -248,427 +308,490 @@ const FormArrolamento = ({
 		});
 	};
 
-	const ignoreNextCloseRef = useRef(false);
+ 	const formatDate = (): string => {
+ 		const now = new Date();
+ 		return now.toLocaleString('pt-BR', {
+ 			day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+ 		}).replace(',', ' -');
+ 	}
 
-	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
-		if (isOpen) {
-			setIsMetadataModalOpen(true);
-			return;
-		}
+ 	const handleFinalizeVisit = async () => {
+ 		const effectiveId = params.id || loadedArrolamentoData?.id || localStorage.getItem('arrolamentoId') || ''
+ 		if (!effectiveId) {
+ 			Swal.fire({ icon: 'error', title: 'Registro sem ID', text: 'Não foi possível identificar o ID para finalizar. Salve os metadados primeiro.' })
+ 			return
+ 		}
+ 		try {
+ 			setFinalizing(true)
+ 			const token = localStorage.getItem('authToken') || ''
+ 			const createdBy = localStorage.getItem('userEmail') || loadedArrolamentoData?.created_by || localStorage.getItem('arrolamentoCreated_by') || ''
+ 			if (!createdBy) {
+ 				Swal.fire({ icon: 'error', title: 'Usuário não identificado', text: 'Não foi possível identificar o usuário criador (created_by). Faça login novamente.' })
+ 				setFinalizing(false)
+ 				return
+ 			}
+ 			const endAt = formatDate()
+ 			form.setValue('firstVisitEnd', endAt)
+ 			form.setValue('endTime', endAt)
 
-		if (ignoreNextCloseRef.current) {
-			ignoreNextCloseRef.current = false;
-			setIsMetadataModalOpen(false);
-			return;
-		}
+ 			const payload = {
+ 				id: String(effectiveId),
+ 				created_by: createdBy,
+ 				main_metadata: {},
+ 				outras_informacoes: {},
+ 				status_notas: {
+ 					status: 'Concluida', justificativa: '', nome_supervisor: '', observacao: ''
+ 				},
+ 				authorization_token: token,
+ 			}
 
-		if (document.activeElement instanceof HTMLElement) {
-			document.activeElement.blur();
-		}
+ 			await survey_resource.UpdateArrolamento(payload as any, async (req: any) => {
+ 				const url = `${SURVEY_RESOURCE_URL}${req.path}`
+ 				const headersToSend: Record<string, string> = { 'Content-Type': 'application/json' }
+ 				const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+ 				if (tokenFromReq) headersToSend['Authorization'] = `Bearer ${tokenFromReq}`
+ 				const res = await fetch(url, { method: req.method, headers: headersToSend, body: JSON.stringify(req.body || {}) })
+ 				if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`)
+ 				return res.json()
+ 			})
 
-		try {
-			// Pega os parâmetros
-			const seiFromStorageRaw = localStorage.getItem("seiNumber");
-			const numero_sei = Number(seiFromStorageRaw);
+ 			setIsFinalizeModalOpen(false)
+ 			Swal.fire({ icon: 'success', title: 'Visita finalizada!', timer: 1400, showConfirmButton: false })
+ 			navigate('/lista-arrolamentos')
+ 		} catch (error) {
+ 			console.error('Erro ao finalizar visita:', error)
+ 			Swal.fire({ icon: 'error', title: 'Erro ao finalizar visita', text: 'Tente novamente.' })
+ 		} finally {
+ 			setFinalizing(false)
+ 		}
+ 	}
 
-			const request = {
-				numero_sei,
-				initial_date: initialDate,
-				end_date: endDate,
-			};
+ 	const handleSaveVisit = async () => {
+ 		try {
+ 			setSaving(true)
+ 			const result = await Swal.fire({
+ 				icon: 'question', title: 'Salvar alterações?', showCancelButton: true, confirmButtonText: 'Salvar', cancelButtonText: 'Cancelar'
+ 			})
+ 			if (result.isConfirmed) {
+ 				navigate('/lista-arrolamentos')
+ 			}
+ 		} finally {
+ 			setSaving(false)
+ 		}
+ 	}
 
-			console.log("Request para buscar arrolamento:", request);
+	// Modal de metadados: handler simples
+	const handleMetadataModalOpenChange = (isOpen: boolean) => {
+		setIsMetadataModalOpen(isOpen)
+	}
 
-			const response = await fetchArrolamento(request);
-			if (isGetArrolamentoResponse(response)) {
-				const arrolamento = response.arrolamentos?.[0];
+// Define the form structure using FormFieldType for each field
+const metaDataSections: FormSection[] = [
+	{
+		id: "identificacao",
+		title: "",
+		fields: [
 
-				if (arrolamento) {
-					console.log("Arrolamento encontrado:", arrolamento);
+			{
+				name: "questionario",
+				label: "Formulário",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: true,
+				sidebarlabel: "",
+				showinmodal: true,
+			} as FormFieldType,
+			{
+				name: "visitNumber",
+				label: "Visita Nº",
+				type: "text",
+				readonly: true,
+				required: false,
+				sidebarform: true,
+				showinmodal: false,
+				sidebarlabel: "Visita Nº",
+			} as FormFieldType,
+			{
+				name: "firstVisitStart",
+				label: "Hora início - Primeira visita",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: true,
+				showinmodal: false,
+				sidebarlabel: "Início"
+			} as FormFieldType,
+			{
+				name: "firstVisitEnd",
+				label: "Hora término - Primeira visita",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				showinmodal: false,
+				sidebarlabel: "Término"
+			} as FormFieldType,
+			{
+				name: "seiNumber",
+				label: "Número SEI",
+				type: "text",
+				required: true,
+				sidebarform: true,
+				showinmodal: true
+			} as FormFieldType,
+			{
+				name: "sealNumber",
+				label: "Número Selo",
+				type: "text",
+				required: true,
+				sidebarform: true,
+				showinmodal: true
+			} as FormFieldType,
 
-					localStorage.setItem("arrolamentoId", arrolamento.id);
-					localStorage.setItem("arrolamentoCreated_by", arrolamento.created_by);
+			{
+				name: "interviewerName",
+				label: "Nome completo da(o) Entrevistador(a)",
+				type: "text",
+				required: true,
+				sidebarform: false,
+				showinmodal: false
+			} as FormFieldType,
+			{
+				name: "interviewDate",
+				label: "Data da Entrevista",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				showinmodal: false
+			} as FormFieldType,
+			{
+				name: "startTime",
+				label: "Início",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				showinmodal: false
+			} as FormFieldType,
+			{
+				name: "endTime",
+				label: "Término",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				showinmodal: false
+			} as FormFieldType,
+			{
+				name: "timeElapsed",
+				label: "Tempo da Entrevista",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				showinmodal: false
+			} as FormFieldType,
 
-					setIsMetadataModalOpen(false);
-					return; // sai da função aqui, não mostra alerta
-				}
-			}
-		} catch (error) {
-			console.error("Erro ao verificar arrolamento:", error);
-		}
+			{
+				name: "numberFamilies",
+				label: "Quantas familias nesse formulário?",
+				type: "number",
+				required: true,
+				sidebarform: true,
+				sidebarlabel: "Quantidade de Famílias",
+				showinmodal: true,
+				min: 1,
+			} as FormFieldType,
 
-		// Se chegou aqui, não encontrou arrolamento — mostra alerta
-		setIsMetadataModalOpen(false);
+			{
+				name: "secondVisit",
+				label: "Data da Segunda visita",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				sidebarlabel: "Visita: 2",
+				showinmodal: false,
+			} as FormFieldType,
+			{
+				name: "thirdVisit",
+				label: "Data da Terceira visita",
+				type: "text",
+				readonly: true,
+				required: true,
+				sidebarform: false,
+				sidebarlabel: "Visita: 3",
+				showinmodal: false,
+			} as FormFieldType
+		]
+	},
+];
+// Function to generate section and field numbers based on position
+const getFieldNumber = (sectionIndex: number, fieldIndex: number) => {
+	return `${sectionIndex + 1}.${fieldIndex + 1}`;
+};
 
-		Swal.fire({
-			position: "top-end",
-			title: "Deseja realmente sair?",
-			text: "Os dados preenchidos serão perdidos.",
-			icon: "warning",
-			showCancelButton: true,
-			confirmButtonText: "Sim, sair",
-			cancelButtonText: "Não, continuar preenchendo",
-		}).then((result) => {
-			if (result.isConfirmed) {
-				ignoreNextCloseRef.current = true;
-				window.location.href = "/";
-			} else {
-				setIsMetadataModalOpen(true);
-			}
-		});
-	};
+const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+	onChangeMostrarSecoes(e.target.value === 'sim');
+};
 
+return (
 
-	// Define the form structure using FormFieldType for each field
-	const metaDataSections: FormSection[] = [
-		{
-			id: "identificacao",
-			title: "",
-			fields: [
+	<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+		<Form {...form}>
+			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+				{/* Dialog for metadata fields */}
 
-				{
-					name: "questionario",
-					label: "Formulário",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: true,
-					sidebarlabel: "",
-					showinmodal: true,
-				} as FormFieldType,
-				{
-					name: "firstVisitStart",
-					label: "Hora início - Primeira visita",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: true,
-					showinmodal: false,
-					sidebarlabel: "Início"
-				} as FormFieldType,
-				{
-					name: "firstVisitEnd",
-					label: "Hora término - Primeira visita",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					showinmodal: false,
-					sidebarlabel: "Término"
-				} as FormFieldType,
-				{
-					name: "seiNumber",
-					label: "Número SEI",
-					type: "text",
-					required: true,
-					sidebarform: true,
-					showinmodal: true
-				} as FormFieldType,
-				{
-					name: "sealNumber",
-					label: "Número Selo",
-					type: "text",
-					required: true,
-					sidebarform: true,
-					showinmodal: true
-				} as FormFieldType,
+				<Dialog
+					open={isMetadataModalOpen}
+					onOpenChange={handleMetadataModalOpenChange}
+				>
 
-				{
-					name: "interviewerName",
-					label: "Nome completo da(o) Entrevistador(a)",
-					type: "text",
-					required: true,
-					sidebarform: false,
-					showinmodal: false
-				} as FormFieldType,
-				{
-					name: "interviewDate",
-					label: "Data da Entrevista",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					showinmodal: false
-				} as FormFieldType,
-				{
-					name: "startTime",
-					label: "Início",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					showinmodal: false
-				} as FormFieldType,
-				{
-					name: "endTime",
-					label: "Término",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					showinmodal: false
-				} as FormFieldType,
-				{
-					name: "timeElapsed",
-					label: "Tempo da Entrevista",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					showinmodal: false
-				} as FormFieldType,
-
-				{
-					name: "numberFamilies",
-					label: "Quantas familias nesse formulário?",
-					type: "number",
-					required: true,
-					sidebarform: true,
-					sidebarlabel: "Quantidade de Famílias",
-					showinmodal: true,
-					min: 1,
-				} as FormFieldType,
-
-				{
-					name: "secondVisit",
-					label: "Data da Segunda visita",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					sidebarlabel: "Visita: 2",
-					showinmodal: false,
-				} as FormFieldType,
-				{
-					name: "thirdVisit",
-					label: "Data da Terceira visita",
-					type: "text",
-					readonly: true,
-					required: true,
-					sidebarform: false,
-					sidebarlabel: "Visita: 3",
-					showinmodal: false,
-				} as FormFieldType
-			]
-		},
-	];
-	// Function to generate section and field numbers based on position
-	const getFieldNumber = (sectionIndex: number, fieldIndex: number) => {
-		return `${sectionIndex + 1}.${fieldIndex + 1}`;
-	};
-
-	const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		onChangeMostrarSecoes(e.target.value === 'sim');
-	};
-
-	return (
-
-		<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-					{/* Dialog for metadata fields */}
-
-					<Dialog
-						open={isMetadataModalOpen}
-						onOpenChange={handleMetadataModalOpenChange}
+					<DialogContent
+						className="max-h-[90vh] overflow-y-auto "
 					>
 
-						<DialogContent
-							className="max-h-[90vh] overflow-y-auto "
-						>
+						<DialogHeader>
+							<DialogTitle>Arrolamento {loadedArrolamentoData?.survey_id ? `- ${loadedArrolamentoData.survey_id}` : ''}</DialogTitle>
 
-							<DialogHeader>
-								<DialogTitle>Arrolamento</DialogTitle>
+							<DialogDescription>
+								Preencha os campos abaixo:
+							</DialogDescription>
+						</DialogHeader>
 
-								<DialogDescription>
-									Preencha os campos abaixo:
-								</DialogDescription>
-							</DialogHeader>
+						{/* Render metaDataSections inside the Dialog */}
+						{metaDataSections.map((section, sectionIndex) => (
+							<div key={section.id} data-secao={section.id} data-label={section.title}>
+								<FormSectionRenderer
+									section={section}
+									formControl={form.control}
+									getFieldNumber={getFieldNumber}
+									sectionIndex={sectionIndex}
+									handleModalFields={true}
+									showSectionLabel={false}
+								/>
+							</div>
+						))}
 
-							{/* Render metaDataSections inside the Dialog */}
-							{metaDataSections.map((section, sectionIndex) => (
-								<div key={section.id} data-secao={section.id} data-label={section.title}>
-									<FormSectionRenderer
-										section={section}
-										formControl={form.control}
-										getFieldNumber={getFieldNumber}
-										sectionIndex={sectionIndex}
-										handleModalFields={true}
-										showSectionLabel={false}
-									/>
-								</div>
-							))}
+						<Button
+							type="button"
+							onClick={async () => {
+								const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
 
-							<Button
-								type="button"
-								onClick={async () => {
-									const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
+								const values = form.getValues();
+								let hasError = false;
 
-									const values = form.getValues();
-									let hasError = false;
+								// Validação individual com destaque dos campos
+								if (!values.questionario) {
+									form.setError("questionario", {
+										type: "manual",
+										message: "O campo Questionário é obrigatório.",
+									});
+									hasError = true;
+								} else {
+									form.clearErrors("questionario");
+								}
 
-									// Validação individual com destaque dos campos
-									if (!values.questionario) {
-										form.setError("questionario", {
-											type: "manual",
-											message: "O campo Questionário é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										form.clearErrors("questionario");
-									}
+								if (!values.seiNumber) {
+									form.setError("seiNumber", {
+										type: "manual",
+										message: "O campo Número SEI é obrigatório.",
+									});
+									hasError = true;
+								} else {
+									form.clearErrors("seiNumber");
+								}
 
-									if (!values.seiNumber) {
-										form.setError("seiNumber", {
-											type: "manual",
-											message: "O campo Número SEI é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										form.clearErrors("seiNumber");
-									}
+								if (!values.sealNumber) {
+									form.setError("sealNumber", {
+										type: "manual",
+										message: "O campo Número do Selo é obrigatório.",
+									});
+									hasError = true;
+								} else {
+									form.clearErrors("sealNumber");
+								}
 
-									if (!values.sealNumber) {
-										form.setError("sealNumber", {
-											type: "manual",
-											message: "O campo Número do Selo é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										form.clearErrors("sealNumber");
-									}
+								if (!values.numberFamilies) {
+									form.setError("numberFamilies", {
+										type: "manual",
+										message: "O campo Número de Famílias é obrigatório.",
+									});
+									hasError = true;
+								} else {
+									form.clearErrors("numberFamilies");
+								}
 
-									if (!values.numberFamilies) {
-										form.setError("numberFamilies", {
-											type: "manual",
-											message: "O campo Número de Famílias é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										form.clearErrors("numberFamilies");
-									}
-
-									if (hasError) {
-										Swal.fire({
-											position: "top-end",
-											icon: "warning",
-											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Preencha todos os campos obrigatórios
-													</div>`,
-											showConfirmButton: false,
-											timer: 2000,
-											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-											},
-										});
-
-										return;
-									}
-
-
-									localStorage.setItem("questionario", questionario);
-									localStorage.setItem("seiNumber", seiNumber);
-									localStorage.setItem("sealNumber", sealNumber);
-									localStorage.setItem("numberFamilies", numberFamilies.toString());
-
-									console.log("Valores armazenados no localStorage:");
-									console.log("questionario:", localStorage.getItem("questionario"));
-									console.log("seiNumber:", localStorage.getItem("seiNumber"));
-									console.log("sealNumber:", localStorage.getItem("sealNumber"));
-									console.log("numberFamilies:", localStorage.getItem("numberFamilies"));
-
-									const dataToSend = {
-										created_by: questionario,
-										main_metadata: {
-											numero_sei: seiNumber,
-											numero_selo: sealNumber,
-											quantidade_familias: numberFamilies,
+								if (hasError) {
+									Swal.fire({
+										position: "top-end",
+										icon: "warning",
+										html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+												Preencha todos os campos obrigatórios
+												</div>`,
+										showConfirmButton: false,
+										timer: 2000,
+										customClass: {
+											popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
 										},
-									};
+									});
 
-									try {
-										const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
-										console.log("Resposta da API:", json);
-										setIsMetadataModalOpen(false);
-										Swal.fire({
-											position: "top-end",
-											icon: "success",
-											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Arrolamento cadastrado com sucesso
-													</div>`,
-											showConfirmButton: false,
-											timer: 1500,
-											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-											},
-										});
+									return;
+								}
 
-									} catch (error) {
-										console.error("Erro ao enviar os dados:", error);
-										Swal.fire({
-											icon: "error",
-											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Erro ao enviar os dados<br/>
-													<span class="text-sm">Veja o console para mais detalhes.</span>
-													</div>`,
-											showConfirmButton: true,
-											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-											},
-										});
-									}
-								}}
-								className="mt-4"
-							>
-								Concluir
-							</Button>
 
-						</DialogContent>
-					</Dialog>
+								localStorage.setItem("questionario", questionario);
+								localStorage.setItem("seiNumber", seiNumber);
+								localStorage.setItem("sealNumber", sealNumber);
+								localStorage.setItem("numberFamilies", numberFamilies.toString());
 
-					<div className="flex flex-row justify-between gap-2">
-						<div className="text-left text-lg font-bold">
-							Arrolamento
-						</div>
+								console.log("Valores armazenados no localStorage:");
+								console.log("questionario:", localStorage.getItem("questionario"));
+								console.log("seiNumber:", localStorage.getItem("seiNumber"));
+								console.log("sealNumber:", localStorage.getItem("sealNumber"));
+								console.log("numberFamilies:", localStorage.getItem("numberFamilies"));
 
-						<div className="text-right flex flex-row gap-2">
-							<h3>Preenchimento:</h3>
-							<p className="text-primary">
-								0%
-							</p>
-						</div>
+								const dataToSend = {
+									created_by: (localStorage.getItem('userEmail') || questionario),
+									main_metadata: {
+										numero_sei: seiNumber,
+										numero_selo: sealNumber,
+										quantidade_familias: numberFamilies,
+									},
+									authorization_token: localStorage.getItem('authToken') || ''
+								};
+
+								try {
+									const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
+									console.log("Resposta da API:", json);
+									setIsMetadataModalOpen(false);
+									Swal.fire({
+										position: "top-end",
+										icon: "success",
+										html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+												Arrolamento cadastrado com sucesso
+												</div>`,
+										showConfirmButton: false,
+										timer: 1500,
+										customClass: {
+											popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+										},
+									});
+
+								} catch (error) {
+									console.error("Erro ao enviar os dados:", error);
+									Swal.fire({
+										icon: "error",
+										html: `<div class="text-lg text-center break-words w-full -translate-y-2">
+												Erro ao enviar os dados<br/>
+												<span class="text-sm">Veja o console para mais detalhes.</span>
+												</div>`,
+										showConfirmButton: true,
+										customClass: {
+											popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+										},
+									});
+								}
+						}}
+						className="mt-4"
+					>
+						Concluir
+						</Button>
+
+					</DialogContent>
+				</Dialog>
+
+				<div className="flex flex-row justify-between gap-2">
+					<div className="text-left text-lg font-bold">
+						Arrolamento {loadedArrolamentoData?.survey_id ? `- ${loadedArrolamentoData.survey_id}` : ''}
 					</div>
-					<div className="w-full border-t border-gray-300 my-4"></div>
-					{/* Always render the IdentRespForm */}
-					{familyFields.map((field, index) => (
-						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
-							<IdentRespForm
-								sectionIndex={0}
-								familyIndex={index}
-								onChangeMostrarSecoes={handleSelectChange}
-							/>
-							<InfoContatoForm sectionIndex={1} familyIndex={index} />
-							{mostrarSecoes && (
-								<>
-									<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-									<DocsForm sectionIndex={3} familyIndex={index} />
-									<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
-									<NupcidadeForm sectionIndex={5} familyIndex={index} />
-									<PessoaDefForm sectionIndex={6} familyIndex={index} />
-									<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
-								</>
-							)}
 
-							<OutrasInfosForm sectionIndex={8} familyIndex={index} />
-							<StatusNotasForm sectionIndex={9} familyIndex={index} />
-							<AnexosForm sectionIndex={10} familyIndex={index} />
+					<div className="text-right flex flex-row gap-2">
+						<h3>Preenchimento:</h3>
+						<p className="text-primary">
+							0%
+						</p>
+					</div>
+				</div>
+				<div className="w-full border-t border-gray-300 my-4"></div>
+				{/* Always render the IdentRespForm */}
+				{familyFields.map((field, index) => (
+					<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
+						<IdentRespForm
+							sectionIndex={0}
+							familyIndex={index}
+							onChangeMostrarSecoes={handleSelectChange}
+						/>
+						<InfoContatoForm sectionIndex={1} familyIndex={index} />
+						{mostrarSecoes && (
+							<>
+								<SituUsoUniForm sectionIndex={2} familyIndex={index} />
+								<DocsForm sectionIndex={3} familyIndex={index} />
+								<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
+								<NupcidadeForm sectionIndex={5} familyIndex={index} />
+								<PessoaDefForm sectionIndex={6} familyIndex={index} />
+								<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
+							</>
+						)}
 
-						</div>
-					))}
-				</form>
-			</Form>
-		</div >
-	)
+						<OutrasInfosForm sectionIndex={8} familyIndex={index} />
+						<StatusNotasForm sectionIndex={9} familyIndex={index} />
+						<AnexosForm sectionIndex={10} familyIndex={index} />
+
+					</div>
+				))}
+
+ 				{/* Botões finais */}
+ 				<div className="flex flex-row justify-end gap-2 mt-6">
+ 					<Button type="button" variant="outline" disabled={isViewMode || saving} onClick={() => setIsSaveModalOpen(true)}>
+ 						{saving ? 'Salvando...' : 'Salvar'}
+ 					</Button>
+ 					<Button type="button" className="bg-green-600 hover:bg-green-700" disabled={isViewMode || finalizing} onClick={() => setIsFinalizeModalOpen(true)}>
+ 						{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
+ 					</Button>
+ 				</div>
+
+ 				{/* Modal de confirmação de finalização - padrão Selagem */}
+ 				<Dialog open={isFinalizeModalOpen} onOpenChange={setIsFinalizeModalOpen}>
+ 					<DialogContent>
+ 						<DialogHeader>
+ 							<DialogTitle>Finalizar visita?</DialogTitle>
+ 							<DialogDescription>
+ 								Tem certeza que deseja finalizar esta visita? Após finalizar, os campos ficarão bloqueados.
+ 							</DialogDescription>
+ 						</DialogHeader>
+ 						<div className="flex justify-end gap-2">
+ 							<Button variant="outline" onClick={() => setIsFinalizeModalOpen(false)} disabled={finalizing}>Cancelar</Button>
+ 							<Button onClick={handleFinalizeVisit} disabled={finalizing} className="bg-green-600 hover:bg-green-700">
+ 								{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
+ 							</Button>
+ 						</div>
+ 					</DialogContent>
+ 				</Dialog>
+
+ 				{/* Modal de salvar - padrão Selagem */}
+ 				<Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
+ 					<DialogContent>
+ 						<DialogHeader>
+ 							<DialogTitle>Salvar alterações?</DialogTitle>
+ 							<DialogDescription>
+ 								Deseja salvar as alterações desta visita?
+ 							</DialogDescription>
+ 						</DialogHeader>
+ 						<div className="flex justify-end gap-2">
+ 							<Button variant="outline" onClick={() => setIsSaveModalOpen(false)} disabled={saving}>Cancelar</Button>
+ 							<Button onClick={handleSaveVisit} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+ 								{saving ? 'Salvando...' : 'Salvar'}
+ 							</Button>
+ 						</div>
+ 					</DialogContent>
+ 				</Dialog>
+			</form>
+		</Form>
+	</div >
+)
 };
 
 export default FormArrolamento;

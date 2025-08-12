@@ -13,7 +13,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 
 
 interface InfoFamiliaFormProps {
@@ -121,7 +121,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -144,6 +144,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
         if (arrolamento) {
             const arrolamentoId = arrolamento.id;
             const criadoPor = arrolamento.created_by;
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -158,7 +160,7 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
                 Number(idosos60 || 0);
 
             const payload = {
-                created_by: criadoPor,
+                created_by: createdBy,
                 form: {
                     family_index: 1,
                     informacao_familia: {
@@ -180,10 +182,11 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
             };
 
             try {
-                console.log("Payload Informacao Familia:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToArrolamentoInformacaoFamilia(API_BASE_URL, arrolamentoId, payload);
+                console.log('[Arrolamento][InfoFamilia] PATCH prepared:', { arrolamentoId, createdBy, tokenPresent: !!token, payload })
+                const res = await survey_resource.SendFormToArrolamentoInformacaoFamilia(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
+                console.log('[Arrolamento][InfoFamilia] PATCH success:', res)
             } catch (error) {
-                console.error("Erro ao enviar dados de informacao_familia:", error);
+                console.error("[Arrolamento][InfoFamilia] PATCH error:", error);
                 showErrorMessage("Erro ao enviar os dados da família");
             }
         }

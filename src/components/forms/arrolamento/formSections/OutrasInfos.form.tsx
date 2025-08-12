@@ -9,7 +9,7 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 interface OutrasInfosFormProps {
     id?: string;
     sectionIndex?: number;
@@ -85,7 +85,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -124,7 +124,8 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
 
             try {
                 console.log("Payload Outras Informações:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToArrolamentoOutrasInf(API_BASE_URL, arrolamentoId, payload);
+                const token = localStorage.getItem('authToken') || ''
+                await survey_resource.SendFormToArrolamentoOutrasInf(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar outras informações:", error);
                 showErrorMessage("Erro ao enviar outras informações da família");

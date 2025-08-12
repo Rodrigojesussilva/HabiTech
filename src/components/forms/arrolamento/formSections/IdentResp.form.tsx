@@ -134,8 +134,11 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-            const formPayload = {
-                created_by: criadoPor,
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
+
+            const payload = {
+                created_by: createdBy,
                 form: {
                     family_index: 1,
                     identificacao_responsavel: createIdentificacaoResponsavel(),
@@ -143,10 +146,16 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             };
 
             try {
-                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, formPayload);
-                //showSuccessMessage("Arrolamento cadastrado com sucesso");
+                console.log('[Arrolamento][IdentResp] PATCH prepared:', {
+                    arrolamentoId,
+                    createdBy,
+                    tokenPresent: !!token,
+                    payload
+                })
+                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
+                console.log('[Arrolamento][IdentResp] PATCH success')
             } catch (error) {
-                console.error("Erro ao enviar formulário para arrolamento:", error);
+                console.error("[Arrolamento][IdentResp] PATCH error:", error);
                 showErrorMessage("Erro ao enviar os dados");
             }
         }

@@ -161,12 +161,14 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         if (arrolamento) {
             const arrolamentoId = arrolamento.id;
             const criadoPor = arrolamento.created_by;
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
             const formPayload = {
-                created_by: criadoPor,
+                created_by: createdBy,
                 form: {
                     family_index: 1,
                     contato: {
@@ -201,10 +203,11 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
             try {
 
-                console.log("Payload Pessoa Deficiente:", JSON.stringify(formPayload, null, 2));
-                await survey_resource.SendFormToArrolamentoContato(API_BASE_URL, arrolamentoId, formPayload);
+                console.log('[Arrolamento][Contato] PATCH prepared:', { arrolamentoId, createdBy, tokenPresent: !!token, formPayload })
+                const res = await survey_resource.SendFormToArrolamentoContato(SURVEY_RESOURCE_URL, arrolamentoId, formPayload as any, token);
+                console.log('[Arrolamento][Contato] PATCH success:', res)
             } catch (error) {
-                console.error("Erro ao enviar formulário:", error);
+                console.error("[Arrolamento][Contato] PATCH error:", error);
                 showErrorMessage("Erro ao enviar os dados");
             }
         }

@@ -13,6 +13,7 @@ import DemoPage from './components/formDataTables/arrolamento/list'
 import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'
+import ArrolamentoList from './components/formDataTables/arrolamento/list'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -61,7 +62,9 @@ function App() {
                 <Route path="/edit-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} />} />
                 <Route path="/view-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} viewMode={true} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />
-                <Route path="/lista-arrolamentos" element={<DemoPage />} />
+                <Route path="/lista-arrolamentos" element={<ArrolamentoList />} />
+                <Route path="/edit-arrolamento/:id" element={<FormularioContainer FormComponent={FormArrolamento} openModalOnMount={false} />} />
+                <Route path="/view-arrolamento/:id" element={<FormularioContainer FormComponent={FormArrolamento} openModalOnMount={false} viewMode={true} />} />
                 <Route path="/lista-selagens" element={<DemoPageS />} />
                 <Route path="/chart" element={<ChartAreaInteractive />} />
               </Routes>

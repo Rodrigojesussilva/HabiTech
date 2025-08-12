@@ -1441,14 +1441,16 @@ namespace survey_resource {
                     nome_social: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1504,14 +1506,16 @@ namespace survey_resource {
                     ativar_telefone4: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1549,16 +1553,16 @@ namespace survey_resource {
                     valor_locacao: string;
                 };
             };
-        }
-
-
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1611,14 +1615,16 @@ namespace survey_resource {
                     uf: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1651,14 +1657,16 @@ namespace survey_resource {
                     genero_outro: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1691,14 +1699,16 @@ namespace survey_resource {
                     vive_com_companheiro: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1784,13 +1794,15 @@ namespace survey_resource {
                     utiliza_tecnologia_assistida: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1836,14 +1848,16 @@ namespace survey_resource {
                     numeros_por_pais: string[];
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1874,14 +1888,16 @@ namespace survey_resource {
             outras_informacoes: {
                 texto: string;
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",
@@ -1915,14 +1931,16 @@ namespace survey_resource {
                 observacao: string;
                 status: string;
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",

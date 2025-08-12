@@ -8,8 +8,8 @@ import { ensureValidSelectValue, formatCurrency, formatarTelefone } from "@/comp
 // Import FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
-import survey_resource from "@/service/survey_resource.api"
-import { API_BASE_URL } from "@/service/constants"
+import survey_resource from "../../../../service/survey_resource.api"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 interface SituUsoUniFormProps {
     id?: string;
     sectionIndex?: number;
@@ -130,7 +130,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -197,7 +197,8 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
             try {
                 console.log("Payload Pessoa Deficiente:", JSON.stringify(situacaoUsoPayload, null, 2));
-                await survey_resource.SendFormToArrolamentoSituacaoUso(API_BASE_URL, arrolamentoId, situacaoUsoPayload);
+                const token = localStorage.getItem('authToken') || ''
+                await survey_resource.SendFormToArrolamentoSituacaoUso(SURVEY_RESOURCE_URL, arrolamentoId, situacaoUsoPayload, token);
             } catch (error) {
                 console.error("Erro ao enviar situação de uso:", error);
                 showErrorMessage("Erro ao enviar os dados de situação de uso");

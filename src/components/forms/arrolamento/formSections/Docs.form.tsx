@@ -11,7 +11,7 @@ import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
@@ -133,7 +133,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				}
 			}
 
-			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 			const res = await fetch(url, {
 				method: req.method,
 				headers: {
@@ -199,7 +199,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 
 			try {
 				console.log("Payload final enviado:", JSON.stringify(documentacaoPayload, null, 2));
-				await survey_resource.SendFormToArrolamentoDoc(API_BASE_URL, arrolamentoId, documentacaoPayload);
+				const token = localStorage.getItem('authToken') || ''
+				await survey_resource.SendFormToArrolamentoDoc(SURVEY_RESOURCE_URL, arrolamentoId, documentacaoPayload, token);
 				// showSuccessMessage("Documentação enviada com sucesso");
 			} catch (error) {
 				console.error("Erro ao enviar documentação:", error);
