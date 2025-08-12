@@ -904,7 +904,7 @@ const FormSelagem = ({
 
 									console.log("✅ Validação passou - preparando dados para envio...");
 
-									localStorage.setItem("seiNumberS", seiNumber);
+									localStorage.setItem("seiNumberS", String(seiNumber));									
 									console.log("📋 Modo de operação:", isEditMode ? "EDIÇÃO (PATCH)" : "CRIAÇÃO (POST)");
 
 									// LÓGICA CONDICIONAL: POST vs PATCH baseada na tabela de controle

@@ -81,7 +81,7 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
         const seiFromStorageRaw = localStorage.getItem("seiNumberS");
         console.log("seiFromStorageRaw:", seiFromStorageRaw);
 
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
         console.log("seiFromStorage (Number):", seiFromStorage);
 
         try {
@@ -191,11 +191,11 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumberS");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };
-
+                console.log("Dados de selagem",request)
                 const hasData = await hasSelagem(request);
 
                 if (!hasData) {

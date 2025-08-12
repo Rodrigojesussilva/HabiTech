@@ -2198,6 +2198,7 @@ namespace survey_resource {
             created_by: string;
             caracteristicas_infra_urbana: {
                 abastecimento_agua: string;
+                area_ventilacao: string;
                 banheiro: string;
                 cozinha: string;
                 demais_comodos: string;
@@ -2208,9 +2209,6 @@ namespace survey_resource {
                 descricao_ligacao_eletrica: string;
                 descricao_material: string;
                 descricao_pe_direito: string;
-                destino_domestico: string;
-                destino_organico: string;
-                destino_reciclavel: string;
                 esgotamento_sanitario: string;
                 iluminacao_natural: string;
                 infiltracao_mofo: string;
@@ -2219,12 +2217,8 @@ namespace survey_resource {
                 ligacao_eletrica: string;
                 material_parede: string;
                 outro_abastecimento_agua: string;
-                outro_destino_domestico: string;
-                outro_destino_organico: string;
-                outro_destino_reciclavel: string;
                 outro_esgoto: string;
                 pe_direito: string;
-                separacao_residuos: string;
             };
         }
     ): Promise<any> => {
@@ -2252,6 +2246,7 @@ namespace survey_resource {
             throw error;
         }
     };
+
 
     export const SendFormToSelagemOutrasInformacoes = async (
         baseUrl: string,
@@ -2325,7 +2320,6 @@ namespace survey_resource {
             throw error;
         }
     };
-
 
     // Sua função já exportada, que faz o POST para enviar o arquivo
     export const SendFileToUpload = async (

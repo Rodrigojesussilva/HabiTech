@@ -91,7 +91,7 @@ const CaracInfraUrbUnidForm = ({
         }
       }
 
-                  const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       const res = await fetch(url, {
         method: req.method,
         headers: {
@@ -122,7 +122,7 @@ const CaracInfraUrbUnidForm = ({
 
   const fetchSelagemData = async () => {
     const seiFromStorageRaw = localStorage.getItem("seiNumberS");
-    const seiFromStorage = Number(seiFromStorageRaw);
+    const seiFromStorage = seiFromStorageRaw;
 
     try {
       const request = {
@@ -163,35 +163,30 @@ const CaracInfraUrbUnidForm = ({
         created_by: criadoPor,
         caracteristicas_infra_urbana: {
           abastecimento_agua: sanitizeField(abastecimentoAgua),
+          area_ventilacao: sanitizeField(areaVentilacao),
           banheiro: sanitizeField(banheiroVentilacaoNatural),
           cozinha: sanitizeField(cozinhaVentilacaoNatural),
           demais_comodos: sanitizeField(demaisComodosVentilacaoNatural),
           descricao_banheiro: sanitizeField(banheiroSalubridade),
           descricao_cozinha: sanitizeField(cozinhaSalubridade),
           descricao_demais_comodos: sanitizeField(demaisComodosSalubridade),
-          descricao_infiltracao_mofo: "",  // ajustar se tiver um campo específico
+          descricao_infiltracao_mofo: "", // ajuste se necessário
           descricao_ligacao_eletrica: sanitizeField(outroLigacaoEletrica),
-          descricao_material: "",
-          descricao_pe_direito: "",
-          destino_domestico: "",
-          destino_organico: "",
-          destino_reciclavel: "",
+          descricao_material: sanitizeField(outroMaterialPredominante),
+          descricao_pe_direito: "", // ajuste se necessário
           esgotamento_sanitario: sanitizeField(esgotamentoSanitario),
           iluminacao_natural: sanitizeField(iluminicaoNatural),
           infiltracao_mofo: sanitizeField(infiltracaoMofo),
           insalubridade: sanitizeField(unidadeInsalubre),
-          janelas_externas: "",
+          janelas_externas: "", // ajuste se houver campo
           ligacao_eletrica: sanitizeField(ligacaoEletrica),
           material_parede: sanitizeField(materialPredominante),
           outro_abastecimento_agua: sanitizeField(outroAbastecimentoAgua),
-          outro_destino_domestico: "",
-          outro_destino_organico: "",
-          outro_destino_reciclavel: "",
           outro_esgoto: sanitizeField(outroEsgotamentoSanitario),
           pe_direito: sanitizeField(peDireitoAtendente230),
-          separacao_residuos: "",
         },
       };
+
 
       try {
         await survey_resource.SendFormToSelagemInfraUrbana(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
@@ -258,11 +253,11 @@ const CaracInfraUrbUnidForm = ({
       if (shouldFetch) {
         const seiNumber = localStorage.getItem("seiNumberS");
         const request = {
-          numero_sei: Number(seiNumber),
+          numero_sei: seiNumber,
           initial_date: initialDate,
           end_date: endDate,
         };
-
+        console.log("SeiNumber:", seiNumber)
         const hasData = await hasSelagem(request);
         if (!hasData) {
           console.log("Nenhuma Selagem Cadastrada");
