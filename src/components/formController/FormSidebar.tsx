@@ -66,6 +66,16 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 			if (detectedDomSections.length > 0 && !activeSection) {
 				setActiveSection(detectedDomSections[0].id);
 			}
+
+			// Log snapshot da família ativa
+			try {
+				const formApi: any = form && (window as any).form; // fallback se existir referência global
+				const values = formApi ? formApi.getValues?.() : null;
+				if (values && Array.isArray(values.families)) {
+					const fam = values.families[activeFamilyIndex]
+					console.log('[FormSidebar] activeFamilyIndex', activeFamilyIndex, 'family snapshot:', fam)
+				}
+			} catch {}
 		}
 	}, [formRef, activeSection, activeFamilyIndex, isMetadataModalOpen, mostrarSecoes]);
 
@@ -124,7 +134,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handleFamilyIndexChange(Math.max(0, activeFamilyIndex - 1))}
+									onClick={() => { console.log('[FormSidebar] prev family'); handleFamilyIndexChange(Math.max(0, activeFamilyIndex - 1)) }}
 									disabled={activeFamilyIndex <= 0}
 									className="px-2 py-1"
 								>
@@ -136,7 +146,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => handleFamilyIndexChange(Math.min((form?.getValues("numberFamilies") || 1) - 1, activeFamilyIndex + 1))}
+									onClick={() => { console.log('[FormSidebar] next family'); handleFamilyIndexChange(Math.min((form?.getValues("numberFamilies") || 1) - 1, activeFamilyIndex + 1)) }}
 									disabled={activeFamilyIndex >= (form?.getValues("numberFamilies") || 1) - 1}
 									className="px-2 py-1"
 								>

@@ -16,9 +16,10 @@ interface IdentEticRacGeneFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentEticRacGeneFormProps) => {
+const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: IdentEticRacGeneFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 
@@ -34,6 +35,8 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
     const genero = form.watch(`families[${familyIndex}].genero`);
     const generoOutro = form.watch(`families[${familyIndex}].generoOutro`);
     const triggeredByBlurRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
 
 
     const prevValuesRef = useRef<Record<string, any>>({
@@ -164,8 +167,17 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
     };
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return;
+        if (!isActive || isViewMode || isCompletedNow()) return;
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção
+            if (!firstBlurSkippedRef.current) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -212,12 +224,21 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
         return () => {
             window.removeEventListener("blur", handleBlur, true);
         };
-    }, [isViewMode, etnicoRacial, genero, generoOutro]);
+    }, [isActive, isViewMode, etnicoRacial, genero, generoOutro]);
 
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>

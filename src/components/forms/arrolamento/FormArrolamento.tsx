@@ -7,7 +7,7 @@ import { getDefaultValuesFromSchema } from "@/utils/formUtils";
 import {
 	Form,
 } from "@/components/ui/form"
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
 import {
 	Dialog,
@@ -47,7 +47,7 @@ import { infoFamiliaSchema } from "@/components/forms/arrolamento/definitions/in
 import { outrasInfosSchema } from "@/components/forms/arrolamento/definitions/outrasInfos.definition";
 import { statusNotasSchema } from "@/components/forms/arrolamento/definitions/statusNotas.definition";
 import { anexosSchema } from "@/components/forms/arrolamento/definitions/anexos.definition";
-import { API_BASE_URL, SURVEY_RESOURCE_URL } from "../../../service/constants";
+import { SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 import { mapArrolamentoToFormData } from './helpers/apiMapper'
@@ -145,8 +145,7 @@ const FormArrolamento = ({
 	});
 
 	const { setForm, setMetadata } = useFormMetadata();
-	const [initialDate] = useState("")
-	const [endDate] = useState("")
+	// removed unused initialDate/endDate
 
  	// If editing, avoid pre-filling firstVisitStart
  	useEffect(() => {
@@ -216,13 +215,23 @@ const FormArrolamento = ({
 		const currentLength = familyFields.length;
 		const targetLength = numberFamilies || 0;
 
+		console.log('[Arrolamento][Families] size change requested', { currentLength, targetLength })
+
 		if (targetLength > currentLength) {
 			// Add new entries
-			const newEntries = Array(targetLength - currentLength).fill(defaultFamilyEntry);
-			newEntries.forEach(entry => append(entry));
+			const newEntriesCount = targetLength - currentLength
+			console.log('[Arrolamento][Families] appending entries', { count: newEntriesCount })
+			for (let idx = 0; idx < newEntriesCount; idx++) {
+				// Use a fresh object per entry to avoid shared references
+				const entry = JSON.parse(JSON.stringify(defaultFamilyEntry));
+				console.log('[Arrolamento][Families] append at', { index: currentLength + idx })
+				append(entry)
+			}
 		} else if (targetLength < currentLength) {
 			// Remove excess entries
+			console.log('[Arrolamento][Families] removing entries', { from: targetLength, to: currentLength - 1 })
 			for (let i = currentLength - 1; i >= targetLength; i--) {
+				console.log('[Arrolamento][Families] remove at', { index: i })
 				remove(i);
 			}
 		}
@@ -260,7 +269,34 @@ const FormArrolamento = ({
  					console.log('[Arrolamento][Load] GET success:', item)
  					const mapped = mapArrolamentoToFormData(item)
  					console.log('[Arrolamento][Load] mapped form data:', mapped)
+ 					console.log('[Arrolamento][Load] mapped families length:', Array.isArray(mapped.families) ? mapped.families.length : 0)
+ 					if (Array.isArray(mapped.families)) {
+ 						mapped.families.forEach((fam: any, idx: number) => {
+ 							console.log('[Arrolamento][Load] family snapshot', idx + 1, {
+ 								contato: {
+ 									telefone1: fam.telefone1,
+ 									telefone2: fam.telefone2,
+ 									telefone3: fam.telefone3,
+ 									telefone4: fam.telefone4,
+ 								},
+ 								ident: {
+ 									nomeCompletoResp: fam.nomeCompletoResp,
+ 									dataNascimentoResp: fam.dataNascimentoResp,
+ 									responsavel: fam.responsavel,
+ 									relacaoResponsavel: fam.relacaoResponsavel,
+ 								}
+ 							})
+ 						})
+ 					}
+ 					console.log('[Arrolamento][Load] resetting form with mapped data')
  					form.reset(mapped)
+ 					const after = form.getValues()
+ 					console.log('[Arrolamento][Load] form values after reset (snapshot):', {
+ 						questionario: after.questionario,
+ 						seiNumber: after.seiNumber,
+ 						familiesLen: Array.isArray(after.families) ? after.families.length : 0,
+ 						fam0: after.families?.[0]
+ 					})
  					setLoadedArrolamentoData(item)
  					localStorage.setItem('arrolamentoId', item.id)
  					localStorage.setItem('arrolamentoCreated_by', item.created_by || '')
@@ -282,37 +318,6 @@ const FormArrolamento = ({
 			onSubmit(data);
 		}
 		console.log(data);
-	};
-
-	function isGetArrolamentoResponse(response: any): response is { arrolamentos: any[] } {
-		return response && Array.isArray(response.arrolamentos);
-	}
-
-	const fetchArrolamento = async (request: any) => {
-		return await survey_resource.GetArrolamento(request, async (req: any) => {
-			const searchParams = new URLSearchParams();
-			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
-				if (value !== undefined && value !== "") {
-					searchParams.append(key, String(value));
-				}
-			}
-			
-			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-			const res = await fetch(url, {
-				method: req.method,
-				headers: {
-					"Content-Type": "application/json",
-					...(req.headers || {}),
-				},
-			});
-
-			if (!res.ok) {
-				const text = await res.text();
-				throw new Error(`HTTP ${res.status}: ${text}`);
-			}
-
-			return res.json();
-		});
 	};
 
  	const formatDate = (): string => {
@@ -741,21 +746,22 @@ return (
 							sectionIndex={0}
 							familyIndex={index}
 							onChangeMostrarSecoes={handleSelectChange}
+							isActive={activeFamilyIndex === index}
 						/>
-						<InfoContatoForm sectionIndex={1} familyIndex={index} />
+						<InfoContatoForm sectionIndex={1} familyIndex={index} isActive={activeFamilyIndex === index} />
 						{mostrarSecoes && (
 							<>
-								<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-								<DocsForm sectionIndex={3} familyIndex={index} />
-								<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} />
-								<NupcidadeForm sectionIndex={5} familyIndex={index} />
-								<PessoaDefForm sectionIndex={6} familyIndex={index} />
-								<InfoFamiliaForm sectionIndex={7} familyIndex={index} />
+								<SituUsoUniForm sectionIndex={2} familyIndex={index} isActive={activeFamilyIndex === index} />
+								<DocsForm sectionIndex={3} familyIndex={index} isActive={activeFamilyIndex === index} />
+								<IdentEtiRacGeneForm sectionIndex={4} familyIndex={index} isActive={activeFamilyIndex === index} />
+								<NupcidadeForm sectionIndex={5} familyIndex={index} isActive={activeFamilyIndex === index} />
+								<PessoaDefForm sectionIndex={6} familyIndex={index} isActive={activeFamilyIndex === index} />
+								<InfoFamiliaForm sectionIndex={7} familyIndex={index} isActive={activeFamilyIndex === index} />
 							</>
 						)}
 
-						<OutrasInfosForm sectionIndex={8} familyIndex={index} />
-						<StatusNotasForm sectionIndex={9} familyIndex={index} />
+						<OutrasInfosForm sectionIndex={8} familyIndex={index} isActive={activeFamilyIndex === index} />
+						<StatusNotasForm sectionIndex={9} familyIndex={index} isActive={activeFamilyIndex === index} />
 						<AnexosForm sectionIndex={10} familyIndex={index} />
 
 					</div>

@@ -16,9 +16,10 @@ interface IdentRespFormProps {
     sectionIndex?: number;
     familyIndex: number;
     onChangeMostrarSecoes: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    isActive?: boolean;
 }
 
-const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes }: IdentRespFormProps) => {
+const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes, isActive = true }: IdentRespFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
@@ -27,6 +28,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
+    const initializedRef = useRef(false);
+    const prevResponsavelRef = useRef<string | undefined>(undefined);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
     const idadeResp = form.watch(`families[${familyIndex}].idadeResp`);
     const nomeCompleto = form.watch(`families[${familyIndex}].nomeCompletoResp`);
@@ -152,7 +157,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             const payload = {
                 created_by: createdBy,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     identificacao_responsavel: createIdentificacaoResponsavel(),
                 },
             };
@@ -162,6 +167,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                     arrolamentoId,
                     createdBy,
                     tokenPresent: !!token,
+                    family_index: familyIndex + 1,
                     payload
                 })
                 await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
@@ -215,9 +221,27 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
+        // Inicializa guarda conforme estado inicial da seção
+        if (!isActive) return;
+        if (mostrarIdentificacao) {
+            hasSectionBeenOpenedRef.current = true;
+        }
+        // Marcar inicializado após um tick para permitir form.reset concluir
+        setTimeout(() => { initializedRef.current = true; }, 0);
+    }, []);
+
+    useEffect(() => {
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou inativa
 
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção somente quando não houve mudança
+            if (!firstBlurSkippedRef.current) {
+                // Ainda vamos calcular mudanças antes de decidir retornar
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -243,6 +267,11 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                     shouldFetch = true;
                     prevValuesRef.current[fieldName.split(".").pop() || ""] = currentValue;
                 }
+            }
+
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
             }
 
             if (shouldFetch) {
@@ -271,6 +300,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
         isViewMode,
         dataNascimento,
         idadeResp,
@@ -333,6 +363,17 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
 
             if (name === `families[${familyIndex}].responsavel`) {
+                const current = typeof responsavel === 'string' ? responsavel : ''
+                const previous = prevResponsavelRef.current
+                prevResponsavelRef.current = current
+                // Ignorar o primeiro disparo pós-hidratação
+                if (!initializedRef.current) {
+                    return;
+                }
+                // Só limpar ao mudar de fato o valor
+                if (current === previous) {
+                    return;
+                }
 
                 form.setValue(pathNascimento, '');
                 form.setValue(pathEmancipada, '');
@@ -364,6 +405,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }, [form, familyIndex, onChangeMostrarSecoes]);
 
     useEffect(() => {
+
         const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
@@ -382,7 +424,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     useEffect(() => {
 
-        if (formValues.naoSeAplicaEntrevistado) {
+        if (initializedRef.current && formValues.naoSeAplicaEntrevistado) {
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
             if (nomeResponsavel) {
                 form.setValue(`families[${familyIndex}].nomeSocialEntrevistado`, "");
@@ -629,7 +671,16 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

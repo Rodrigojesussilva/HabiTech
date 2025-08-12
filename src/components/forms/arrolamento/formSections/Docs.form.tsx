@@ -17,9 +17,10 @@ interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
 	familyIndex: number;
+	isActive?: boolean;
 }
 
-const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
+const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: DocsFormProps) => {
 	const isViewMode = useViewMode();
 	const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
@@ -28,6 +29,9 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
 	const form = useFormContext();
+	const hasSectionBeenOpenedRef = useRef(false);
+	const firstBlurSkippedRef = useRef(false);
+
 
 	// Observar todos os valores da família
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -186,7 +190,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			const documentacaoPayload = {
 				created_by: criadoPor,
 				form: {
-					family_index: 1,
+					family_index: familyIndex + 1,
 					documentacao: {
 						cidade: Cidade,
 						cpf: Cpf,
@@ -215,7 +219,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			};
 
 			try {
-				console.log('[Arrolamento][Docs] PATCH prepared (final):', documentacaoPayload);
+				console.log('[Arrolamento][Docs] PATCH prepared (final):', { family_index: familyIndex + 1, payload: documentacaoPayload });
 				const token = localStorage.getItem('authToken') || ''
 				await survey_resource.SendFormToArrolamentoDoc(SURVEY_RESOURCE_URL, arrolamentoId, documentacaoPayload, token);
 				// showSuccessMessage("Documentação enviada com sucesso");
@@ -241,8 +245,12 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	};
 	useEffect(() => {
-		if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
+		if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
 		const handleBlur = async () => {
+			// Evita PATCH antes do usuário abrir a seção ao menos uma vez
+			if (!hasSectionBeenOpenedRef.current) {
+				return;
+			}
 			const activeFieldName = document.activeElement?.getAttribute("name");
 
 			const fields = {
@@ -282,6 +290,11 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				}
 			}
 
+			if (!firstBlurSkippedRef.current && !shouldFetch) {
+				firstBlurSkippedRef.current = true;
+				return;
+			}
+
 			if (shouldFetch) {
 				const seiNumber = localStorage.getItem("seiNumber");
 				const request = {
@@ -307,6 +320,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			window.removeEventListener("blur", handleBlur, true);
 		};
 	}, [
+		isActive,
 		isViewMode,
 		Cidade,
 		Cpf,
@@ -638,7 +652,16 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 
 	return (
 		<div className="text-left">
-			<Collapsible open={mostrarDocumentacao} onOpenChange={setMostrarDocumentacao}>
+			<Collapsible
+				open={mostrarDocumentacao}
+				onOpenChange={(open) => {
+					setMostrarDocumentacao(open);
+					if (open) {
+						hasSectionBeenOpenedRef.current = true;
+						firstBlurSkippedRef.current = false;
+					}
+				}}
+			>
 				<CollapsibleTrigger asChild>
 					<div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
 						<h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

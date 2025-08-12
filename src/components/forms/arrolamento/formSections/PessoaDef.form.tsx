@@ -14,10 +14,11 @@ interface PessoaDefFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
 
-const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFormProps) => {
+const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: PessoaDefFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
@@ -26,7 +27,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     const form = useFormContext();
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
-
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
     const temPessoaDeficienciaFam = form.watch(`families[${familyIndex}].temPessoaDeficienciaFam`);
@@ -247,7 +249,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         const payload = {
             created_by: criadoPor,
             form: {
-                family_index: 1, // ou dinâmico
+                family_index: familyIndex + 1,
 
                 pessoa_deficiente: {
                     aparelho_auditivo: aparelhoAuditivo === true || aparelhoAuditivo === "sim",
@@ -319,7 +321,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         };
 
         try {
-            console.log('[Arrolamento][PessoaDef] PATCH prepared (final):', payload);
+            console.log('[Arrolamento][PessoaDef] PATCH prepared (final):', { family_index: familyIndex + 1, payload });
             const token = localStorage.getItem('authToken') || ''
             await survey_resource.SendFormToArrolamentoPessoaDeficiente(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
         } catch (error) {
@@ -345,8 +347,12 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização/inativa
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -422,6 +428,11 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 }
             }
 
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
+
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumber");
                 const request = {
@@ -446,6 +457,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
         isViewMode,
         temPessoaDeficienciaFam,
         qtdPessoasComDefFam,
@@ -601,7 +613,16 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>

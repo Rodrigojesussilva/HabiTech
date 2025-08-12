@@ -15,9 +15,10 @@ interface SituUsoUniFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniFormProps) => {
+const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: SituUsoUniFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
@@ -25,6 +26,8 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     const [endDate] = useState("")
     const form = useFormContext();
     const triggeredByBlurRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
 
     const regimeOcupacao = form.watch(`families[${familyIndex}].regime_ocupacao`);
     const valorLocacao = form.watch(`families[${familyIndex}].valor_locacao`);
@@ -181,7 +184,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             const situacaoUsoPayload = {
                 created_by: criadoPor,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     situacao_uso: {
                         regime_ocupacao: regimeOcupacao,
                         contato_proprietario: contatoProprietario,
@@ -213,7 +216,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             };
 
             try {
-                console.log('[Arrolamento][SituacaoUso] PATCH prepared (final):', situacaoUsoPayload);
+                console.log('[Arrolamento][SituacaoUso] PATCH prepared (final):', { family_index: familyIndex + 1, payload: situacaoUsoPayload });
                 const token = localStorage.getItem('authToken') || ''
                 await survey_resource.SendFormToArrolamentoSituacaoUso(SURVEY_RESOURCE_URL, arrolamentoId, situacaoUsoPayload, token);
             } catch (error) {
@@ -318,8 +321,12 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     ]);
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -361,6 +368,11 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                 }
             }
 
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
+
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumber");
                 const request = {
@@ -386,6 +398,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
         isViewMode,
         regimeOcupacao,
         contatoProprietario,
@@ -464,7 +477,16 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarSituacaoUso} onOpenChange={setMostrarSituacaoUso}>
+            <Collapsible
+                open={mostrarSituacaoUso}
+                onOpenChange={(open) => {
+                    setMostrarSituacaoUso(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

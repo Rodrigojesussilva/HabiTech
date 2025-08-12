@@ -132,7 +132,7 @@ export default function ArrolamentoList() {
     }
   }
 
-  const fetchData = async (ignoreCreatedByFilter: boolean = false) => {
+  const fetchData = async (_ignoreCreatedByFilter: boolean = false) => {
     setLoading(true)
     try {
       let request: any = {}

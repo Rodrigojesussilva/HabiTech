@@ -9,7 +9,6 @@ import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import FormSelagem from './components/forms/selagem/FormSelagem'
 import { useState, useEffect } from 'react'
-import DemoPage from './components/formDataTables/arrolamento/list'
 import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
 import { ChartAreaInteractive } from './app/dashboard/dash'

@@ -9,7 +9,7 @@ import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/inf
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "../../../../service/survey_resource.api"
-import { SURVEY_RESOURCE_URL, API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
 import useViewMode from '@/hooks/useViewMode'
 
@@ -17,9 +17,10 @@ interface InfoContatoFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
+const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: InfoContatoFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 
@@ -28,6 +29,8 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const [endDate] = useState("")
     const form = useFormContext();
     const initializedRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const email = form.watch(`families[${familyIndex}].email`);
@@ -188,7 +191,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             const formPayload = {
                 created_by: createdBy,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     contato: {
                         email: email,
                         nao_sabe_email: naoSabeEmail,
@@ -221,7 +224,8 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
             try {
 
-                console.log('[Arrolamento][Contato] PATCH prepared (final):', { arrolamentoId, createdBy, tokenPresent: !!token, formPayload })
+                console.log('[Arrolamento][Contato] PATCH prepared (final):', { arrolamentoId, createdBy, tokenPresent: !!token, family_index: familyIndex + 1, formPayload })
+                console.log('[Arrolamento][Contato] payload snapshot', { familyIndex, payload: formPayload })
                 const res = await survey_resource.SendFormToArrolamentoContato(SURVEY_RESOURCE_URL, arrolamentoId, formPayload as any, token);
                 console.log('[Arrolamento][Contato] PATCH success:', res)
             } catch (error) {
@@ -245,8 +249,17 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou concluído
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção
+            if (!firstBlurSkippedRef.current) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const allFields = {
@@ -314,6 +327,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
         isViewMode,
         email,
         telefone1, telefone2, telefone3, telefone4,
@@ -429,12 +443,45 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     // Marca que inicialização foi concluída (evita limpar valores carregados)
     useEffect(() => { initializedRef.current = true }, [])
 
+    // Antes de concluir inicialização, se já existem telefones 2/3/4 vindos do GET, habilita os toggles
+    useEffect(() => {
+        if (initializedRef.current) return;
+        const t2 = form.getValues(`families[${familyIndex}].telefone2`)
+        const t3 = form.getValues(`families[${familyIndex}].telefone3`)
+        const t4 = form.getValues(`families[${familyIndex}].telefone4`)
+        if (t2) {
+            console.log('[Arrolamento][Contato] Detectado telefone2 carregado. Habilitando ativarTelefone2.')
+            form.setValue(`families[${familyIndex}].ativarTelefone2`, true, { shouldValidate: false })
+        }
+        if (t3) {
+            console.log('[Arrolamento][Contato] Detectado telefone3 carregado. Habilitando ativarTelefone3.')
+            form.setValue(`families[${familyIndex}].ativarTelefone3`, true, { shouldValidate: false })
+        }
+        if (t4) {
+            console.log('[Arrolamento][Contato] Detectado telefone4 carregado. Habilitando ativarTelefone4.')
+            form.setValue(`families[${familyIndex}].ativarTelefone4`, true, { shouldValidate: false })
+        }
+    }, [familyIndex])
+
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
 
+    useEffect(() => {
+        console.log('[Arrolamento][Contato] watched values', { familyIndex, email, telefone1, telefone2, telefone3, telefone4 })
+    }, [familyIndex, email, telefone1, telefone2, telefone3, telefone4])
+
     return (
         <div className="text-left">
-            <Collapsible open={mostrarContato} onOpenChange={setMostrarContato}>
+            <Collapsible
+                open={mostrarContato}
+                onOpenChange={(open) => {
+                    setMostrarContato(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

@@ -33,7 +33,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   const formSections = getMergedFormSections(formValues);
 
   const [attachmentsByField, setAttachmentsByField] = useState<Record<string, AttachmentItem[]>>({})
-  const [loading, setLoading] = useState(false)
   const params = useParams<{ id: string }>()
   const routeArrolamentoId = params.id || ''
   const arrolamentoIdLS = localStorage.getItem('arrolamentoId') || ''
@@ -106,7 +105,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       return
     }
     try {
-      setLoading(true)
       // signed_url primeiro
       const response = await survey_resource.GetArrolamentoAttachments({ id: currentId, authorization_token: token, download_mode: 'signed_url' as any }, async (req: any) => {
         const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
@@ -160,7 +158,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         loadFromLocal(currentId)
       }
     } finally {
-      setLoading(false)
     }
   }
 

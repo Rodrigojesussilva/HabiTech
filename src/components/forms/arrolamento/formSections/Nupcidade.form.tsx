@@ -10,14 +10,18 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 interface NupcidadeFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFormProps) => {
+const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: NupcidadeFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -31,7 +35,8 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
     const nomeCompanheiro = form.watch(`families[${familyIndex}].nomeCompanheiro`);
     const viveComCompanheiro = form.watch(`families[${familyIndex}].viveComCompanheiro`);
     const triggeredByBlurRef = useRef(false);
-
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
 
 
     const prevValuesRef = useRef<Record<string, any>>({
@@ -47,6 +52,13 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return;
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][Nupcidade] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleNupcidadeResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -109,10 +121,17 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
     };
 
     const handleNupcidadeResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Nupcidade] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][Nupcidade] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][Nupcidade] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -120,7 +139,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
             const payload = {
                 created_by: criadoPor,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     nupcidade: {
                         estado_civil: estadoCivil,
                         nome_companheiro: nomeCompanheiro,
@@ -130,18 +149,20 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
             };
 
             try {
-                console.log("Payload Nupcidade:", JSON.stringify(payload, null, 2));
+                console.log('[Arrolamento][Nupcidade] PATCH prepared (final):', { family_index: familyIndex + 1, payload });
                 const token = localStorage.getItem('authToken') || ''
                 await survey_resource.SendFormToArrolamentoNupcidade(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar dados de nupcidade:", error);
-                showErrorMessage("Erro ao enviar os dados de nupcidade");
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de nupcidade");
             }
         }
     };
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][Nupcidade] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -154,7 +175,12 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
     };
 
     useEffect(() => {
+        if (!isActive || isViewMode || isCompletedNow()) return;
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -173,6 +199,11 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
                     shouldFetch = true;
                     prevValuesRef.current[shortName] = currentValue;
                 }
+            }
+
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
             }
 
             if (shouldFetch) {
@@ -200,7 +231,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
         return () => {
             window.removeEventListener("blur", handleBlur, true);
         };
-    }, [estadoCivil, nomeCompanheiro, viveComCompanheiro]);
+    }, [isActive, isViewMode, estadoCivil, nomeCompanheiro, viveComCompanheiro]);
 
 
     useEffect(() => {
@@ -219,7 +250,16 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: NupcidadeFo
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>

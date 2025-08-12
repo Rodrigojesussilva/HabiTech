@@ -15,9 +15,10 @@ interface OutrasInfosFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInfosFormProps) => {
+const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: OutrasInfosFormProps) => {
     const isViewMode = useViewMode();
     const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarOutrasInfos, setMostrarOutrasInfos] = useState(false);
@@ -33,6 +34,8 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
     const formSections = getMergedFormSections(formValues);
     const outrasInformacoesTexto = form.watch(`families[${familyIndex}].texto`);
     const triggeredByBlurRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
 
     const prevValuesRef = useRef<Record<string, any>>({
         texto: outrasInformacoesTexto,
@@ -166,8 +169,17 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
     };
 
     useEffect(() => {
-        if (isViewMode || isCompletedNow()) return;
+        if (!isActive || isViewMode || isCompletedNow()) return;
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção
+            if (!firstBlurSkippedRef.current) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -211,11 +223,20 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex }: OutrasInf
         return () => {
             window.removeEventListener("blur", handleBlur, true);
         };
-    }, [isViewMode, outrasInformacoesTexto]);
+    }, [isActive, isViewMode, outrasInformacoesTexto]);
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarOutrasInfos} onOpenChange={setMostrarOutrasInfos}>
+            <Collapsible
+                open={mostrarOutrasInfos}
+                onOpenChange={(open) => {
+                    setMostrarOutrasInfos(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>

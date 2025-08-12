@@ -8,20 +8,15 @@ function toBrDate(isoOrBr?: string): string {
   return isoOrBr
 }
 
-export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
-  const survey = api?.survey || {}
-  const forms = Array.isArray(survey?.forms) ? survey.forms : []
-  const firstForm = forms[0] || {}
+function mapFamilyFormToFields(formEntry: any): Record<string, any> {
+  const ident = formEntry?.identificacao_responsavel || {}
+  const infoFamilia = formEntry?.informacao_familia || {}
+  const contato = formEntry?.contato || {}
+  const situacaoUso = formEntry?.situacao_uso || {}
+  const doc = formEntry?.documentacao || {}
+  const pessoaDef = formEntry?.pessoa_deficiente || {}
 
-  const ident = firstForm.identificacao_responsavel || {}
-  const infoFamilia = firstForm.informacao_familia || {}
-  const contato = firstForm.contato || {}
-  const situacaoUso = firstForm.situacao_uso || {}
-  const etnico = firstForm.identificacao_etnico_racial || {}
-  const doc = firstForm.documentacao || {}
-  const pessoaDef = firstForm.pessoa_deficiente || {}
-
-  const families0: Record<string, any> = {
+  return {
     // Identificação do responsável
     responsavel: ident.responsavel === true ? 'sim' : ident.responsavel === false ? 'nao' : '',
     nomeCompletoResp: ident.nome_completo || '',
@@ -30,10 +25,9 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     DescrevParentesco: ident.descrev_parentesco || '',
     nomeSocialEntrevistado: ident.nome_social || '',
     naoSeAplicaEntrevistado: ident.nome_social_aplicavel === false ? true : false,
-    // Esses campos podem não existir no backend; mantém vazios caso não haja origem explícita
-    nomeCompletoEntrevistado: firstForm?.nome_completo_entrevistado || '',
-    pessoaEmancipada: firstForm?.pessoa_emancipada === true ? 'sim' : firstForm?.pessoa_emancipada === false ? 'nao' : '',
-    certidaoEmancipacao: firstForm?.certidao_emancipacao || '',
+    nomeCompletoEntrevistado: ident.nome_completo_entrevistado || '',
+    pessoaEmancipada: ident.pessoa_emancipada === true ? 'sim' : ident.pessoa_emancipada === false ? 'nao' : '',
+    certidaoEmancipacao: ident.certidao_emancipacao || '',
     idadeResp: ident.idade ?? '',
 
     // Contato
@@ -76,7 +70,6 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     gestantes: infoFamilia.gestantes ?? '',
     pessoasImigrantes: infoFamilia.pessoas_imigrantes ?? '',
     nacionalidadesSelecionadas: Array.isArray(infoFamilia.nacionalidades_selecionadas) ? infoFamilia.nacionalidades_selecionadas : [],
-    // numeros_por_pais chega como array; aqui mantemos como está e deixamos a UI sincronizar
     numerosPorPais: infoFamilia.numeros_por_pais ?? [],
 
     // Situação e uso
@@ -129,7 +122,7 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     statusRnm: doc.status_rnm || '',
     uf: doc.uf || '',
 
-    // Pessoa com deficiência (mapear para selects/checkboxes do form)
+    // Pessoa com deficiência
     tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
     responsavelPossuiLaudo: pessoaDef.possui_laudo || '',
     responsavelTemDeficiencia: pessoaDef.responsavel_tem_deficiencia ? 'sim' : '',
@@ -189,12 +182,21 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     responsavelOrteseProtese: !!pessoaDef.responsavel_ortese_protese,
     responsavelOutraTecAssistiva: !!pessoaDef.responsavel_outra_tec_assistiva,
   }
+}
+
+export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
+  const survey = api?.survey || {}
+  const forms = Array.isArray(survey?.forms) ? survey.forms : []
+
+  const families = forms.length > 0
+    ? forms.map((f: any) => mapFamilyFormToFields(f))
+    : [mapFamilyFormToFields({})]
 
   return {
     questionario: api?.created_by || 'SEHAB-123',
     seiNumber: survey?.main_metadata?.numero_sei || '',
     sealNumber: survey?.main_metadata?.numero_selo || '',
-    numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? 1),
+    numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
     visitNumber: api?.visit_count != null ? String(api.visit_count) : '',
     firstVisitStart: '',
     firstVisitEnd: '',
@@ -204,6 +206,6 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     startTime: '',
     endTime: '',
     timeElapsed: '',
-    families: [families0],
+    families,
   }
 } 
