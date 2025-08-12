@@ -80,10 +80,10 @@ export function DataTable<TData, TValue>({
                   <Button className="cursor-pointer p-0.5 md:p-1" variant="ghost" onClick={() => onView?.(row.original)} title="Visualizar">
                     <EyeIcon className="w-4 h-4" />
                   </Button>
-                  <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onEdit?.(row.original)} title="Editar">
+                  <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onEdit?.(row.original)} title={ (row.original as any).completed ? 'Edição indisponível para visitas concluídas' : 'Editar' } disabled={(row.original as any).completed}>
                     <PencilIcon className="w-4 h-4" />
                   </Button>
-                  <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onNewVisit?.(row.original)} title="Nova visita">
+                  <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onNewVisit?.(row.original)} title={(row.original as any).completed ? 'Criar nova visita' : 'Finalize a visita atual para liberar nova visita'} disabled={!((row.original as any).completed)}>
                     <PlusIcon className="w-4 h-4" />
                   </Button>
                   <Button className="cursor-pointer p-0.5 md:p-1" variant="ghost" title="Deletar" onClick={() => onDelete?.(row.original)}>
