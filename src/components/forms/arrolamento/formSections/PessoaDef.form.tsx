@@ -160,7 +160,13 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     const fetchData = async () => {
-        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][PessoaDef] fetchData: usando fallback localStorage para PATCH imediato')
+            await handlePessoaDeficienteResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 

@@ -27,6 +27,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const [initialDate] = useState("")
     const [endDate] = useState("")
     const form = useFormContext();
+    const initializedRef = useRef(false);
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const email = form.watch(`families[${familyIndex}].email`);
@@ -100,6 +101,12 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
     const fetchData = async () => {
         if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][Contato] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleContatoResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -355,36 +362,28 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     ]);
 
     useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        // Garante valor inicial do checkbox 'naoSabeEmail'
         if (formValues.naoSabeEmail === undefined) {
             form.setValue(`families[${familyIndex}].naoSabeEmail`, false);
         }
-
-    }, [
-        formValues.naoSabeEmail,
-        form,
-        familyIndex
-    ]);
+    }, [formValues.naoSabeEmail, form, familyIndex]);
 
     useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        // Garante valor inicial do checkbox 'naoSabeTelefoneComercial'
         if (formValues.naoSabeTelefoneComercial === undefined) {
             form.setValue(`families[${familyIndex}].naoSabeTelefoneComercial`, false);
         }
-
-    }, [
-        formValues.naoSabeTelefoneComercial,
-        form,
-        familyIndex
-    ]);
+    }, [formValues.naoSabeTelefoneComercial, form, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (formValues.naoSabeEmail) {
             // Verifica se os valores já não estão vazios antes de setar
             const email = form.getValues(`families[${familyIndex}].email`);
 
 
             if (email) {
+                console.log('[Arrolamento][Contato] Limpando email por naoSabeEmail=true')
                 form.setValue(`families[${familyIndex}].email`, "");
 
             }
@@ -392,7 +391,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [formValues.naoSabeEmail, form, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone2) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone2 por ativarTelefone2=false')
             form.setValue(`families[${familyIndex}].telefone2`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone2`, "");
             form.setValue(`families[${familyIndex}].nomeRecado2`, "");
@@ -402,7 +403,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [ativarTelefone2, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone3) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone3 por ativarTelefone3=false')
             form.setValue(`families[${familyIndex}].telefone3`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone3`, "");
             form.setValue(`families[${familyIndex}].nomeRecado3`, "");
@@ -412,7 +415,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [ativarTelefone3, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone4) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone4 por ativarTelefone4=false')
             form.setValue(`families[${familyIndex}].telefone4`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone4`, "");
             form.setValue(`families[${familyIndex}].nomeRecado4`, "");
@@ -420,6 +425,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].telefone4WhatsApp`, false);
         }
     }, [ativarTelefone4, familyIndex]);
+
+    // Marca que inicialização foi concluída (evita limpar valores carregados)
+    useEffect(() => { initializedRef.current = true }, [])
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);

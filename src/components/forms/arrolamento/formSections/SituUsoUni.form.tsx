@@ -89,6 +89,12 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
     const fetchData = async () => {
         if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][SituacaoUso] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleSituacaoUsoResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 

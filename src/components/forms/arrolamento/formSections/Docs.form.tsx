@@ -93,7 +93,13 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	};
 
 	const fetchData = async () => {
-		if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+		if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
+		const idLS = localStorage.getItem('arrolamentoId')
+		if (idLS) {
+			console.log('[Arrolamento][Docs] fetchData: usando fallback localStorage para PATCH imediato')
+			await handleDocumentacaoResponse({ arrolamentos: [] })
+			return
+		}
 		const seiFromStorageRaw = localStorage.getItem("seiNumber");
 		const seiFromStorage = Number(seiFromStorageRaw);
 

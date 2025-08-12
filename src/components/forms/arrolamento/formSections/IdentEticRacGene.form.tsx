@@ -10,6 +10,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 interface IdentEticRacGeneFormProps {
     id?: string;
@@ -18,6 +19,8 @@ interface IdentEticRacGeneFormProps {
 }
 
 const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentEticRacGeneFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
@@ -107,10 +110,17 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
     };
 
     const handleIdentificacaoResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][EtnicoRacial] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][EtnicoRacial] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][EtnicoRacial] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -128,18 +138,20 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
             };
 
             try {
-                console.log("Payload final enviado:", JSON.stringify(payload, null, 2));
+                console.log('[Arrolamento][EtnicoRacial] PATCH prepared (final):', payload);
                 const token = localStorage.getItem('authToken') || ''
                 await survey_resource.SendFormToArrolamentoEtnicoRacial(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar identificação étnico-racial:", error);
-                showErrorMessage("Erro ao enviar os dados de identificação étnico-racial");
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de identificação étnico-racial");
             }
         }
     };
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][EtnicoRacial] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -152,6 +164,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
     };
 
     useEffect(() => {
+        if (isViewMode || isCompletedNow()) return;
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
 
@@ -199,7 +212,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex }: Iden
         return () => {
             window.removeEventListener("blur", handleBlur, true);
         };
-    }, [etnicoRacial, genero, generoOutro]);
+    }, [isViewMode, etnicoRacial, genero, generoOutro]);
 
 
     return (

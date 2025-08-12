@@ -84,6 +84,12 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoFamil
 
     const fetchData = async () => {
         if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][InfoFamilia] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleInformacaoFamiliaResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
