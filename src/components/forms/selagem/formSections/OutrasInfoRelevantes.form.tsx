@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -7,6 +7,9 @@ import {
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import Swal from 'sweetalert2';
+import survey_resource from "../../../../service/survey_resource.api"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface outrasInfoRelevantesFormProps {
     id?: string;
@@ -16,6 +19,8 @@ interface outrasInfoRelevantesFormProps {
 
 const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: outrasInfoRelevantesFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
+    const [initialDate] = useState("")
+    const [endDate] = useState("")
 
     const form = useFormContext();
     // Get form values for conditional logic
@@ -23,6 +28,156 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
+    const outrasInformacoes = form.watch(`families[${familyIndex}].outrasInformacoes`);
+    const triggeredByBlurRef = useRef(false);
+
+    // Inicializa prevValuesRef apenas com o campo relevante
+    const prevValuesRef = useRef<Record<string, any>>({
+        outrasInformacoes,
+    });
+
+    function isGetSelagemResponse(response: any): response is { selagens: any[] } {
+        return response && Array.isArray(response.selagens);
+    }
+
+    const fetchSelagem = async (request: any) => {
+        return await survey_resource.GetSelagem(request, async (req: any) => {
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            }
+
+            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(req.headers || {}),
+                },
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return res.json();
+        });
+    };
+
+    const showErrorMessage = (message: string) => {
+        Swal.fire({
+            icon: "error",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+            showConfirmButton: true,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+
+    const fetchSelagemData = async () => {
+        const seiFromStorageRaw = localStorage.getItem("seiNumberS");
+        const seiFromStorage = seiFromStorageRaw;
+
+        try {
+            const request = {
+                numero_sei: seiFromStorage,
+                initial_date: initialDate,
+                end_date: endDate,
+            };
+
+            const response = await fetchSelagem(request);
+
+            if (isGetSelagemResponse(response)) {
+                await handleSelagemResponse(response);
+            } else {
+                console.warn("Resposta NÃO é do tipo GetSelagemResponse", response);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar selagens:", error);
+            showErrorMessage("Erro ao buscar dados da selagem");
+        }
+    };
+
+    const handleSelagemResponse = async (response: any) => {
+        const selagem = response.selagens?.[0];
+        if (!selagem) return;
+
+        const selagemId = selagem.id;
+        const criadoPor = selagem.created_by;
+
+        localStorage.setItem("selagemId", selagemId);
+        localStorage.setItem("selagemCreated_by", criadoPor);
+
+        const sanitizeField = (value: any) => {
+            if (value == null || value === "") return "string";
+            return String(value);
+        };
+
+        const payload = {
+            created_by: criadoPor,
+            outras_informacoes: {
+                texto: sanitizeField(outrasInformacoes),
+            },
+        };
+
+        try {
+            await survey_resource.SendFormToSelagemOutrasInformacoes(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
+        } catch (error) {
+            console.error("Erro ao enviar outras informações:", error);
+            showErrorMessage("Erro ao enviar o campo 'outrasInformacoes'");
+        }
+    };
+
+    const hasSelagem = async (request: any): Promise<boolean> => {
+        try {
+            const response = await fetchSelagem(request);
+            const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
+            return !isEmpty;
+        } catch (error) {
+            console.error("Erro ao verificar selagens:", error);
+            return false;
+        }
+    };
+
+    useEffect(() => {
+        const handleBlur = async () => {
+            const activeFieldName = document.activeElement?.getAttribute("name");
+            const currentValue = form.watch(`families[${familyIndex}].outrasInformacoes`) || "";
+            const prevValue = prevValuesRef.current["outrasInformacoes"];
+
+            if (currentValue !== prevValue && activeFieldName !== `families[${familyIndex}].outrasInformacoes`) {
+                prevValuesRef.current["outrasInformacoes"] = currentValue;
+
+                const seiNumber = localStorage.getItem("seiNumberS");
+                const request = {
+                    numero_sei: seiNumber,
+                    initial_date: initialDate,
+                    end_date: endDate,
+                };
+
+                const hasData = await hasSelagem(request);
+                if (!hasData) {
+                    console.log("Nenhuma Selagem Cadastrada");
+                    return;
+                }
+
+                triggeredByBlurRef.current = true;
+                fetchSelagemData();
+            }
+        };
+
+        window.addEventListener("blur", handleBlur, true);
+        return () => {
+            window.removeEventListener("blur", handleBlur, true);
+        };
+    }, [outrasInformacoes]);
+
+
+
 
     return (
         <div className="text-left">
@@ -45,7 +200,7 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
                             familyIndex={familyIndex}
                         />
                     ))}
-                  {/* 
+                    {/* 
 <div className="mt-4 w-full flex justify-start">
   <button
     type="button"

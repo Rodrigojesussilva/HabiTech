@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections, situUsoUniDefinition
 } from "@/components/forms/selagem/definitions/situUsoUni.definition";
 import { formatCurrency, ensureValidSelectValue, formatarTelefone } from "@/components/forms/selagem/helpers/situUsoUni.helper";
-
-
 // Import FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import Swal from 'sweetalert2';
+import survey_resource from "../../../../service/survey_resource.api"
+import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
 interface SituUsoUniFormProps {
     id?: string;
@@ -18,8 +19,21 @@ interface SituUsoUniFormProps {
 
 const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniFormProps) => {
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
+    const [initialDate] = useState("")
+    const [endDate] = useState("")
 
     const form = useFormContext();
+    // Observe os campos relevantes para montar o payload
+    const nomeResponsavel = form.watch(`families[${familyIndex}].nome_responsavel`);
+    const qualUso = form.watch(`families[${familyIndex}].qualUso`);
+    const responsavelIdentificado = form.watch(`families[${familyIndex}].responsavel_identificado`);
+    const situacao = form.watch(`families[${familyIndex}].situacaoUsoUnidade`);
+    const telefoneResponsavel = form.watch(`families[${familyIndex}].telefone_responsavel`);
+    const tiposUso = form.watch(`families[${familyIndex}].quaisTipos`);
+    const uso = form.watch(`families[${familyIndex}].uso`);
+    const usoTerreno = form.watch(`families[${familyIndex}].uso_terreno`);
+    const usoUnidade = form.watch(`families[${familyIndex}].usoUnidade`);
+    const triggeredByBlurRef = useRef(false);
 
     // Get form values for conditional logic
     const formValues = (() => {
@@ -30,6 +44,219 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             return {};
         }
     })();
+
+    const prevValuesRef = useRef<Record<string, any>>({
+        nomeResponsavel,
+        qualUso,
+        responsavelIdentificado,
+        situacao,
+        telefoneResponsavel,
+        tiposUso,
+        uso,
+        usoTerreno,
+        usoUnidade,
+    });
+
+    function isGetSelagemResponse(response: any): response is { selagens: any[] } {
+        return response && Array.isArray(response.selagens);
+    };
+
+    const fetchSelagem = async (request: any) => {
+        return await survey_resource.GetSelagem(request, async (req: any) => {
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            }
+
+            const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(req.headers || {}),
+                },
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return res.json();
+        });
+    };
+
+    const fetchSelagemData = async () => {
+        console.log("Acessando fetchSelagemData ");
+        const seiFromStorageRaw = localStorage.getItem("seiNumberS");
+        const seiFromStorage = seiFromStorageRaw;
+
+        try {
+            const request = {
+                numero_sei: seiFromStorage,
+                initial_date: initialDate,
+                end_date: endDate,
+            };
+
+            const response = await fetchSelagem(request);
+            console.log("Resposta de fetchSelagem:", response);
+
+            const passedCheck = isGetSelagemResponse(response);
+            console.log("Passou isGetSelagemResponse?", passedCheck);
+
+            if (passedCheck) {
+                await handleSelagemResponse(response);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar selagens:", error);
+            showErrorMessage("Erro ao buscar dados da selagem");
+        }
+    };
+
+
+    const handleSelagemResponse = async (response: any) => {
+        console.log("Acessando handleSelagemResponse")
+        const selagem = response.selagens?.[0];
+        if (selagem) {
+            const selagemId = selagem.id;
+            const criadoPor = selagem.created_by;
+
+            localStorage.setItem("selagemId", selagemId);
+            localStorage.setItem("selagemCreated_by", criadoPor);
+            console.log("ID da Selagem recebido:", selagemId);
+
+
+            const payload = {
+                created_by: criadoPor,
+                situacao_uso_unidade: {
+                    nome_responsavel: nomeResponsavel,
+                    qual_uso: qualUso,
+                    responsavel_identificado: responsavelIdentificado,
+                    situacao: situacao,
+                    telefone_responsavel: telefoneResponsavel,
+                    tipos_uso: tiposUso,
+                    uso,
+                    uso_terreno: usoTerreno,
+                    uso_unidade: usoUnidade,
+                },
+            };
+
+            try {
+                console.log("Payload Situação de Uso da Unidade:", JSON.stringify(payload, null, 2));
+                await survey_resource.SendFormToSelagemSituacaoUsoUnidade(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
+            } catch (error) {
+                console.error("Erro ao enviar situação de uso da unidade:", error);
+                showErrorMessage("Erro ao enviar os dados de situação de uso da unidade");
+            }
+        }
+    };
+
+    const showErrorMessage = (message: string) => {
+        Swal.fire({
+            icon: "error",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+            showConfirmButton: true,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+
+    const hasSelagem = async (request: any): Promise<boolean> => {
+        try {
+            const response = await fetchSelagem(request);
+            const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
+            return !isEmpty;
+        } catch (error) {
+            console.error("Erro ao verificar selagens:", error);
+            return false;
+        }
+    };
+
+    useEffect(() => {
+
+        form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
+        form.setValue(`families[${familyIndex}].nome_responsavel`, "");
+        form.setValue(`families[${familyIndex}].usoUnidade`, "");
+        form.setValue(`families[${familyIndex}].uso_terreno`, "");
+
+    }, [situacao, familyIndex]);
+
+    useEffect(() => {
+
+        form.setValue(`families[${familyIndex}].quaisTipos`, "");
+        form.setValue(`families[${familyIndex}].uso`, "");
+        form.setValue(`families[${familyIndex}].qualUso`, "");
+
+    }, [usoUnidade, familyIndex]);
+
+
+    useEffect(() => {
+        const handleBlur = async () => {
+            console.log("Acessando User efect")
+            const activeFieldName = document.activeElement?.getAttribute("name");
+
+            const fields = {
+                "situacao_uso_unidade.nome_responsavel": nomeResponsavel,
+                "situacao_uso_unidade.qual_uso": qualUso,
+                "situacao_uso_unidade.responsavel_identificado": responsavelIdentificado,
+                "situacao_uso_unidade.situacao": situacao,
+                "situacao_uso_unidade.telefone_responsavel": telefoneResponsavel,
+                "situacao_uso_unidade.tipos_uso": tiposUso,
+                "situacao_uso_unidade.uso": uso,
+                "situacao_uso_unidade.uso_terreno": usoTerreno,
+                "situacao_uso_unidade.uso_unidade": usoUnidade,
+            };
+
+            let shouldFetch = false;
+
+            for (const [fieldName, currentValue] of Object.entries(fields)) {
+                const fieldKey = fieldName.split(".").pop() || "";
+                const prevValue = prevValuesRef.current[fieldKey];
+
+                if (currentValue !== prevValue && activeFieldName !== fieldName) {
+                    shouldFetch = true;
+                    prevValuesRef.current[fieldKey] = currentValue;
+                }
+            }
+
+            if (shouldFetch) {
+                const seiNumber = localStorage.getItem("seiNumberS");
+                const request = {
+                    numero_sei: seiNumber,
+                    initial_date: initialDate,
+                    end_date: endDate,
+                };
+
+                const hasData = await hasSelagem(request);
+
+                if (!hasData) {
+                    console.log("Nenhuma Selagem Cadastrada");
+                    return;
+                }
+
+                triggeredByBlurRef.current = true;
+                fetchSelagemData();
+            }
+        };
+
+        window.addEventListener("blur", handleBlur, true);
+        return () => {
+            window.removeEventListener("blur", handleBlur, true);
+        };
+    }, [
+        nomeResponsavel,
+        qualUso,
+        responsavelIdentificado,
+        situacao,
+        telefoneResponsavel,
+        tiposUso,
+        uso,
+        usoTerreno,
+        usoUnidade,
+    ]);
 
     useEffect(() => {
         const path = `families[${familyIndex}].nome_responsavel`;

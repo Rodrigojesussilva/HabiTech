@@ -1,11 +1,14 @@
 import React from 'react';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/identResp.definition";
 import { calcularIdade, validarDataNascimento } from "@/components/forms/arrolamento/helpers/identResp.helper";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
+import survey_resource from "../../../../service/survey_resource.api"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
+import useViewMode from '@/hooks/useViewMode'
 
 
 interface IdentRespFormProps {
@@ -13,17 +16,305 @@ interface IdentRespFormProps {
     sectionIndex?: number;
     familyIndex: number;
     onChangeMostrarSecoes: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    isActive?: boolean;
 }
 
-const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes }: IdentRespFormProps) => {
+const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes, isActive = true }: IdentRespFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
+    const [initialDate] = useState("")
+    const [endDate] = useState("")
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
+    const initializedRef = useRef(false);
+    const prevResponsavelRef = useRef<string | undefined>(undefined);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
+    const idadeResp = form.watch(`families[${familyIndex}].idadeResp`);
+    const nomeCompleto = form.watch(`families[${familyIndex}].nomeCompletoResp`);
+    const responsavel = form.watch(`families[${familyIndex}].responsavel`);
+    const relacaoResponsavel = form.watch(`families[${familyIndex}].relacaoResponsavel`);
+    const nomeCompletoEntrevistado = form.watch(`families[${familyIndex}].nomeCompletoEntrevistado`);
+    const naoSeAplicaEntrevistado = form.watch(`families[${familyIndex}].naoSeAplicaEntrevistado`);
+    const nomeSocialEntrevistado = form.watch(`families[${familyIndex}].nomeSocialEntrevistado`);
+    const descrevParentesco = form.watch(`families.${familyIndex}.DescrevParentesco`);
+    const pessoaEmancipada = form.watch(`families.${familyIndex}.pessoaEmancipada`);
+    const certidaoEmancipacao = form.watch(`families.${familyIndex}.certidaoEmancipacao`);
+
     const alertAberto = React.useRef(false);
     const [alertShown, setAlertShown] = useState(false);
+    const triggeredByBlurRef = useRef(false);
 
+    // 👇 Armazena os valores anteriores
+    const prevValuesRef = useRef<Record<string, any>>({
+        dataNascimento: dataNascimento,
+        idadeResp: idadeResp,
+        nomeCompleto: nomeCompleto,
+        responsavel: responsavel,
+        relacaoResponsavel: relacaoResponsavel,
+        nomeCompletoEntrevistado: nomeCompletoEntrevistado,
+        naoSeAplicaEntrevistado: naoSeAplicaEntrevistado,
+        nomeSocialEntrevistado: nomeSocialEntrevistado,
+        descrevParentesco: descrevParentesco,
+        pessoaEmancipada: pessoaEmancipada,
+        certidaoEmancipacao: certidaoEmancipacao
+    });
+
+    //auxilia a fetchData
+    function isGetArrolamentoResponse(
+        response: any
+    ): response is { arrolamentos: any[] } {
+        return response && Array.isArray(response.arrolamentos)
+    }
+
+    const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        const seiFromStorageRaw = localStorage.getItem("seiNumber");
+        const seiFromStorage = Number(seiFromStorageRaw);
+
+
+        try {
+            const request = {
+                numero_sei: seiFromStorage,
+                initial_date: initialDate,
+                end_date: endDate,
+            };
+
+            const response = await fetchArrolamento(request);
+
+
+            if (isGetArrolamentoResponse(response)) {
+                await handleArrolamentoResponse(response);
+            }
+
+        } catch (error) {
+            console.error("Erro ao buscar arrolamentos:", error);
+            showErrorMessage("Erro ao buscar dados do arrolamento");
+        }
+    };
+
+    const showErrorMessage = (message: string) => {
+        Swal.fire({
+            icon: "error",
+            html: `<div class="text-lg text-center break-words w-full -translate-y-2">${message}<br/><span class="text-sm">Veja o console para mais detalhes.</span></div>`,
+            showConfirmButton: true,
+            customClass: {
+                popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
+            },
+        });
+    };
+
+    const fetchArrolamento = async (request: any) => {
+        return await survey_resource.GetArrolamento(request, async (req: any) => {
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                if (value !== undefined && value !== "") {
+                    searchParams.append(key, String(value));
+                }
+            }
+
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const res = await fetch(url, {
+                method: req.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(req.headers || {}),
+                },
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return res.json();
+        });
+    };
+
+    const handleArrolamentoResponse = async (response: any) => {
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][IdentResp] View/Completed: PATCH bloqueado'); return; }
+        let primeiroArrolamento = (response && response.arrolamentos && response.arrolamentos[0]) || null;
+        if (!primeiroArrolamento) {
+            const idLS = localStorage.getItem('arrolamentoId') || ''
+            const createdByLS = localStorage.getItem('arrolamentoCreated_by') || ''
+            if (!idLS) { console.log('[Arrolamento][IdentResp] Sem contexto (response vazio e localStorage sem id). Abortando.'); return; }
+            primeiroArrolamento = { id: idLS, created_by: createdByLS }
+        }
+        const completedResp = !!(primeiroArrolamento?.completed || (primeiroArrolamento?.status_notas && primeiroArrolamento.status_notas.status === 'Concluida'))
+        if (completedResp) { console.log('[Arrolamento][IdentResp] Registro concluído no response. Abortando PATCH.'); return; }
+        const arrolamentoId = primeiroArrolamento.id;
+        const criadoPor = primeiroArrolamento.created_by;
+
+            localStorage.setItem("arrolamentoId", arrolamentoId);
+            localStorage.setItem("arrolamentoCreated_by", criadoPor);
+
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
+
+            const payload = {
+                created_by: createdBy,
+                form: {
+                    family_index: familyIndex + 1,
+                    identificacao_responsavel: createIdentificacaoResponsavel(),
+                },
+            };
+
+            try {
+                console.log('[Arrolamento][IdentResp] PATCH prepared (final):', {
+                    arrolamentoId,
+                    createdBy,
+                    tokenPresent: !!token,
+                    family_index: familyIndex + 1,
+                    payload
+                })
+                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
+                console.log('[Arrolamento][IdentResp] PATCH success')
+            } catch (error) {
+                console.error("[Arrolamento][IdentResp] PATCH error:", error);
+                if (!isViewMode) showErrorMessage("Erro ao enviar os dados");
+            }
+    };
+
+    const createIdentificacaoResponsavel = () => {
+        const valorResponsavel = (responsavel || "").trim().toLowerCase();
+        const valorEmancipado = (pessoaEmancipada || "").trim().toLowerCase();
+        const isResponsavel = valorResponsavel === "sim";
+        const isEmancipado = valorEmancipado === "sim";
+
+        const formatarDataParaBR = (data: string): string => {
+            if (!data) return "";
+            const [ano, mes, dia] = data.split("-");
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        return {
+            responsavel: isResponsavel,
+            nome_completo: nomeCompleto || "",
+            data_nascimento: formatarDataParaBR(dataNascimento),
+            relacao_social: isResponsavel ? "" : relacaoResponsavel,
+            nome_social: nomeSocialEntrevistado || "",
+            nome_social_aplicavel: isResponsavel ? false : !!naoSeAplicaEntrevistado,
+            nome_completo_entrevistado: isResponsavel ? "" : nomeCompletoEntrevistado || "",
+            descrev_parentesco: isResponsavel ? "" : descrevParentesco || "",
+            pessoa_emancipada: isEmancipado,
+            certidao_emancipacao: certidaoEmancipacao,
+            idade: parseInt(idadeResp || "0", 10),
+        };
+    };
+
+    const hasArrolamento = async (request: any): Promise<boolean> => {
+        try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][IdentResp] hasArrolamento: usando contexto localStorage id=', idLS); return true }
+            const response = await fetchArrolamento(request);
+
+            const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
+
+            return !isEmpty;
+        } catch (error) {
+            console.error("Erro ao verificar arrolamentos:", error);
+            return false;
+        }
+    };
+
+    useEffect(() => {
+        // Inicializa guarda quando a seção está ativa e aberta
+        if (isActive && mostrarIdentificacao) {
+            hasSectionBeenOpenedRef.current = true;
+            firstBlurSkippedRef.current = false;
+        }
+        // Marcar inicializado após um tick para permitir form.reset concluir
+        const t = setTimeout(() => { initializedRef.current = true; }, 0);
+        return () => clearTimeout(t)
+    }, [isActive, mostrarIdentificacao]);
+
+    useEffect(() => {
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou inativa
+
+        const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção somente quando não houve mudança
+            if (!firstBlurSkippedRef.current) {
+                // Ainda vamos calcular mudanças antes de decidir retornar
+            }
+            const activeFieldName = document.activeElement?.getAttribute("name");
+
+            const fields = {
+                [`families[${familyIndex}].dataNascimentoResp`]: dataNascimento,
+                [`families[${familyIndex}].idadeResp`]: idadeResp,
+                [`families[${familyIndex}].nomeCompletoResp`]: nomeCompleto,
+                [`families[${familyIndex}].responsavel`]: responsavel,
+                [`families[${familyIndex}].relacaoResponsavel`]: relacaoResponsavel,
+                [`families[${familyIndex}].nomeCompletoEntrevistado`]: nomeCompletoEntrevistado,
+                [`families[${familyIndex}].naoSeAplicaEntrevistado`]: naoSeAplicaEntrevistado,
+                [`families[${familyIndex}].nomeSocialEntrevistado`]: nomeSocialEntrevistado,
+                [`families[${familyIndex}].DescrevParentesco`]: descrevParentesco,
+                [`families[${familyIndex}].pessoaEmancipada`]: pessoaEmancipada,
+                [`families[${familyIndex}].certidaoEmancipacao`]: certidaoEmancipacao,
+            } as Record<string, any>;
+
+            let shouldFetch = false;
+
+            for (const [fieldName, currentValue] of Object.entries(fields)) {
+                const prevValue = prevValuesRef.current[fieldName.split(".").pop() || ""];
+
+                if (currentValue !== prevValue && activeFieldName !== fieldName) {
+                    shouldFetch = true;
+                    prevValuesRef.current[fieldName.split(".").pop() || ""] = currentValue;
+                }
+            }
+
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
+
+            if (shouldFetch) {
+                const seiNumber = localStorage.getItem("seiNumber");
+                const request = {
+                    numero_sei: Number(seiNumber),
+                    initial_date: initialDate,
+                    end_date: endDate,
+                };
+
+                const hasData = await hasArrolamento(request); // ✅ uso aqui da função externa
+
+                if (!hasData) {
+                    console.log("Nenhum Arrolamento Cadastrado");
+                    return;
+                }
+
+                // Só chama se tiver arrolamento
+                triggeredByBlurRef.current = true;
+                fetchData();
+            }
+        };
+
+        window.addEventListener("blur", handleBlur, true);
+        return () => {
+            window.removeEventListener("blur", handleBlur, true);
+        };
+    }, [
+        isActive,
+        isViewMode,
+        dataNascimento,
+        idadeResp,
+        nomeCompleto,
+        responsavel,
+        relacaoResponsavel,
+        nomeCompletoEntrevistado,
+        naoSeAplicaEntrevistado,
+        nomeSocialEntrevistado,
+        descrevParentesco,
+        pessoaEmancipada,
+        certidaoEmancipacao
+    ]);
 
     //proibir o digitar numeros e caracteres especiais nomeSocialEntrevistado
     useEffect(() => {
@@ -60,28 +351,39 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
-            
-            const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;  
-            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`; 
-            const pathRelacaoResponsavel = `families[${familyIndex}].relacaoResponsavel`;  
-            const pathNomeCompletoResp = `families[${familyIndex}].nomeCompletoResp`;  
-            const pathNomeCompletoEntrevistado = `families[${familyIndex}].nomeCompletoEntrevistado`;  
+
+            const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+            const pathEmancipada = `families[${familyIndex}].pessoaEmancipada`;
+            const pathRelacaoResponsavel = `families[${familyIndex}].relacaoResponsavel`;
+            const pathNomeCompletoResp = `families[${familyIndex}].nomeCompletoResp`;
+            const pathNomeCompletoEntrevistado = `families[${familyIndex}].nomeCompletoEntrevistado`;
             const pathNomeSocialEntrevistado = `families[${familyIndex}].nomeSocialEntrevistado`;
-            const pathDescrevParentesco = `families[${familyIndex}].DescrevParentesco`;  
-            const pathCertidaoEmancipacao = `families[${familyIndex}].certidaoEmancipacao`;  
-  
+            const pathDescrevParentesco = `families[${familyIndex}].DescrevParentesco`;
+            const pathCertidaoEmancipacao = `families[${familyIndex}].certidaoEmancipacao`;
+
 
 
             if (name === `families[${familyIndex}].responsavel`) {
-               
+                const current = typeof responsavel === 'string' ? responsavel : ''
+                const previous = prevResponsavelRef.current
+                prevResponsavelRef.current = current
+                // Ignorar o primeiro disparo pós-hidratação
+                if (!initializedRef.current) {
+                    return;
+                }
+                // Só limpar ao mudar de fato o valor
+                if (current === previous) {
+                    return;
+                }
+
                 form.setValue(pathNascimento, '');
                 form.setValue(pathEmancipada, '');
                 form.setValue(pathRelacaoResponsavel, '');
                 form.setValue(pathNomeCompletoResp, '');
-                form.setValue(pathNomeCompletoEntrevistado , '');
-                form.setValue(pathNomeSocialEntrevistado , '');
-                form.setValue(pathDescrevParentesco , '');
-                form.setValue(pathCertidaoEmancipacao , '');
+                form.setValue(pathNomeCompletoEntrevistado, '');
+                form.setValue(pathNomeSocialEntrevistado, '');
+                form.setValue(pathDescrevParentesco, '');
+                form.setValue(pathCertidaoEmancipacao, '');
 
 
 
@@ -104,6 +406,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }, [form, familyIndex, onChangeMostrarSecoes]);
 
     useEffect(() => {
+
         const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
@@ -122,7 +425,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     useEffect(() => {
 
-        if (formValues.naoSeAplicaEntrevistado) {
+        if (initializedRef.current && formValues.naoSeAplicaEntrevistado) {
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
             if (nomeResponsavel) {
                 form.setValue(`families[${familyIndex}].nomeSocialEntrevistado`, "");
@@ -289,7 +592,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
         form.watch(`families[${familyIndex}].pessoaEmancipada`),
         form.watch(`families[${familyIndex}].certidaoEmancipacao`)
     ]);
-    
+
     useEffect(() => {
 
         const pathPessoaEmancipada = `families[${familyIndex}].pessoaEmancipada`;
@@ -329,7 +632,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                             } as React.ChangeEvent<HTMLSelectElement>;
                             onChangeMostrarSecoes(fakeEvent);
                         }
-                        
+
                         form.setValue(pathNascimento, '');
                         form.setValue(pathPessoaEmancipada, '');
 
@@ -369,7 +672,16 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

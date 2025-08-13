@@ -86,8 +86,6 @@ export const anexosDefinition: FormConfig = {
     ],
 };
 
-
-
 /**
  * Get additional conditional fields based on form values and/or user selections
  * Note: The nationality selection and country-specific fields would ideally be handled

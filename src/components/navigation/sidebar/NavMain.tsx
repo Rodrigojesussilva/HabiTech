@@ -1,7 +1,7 @@
 "use client"
 
 import { type LucideIcon } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import {
   SidebarGroup,
@@ -25,13 +25,18 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const location = useLocation();
+  console.log("location", location);
+
+  const handleClick = (_e: React.MouseEvent, _url: string) => {}
+
   return (
     <SidebarGroup className="-ml-2">
       <SidebarGroupLabel>Formulários</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.url}>
-            <Link to={item.url} className="w-full">
+            <Link to={item.url} className="w-full" onClick={(e) => handleClick(e, item.url)}>
               <SidebarMenuButton className="cursor-pointer" tooltip={item.title}>
                 <div className="flex bg-secondary aspect-square size-8 text-primary items-center justify-center rounded-lg">
                   {item.icon && <item.icon />}

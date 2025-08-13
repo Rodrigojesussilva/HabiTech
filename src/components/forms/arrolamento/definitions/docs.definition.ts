@@ -18,7 +18,7 @@ export const docsSchema = z.object({
     cidade: z.string().optional(),
     possuiCIN: z.string().optional(),
     dataExpedicaoCIN: z.string().optional(),
-    cin: z.string().optional(),
+    cin: z.number(),
     rg: z.string().optional(),
     orgaoExpedidor: z.string().optional(),
     estadoEmissaoRg: z.string().optional(),
@@ -56,7 +56,7 @@ export const defaultValues: Partial<FormValues> = {
     uf: "",
     cidade: "",
     possuiCIN: "",
-    cin:"",
+    cin:0,
     rg: "",
     orgaoExpedidor: "",
     estadoEmissaoRg: "",
@@ -491,8 +491,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     type: "radio",
                     required: true,
                     options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
+                        { label: "Válido", value: "Valido" },
+                        { label: "Inválido", value: "Invalido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
                 },
@@ -517,8 +517,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     type: "radio",
                     required: true,
                     options: [
-                        { label: "Válido", value: "Válido" },
-                        { label: "Inválido", value: "Inválido" },
+                        { label: "Válido", value: "Valido" },
+                        { label: "Inválido", value: "Invalido" },
                         { label: "Pendente", value: "Pendente" }
                     ]
                 },

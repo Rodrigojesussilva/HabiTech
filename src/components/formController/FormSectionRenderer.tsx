@@ -10,6 +10,7 @@ import { MultiCombobox } from '@/components/ui/MultiCombobox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from "@/components/ui/label";
 import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/utils/formUtils";
+import { useViewMode } from '@/hooks/useViewMode';
 
 interface FormSectionRendererProps {
     section: FormSection;
@@ -32,6 +33,9 @@ export const FormSectionRenderer = ({
     showSectionLabel = true,
     familyIndex = null,
 }: FormSectionRendererProps) => {
+    // Detecta automaticamente se estamos numa rota de visualização
+    const isViewMode = useViewMode();
+    
     return (
         <div className="section mb-6">
             {showSectionLabel && section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
@@ -47,8 +51,8 @@ export const FormSectionRenderer = ({
 
                     const key = familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
                     const name = familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
-                    // Check if this field should be disabled by a checkbox
-                    let isDisabled = field.readonly || false;
+                    // Check if this field should be disabled by a checkbox or view mode
+                    let isDisabled = field.readonly || isViewMode;
 
                     // Find if this field is controlled by any checkbox in the section
                     const controllingCheckbox = section.fields.find(f =>
