@@ -51,6 +51,7 @@ import { SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 import { mapArrolamentoToFormData } from './helpers/apiMapper'
+import { useRef } from 'react'
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -116,6 +117,7 @@ const FormArrolamento = ({
  	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
  	const [finalizing, setFinalizing] = useState(false);
  	const [saving, setSaving] = useState(false);
+ 	const serverMainMetadataRef = useRef<any>(null);
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -153,6 +155,16 @@ const FormArrolamento = ({
  			form.setValue('firstVisitStart', '');
  		}
  	}, [params.id]);
+
+ 	// In create route, clear any stale arrolamento context to force POST
+ 	useEffect(() => {
+ 		if (!params.id) {
+ 			localStorage.removeItem('arrolamentoId')
+ 			localStorage.removeItem('arrolamentoCreated_by')
+ 			localStorage.setItem('arrolamentoCompleted', 'false')
+ 			setLoadedArrolamentoData(null)
+ 		}
+ 	}, [params.id])
 
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -268,6 +280,7 @@ const FormArrolamento = ({
  				if (item) {
  					console.log('[Arrolamento][Load] GET success:', item)
  					const mapped = mapArrolamentoToFormData(item)
+ 					serverMainMetadataRef.current = item?.survey?.main_metadata || null
  					console.log('[Arrolamento][Load] mapped form data:', mapped)
  					console.log('[Arrolamento][Load] mapped families length:', Array.isArray(mapped.families) ? mapped.families.length : 0)
  					if (Array.isArray(mapped.families)) {
@@ -675,33 +688,114 @@ return (
 								};
 
 								try {
-									const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
-									console.log("[Arrolamento][Create] Resposta da API:", json);
-									const newId = (json && (json.arrolamento?.id || json.id)) || ''
-									const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
-									const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
-									if (newId) {
-										localStorage.setItem('arrolamentoId', newId)
-										localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
-										localStorage.setItem('arrolamentoCompleted', 'false')
-										setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
-										console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
+									const existingId = params.id || loadedArrolamentoData?.id || ''
+									if (!existingId) {
+										// Criar (POST)
+										const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
+										console.log("[Arrolamento][Create] Resposta da API:", json);
+										const newId = (json && (json.arrolamento?.id || json.id)) || ''
+										const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
+										const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
+										const newMainMetadata = (json && (json.arrolamento?.survey?.main_metadata || json.survey?.main_metadata)) || dataToSend.main_metadata
+										if (newId) {
+											localStorage.setItem('arrolamentoId', newId)
+											localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
+											localStorage.setItem('arrolamentoCompleted', 'false')
+											setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
+											serverMainMetadataRef.current = newMainMetadata || null
+											console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
+										} else {
+											console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
+										}
 									} else {
-										console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
+ 										// Atualizar (PATCH/PUT) main_metadata (quantidade_familias e números)
+ 										const token = localStorage.getItem('authToken') || ''
+ 										const createdBy = localStorage.getItem('userEmail') || dataToSend.created_by
+ 										const currentFamilies = Array.isArray(form.getValues('families')) ? form.getValues('families').length : 0
+ 										const newFamilies = Number(dataToSend.main_metadata.quantidade_familias)
+ 										console.log('[Arrolamento][Meta] families count check', { currentFamilies, newFamilies })
+ 										if (newFamilies < currentFamilies) {
+ 											Swal.fire({ icon: 'warning', title: 'Número de famílias inválido', text: `O valor (${newFamilies}) é menor que o número de famílias já preenchidas (${currentFamilies}). Ajuste para um valor maior ou igual.`, timer: 2500 })
+ 											return
+ 										}
+ 										// Reconciliar estado do servidor para evitar erros de índice
+ 										// 1) GET atual do servidor
+ 										const server = await survey_resource.GetArrolamento({ id: String(existingId), authorization_token: token }, async (req: any) => {
+ 											const searchParams = new URLSearchParams()
+ 											for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+ 												if (value !== undefined && value !== "") searchParams.append(key, String(value))
+ 											}
+ 											const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
+ 											const headers: Record<string, string> = { "Content-Type": "application/json", ...(req.headers || {}) }
+ 											const res = await fetch(url, { method: req.method, headers })
+ 											if (!res.ok) throw new Error(await res.text())
+ 											return res.json()
+ 										})
+ 										const servItem = Array.isArray((server as any)?.arrolamentos) ? (server as any).arrolamentos[0] : null
+ 										const servMeta = servItem?.survey?.main_metadata || {}
+ 										const servQF = Number(servMeta?.quantidade_familias || 0)
+ 										const servForms = Array.isArray(servItem?.survey?.forms) ? servItem.survey.forms : []
+ 										const servFormsLen = servForms.length
+ 										console.log('[Arrolamento][Meta] Server state before change', { servQF, servFormsLen })
+
+ 										// 3) Atualizar quantidade via PATCH apenas no main_metadata (sem enviar forms)
+ 										if (newFamilies > servQF) {
+ 											const patchQtyPayload = {
+ 												id: String(existingId),
+ 												created_by: createdBy,
+ 												main_metadata: {
+ 													numero_sei: dataToSend.main_metadata.numero_sei,
+ 													numero_selo: dataToSend.main_metadata.numero_selo,
+ 													quantidade_familias: newFamilies,
+ 												},
+ 												authorization_token: token,
+ 											}
+ 											console.log('[Arrolamento][Meta] PATCH main_metadata (increase families) payload', JSON.parse(JSON.stringify(patchQtyPayload)))
+ 											await survey_resource.PatchArrolamento(patchQtyPayload as any, async (req: any) => {
+ 												const url = `${SURVEY_RESOURCE_URL}${req.path}`
+ 												const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+ 												const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+ 												if (tokenFromReq) headers['Authorization'] = `Bearer ${tokenFromReq}`
+ 												const requestBody = JSON.stringify(req.body || {})
+ 												console.log('[Arrolamento][Meta] PATCH request (increase families)', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: (()=>{ try{return JSON.parse(requestBody)}catch{return requestBody}})() })
+ 												const res = await fetch(url, { method: req.method, headers, body: requestBody })
+ 												const text = await res.text()
+ 												console.log('[Arrolamento][Meta] PATCH response (increase families)', { status: res.status, ok: res.ok, body: (()=>{ try{return JSON.parse(text)}catch{return text}})() })
+ 												if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`)
+ 												return JSON.parse(text)
+ 											})
+ 										} else if (newFamilies === servQF) {
+ 											// Só atualizar SEI/SELO se necessário
+ 											console.log('[Arrolamento][Meta] Apenas atualização de SEI/SELO sem mudança de quantidade')
+ 											const patchPayload = {
+ 												id: String(existingId),
+ 												created_by: createdBy,
+ 												main_metadata: {
+ 													numero_sei: dataToSend.main_metadata.numero_sei,
+ 													numero_selo: dataToSend.main_metadata.numero_selo,
+ 													quantidade_familias: newFamilies,
+ 												},
+ 												authorization_token: token,
+ 											}
+ 											await survey_resource.PatchArrolamento(patchPayload as any, async (req: any) => {
+ 												const url = `${SURVEY_RESOURCE_URL}${req.path}`
+ 												const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+ 												const tokenFromReq = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+ 												if (tokenFromReq) headers['Authorization'] = `Bearer ${tokenFromReq}`
+ 												const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
+ 												const text = await res.text()
+ 												console.log('[Arrolamento][Meta] PATCH response (no-qty-change)', { status: res.status, ok: res.ok, body: (()=>{ try{return JSON.parse(text)}catch{return text}})() })
+ 												if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`)
+ 												return JSON.parse(text)
+ 											})
+ 										}
+
+ 										// Atualiza baseline local do servidor para o novo estado
+ 										serverMainMetadataRef.current = { ...dataToSend.main_metadata }
 									}
+
 									setIsMetadataModalOpen(false);
-									Swal.fire({
-										position: "top-end",
-										icon: "success",
-										html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-												Arrolamento cadastrado com sucesso
-												</div>`,
-										showConfirmButton: false,
-										timer: 1500,
-										customClass: {
-											popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-										},
-									});
+									Swal.fire({ position: 'top-end', icon: 'success', title: 'Metadados salvos', showConfirmButton: false, timer: 1500 })
 
 								} catch (error) {
 									console.error("Erro ao enviar os dados:", error);
@@ -720,7 +814,7 @@ return (
 						}}
 						className="mt-4"
 					>
-						Concluir
+						Salvar
 						</Button>
 
 					</DialogContent>

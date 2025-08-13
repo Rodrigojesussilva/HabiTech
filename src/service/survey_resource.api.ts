@@ -839,27 +839,27 @@ namespace survey_resource {
                 return acc;
             }
             if (key === 'created_by') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'main_metadata') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'outras_informacoes') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'status_notas') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'form') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
@@ -879,6 +879,19 @@ namespace survey_resource {
             query_parameters: Record<string, any>;
             body: Record<string, any>;
         });
+
+        try {
+            const safeHeaders = { ...headers } as Record<string, any>
+            if (safeHeaders.authorization_token) {
+                safeHeaders.authorization_token = '***'
+            }
+            console.log('[SurveyResource][PatchArrolamento] composed request', {
+                path,
+                method: 'PATCH',
+                headers: safeHeaders,
+                body,
+            })
+        } catch {}
 
         return handler({
             path: path,
