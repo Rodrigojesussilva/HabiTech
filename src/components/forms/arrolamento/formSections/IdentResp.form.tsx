@@ -8,6 +8,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
+import useViewMode from '@/hooks/useViewMode'
 
 
 interface IdentRespFormProps {
@@ -15,15 +16,22 @@ interface IdentRespFormProps {
     sectionIndex?: number;
     familyIndex: number;
     onChangeMostrarSecoes: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    isActive?: boolean;
 }
 
-const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes }: IdentRespFormProps) => {
+const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostrarSecoes, isActive = true }: IdentRespFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(true);
     const [initialDate] = useState("")
     const [endDate] = useState("")
     const form = useFormContext();
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
+    const initializedRef = useRef(false);
+    const prevResponsavelRef = useRef<string | undefined>(undefined);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoResp`);
     const idadeResp = form.watch(`families[${familyIndex}].idadeResp`);
     const nomeCompleto = form.watch(`families[${familyIndex}].nomeCompletoResp`);
@@ -63,6 +71,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -126,30 +135,47 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     const handleArrolamentoResponse = async (response: any) => {
-        if (response.arrolamentos && response.arrolamentos.length > 0) {
-            const primeiroArrolamento = response.arrolamentos[0];
-            const arrolamentoId = primeiroArrolamento.id;
-            const criadoPor = primeiroArrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][IdentResp] View/Completed: PATCH bloqueado'); return; }
+        let primeiroArrolamento = (response && response.arrolamentos && response.arrolamentos[0]) || null;
+        if (!primeiroArrolamento) {
+            const idLS = localStorage.getItem('arrolamentoId') || ''
+            const createdByLS = localStorage.getItem('arrolamentoCreated_by') || ''
+            if (!idLS) { console.log('[Arrolamento][IdentResp] Sem contexto (response vazio e localStorage sem id). Abortando.'); return; }
+            primeiroArrolamento = { id: idLS, created_by: createdByLS }
+        }
+        const completedResp = !!(primeiroArrolamento?.completed || (primeiroArrolamento?.status_notas && primeiroArrolamento.status_notas.status === 'Concluida'))
+        if (completedResp) { console.log('[Arrolamento][IdentResp] Registro concluído no response. Abortando PATCH.'); return; }
+        const arrolamentoId = primeiroArrolamento.id;
+        const criadoPor = primeiroArrolamento.created_by;
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-            const formPayload = {
-                created_by: criadoPor,
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
+
+            const payload = {
+                created_by: createdBy,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     identificacao_responsavel: createIdentificacaoResponsavel(),
                 },
             };
 
             try {
-                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, formPayload);
-                //showSuccessMessage("Arrolamento cadastrado com sucesso");
+                console.log('[Arrolamento][IdentResp] PATCH prepared (final):', {
+                    arrolamentoId,
+                    createdBy,
+                    tokenPresent: !!token,
+                    family_index: familyIndex + 1,
+                    payload
+                })
+                await survey_resource.SendFormToArrolamentoIdentRep(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
+                console.log('[Arrolamento][IdentResp] PATCH success')
             } catch (error) {
-                console.error("Erro ao enviar formulário para arrolamento:", error);
-                showErrorMessage("Erro ao enviar os dados");
+                console.error("[Arrolamento][IdentResp] PATCH error:", error);
+                if (!isViewMode) showErrorMessage("Erro ao enviar os dados");
             }
-        }
     };
 
     const createIdentificacaoResponsavel = () => {
@@ -181,6 +207,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][IdentResp] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -193,8 +221,28 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     useEffect(() => {
+        // Inicializa guarda quando a seção está ativa e aberta
+        if (isActive && mostrarIdentificacao) {
+            hasSectionBeenOpenedRef.current = true;
+            firstBlurSkippedRef.current = false;
+        }
+        // Marcar inicializado após um tick para permitir form.reset concluir
+        const t = setTimeout(() => { initializedRef.current = true; }, 0);
+        return () => clearTimeout(t)
+    }, [isActive, mostrarIdentificacao]);
+
+    useEffect(() => {
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou inativa
 
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção somente quando não houve mudança
+            if (!firstBlurSkippedRef.current) {
+                // Ainda vamos calcular mudanças antes de decidir retornar
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -206,10 +254,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 [`families[${familyIndex}].nomeCompletoEntrevistado`]: nomeCompletoEntrevistado,
                 [`families[${familyIndex}].naoSeAplicaEntrevistado`]: naoSeAplicaEntrevistado,
                 [`families[${familyIndex}].nomeSocialEntrevistado`]: nomeSocialEntrevistado,
-                [`families.${familyIndex}.DescrevParentesco`]: descrevParentesco,
-                [`families.${familyIndex}.DescrevParentesco`]: pessoaEmancipada,
-                [`families.${familyIndex}.DescrevParentesco`]: certidaoEmancipacao,
-            };
+                [`families[${familyIndex}].DescrevParentesco`]: descrevParentesco,
+                [`families[${familyIndex}].pessoaEmancipada`]: pessoaEmancipada,
+                [`families[${familyIndex}].certidaoEmancipacao`]: certidaoEmancipacao,
+            } as Record<string, any>;
 
             let shouldFetch = false;
 
@@ -220,6 +268,11 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                     shouldFetch = true;
                     prevValuesRef.current[fieldName.split(".").pop() || ""] = currentValue;
                 }
+            }
+
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
             }
 
             if (shouldFetch) {
@@ -248,6 +301,8 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
+        isViewMode,
         dataNascimento,
         idadeResp,
         nomeCompleto,
@@ -309,6 +364,17 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
 
             if (name === `families[${familyIndex}].responsavel`) {
+                const current = typeof responsavel === 'string' ? responsavel : ''
+                const previous = prevResponsavelRef.current
+                prevResponsavelRef.current = current
+                // Ignorar o primeiro disparo pós-hidratação
+                if (!initializedRef.current) {
+                    return;
+                }
+                // Só limpar ao mudar de fato o valor
+                if (current === previous) {
+                    return;
+                }
 
                 form.setValue(pathNascimento, '');
                 form.setValue(pathEmancipada, '');
@@ -340,6 +406,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     }, [form, familyIndex, onChangeMostrarSecoes]);
 
     useEffect(() => {
+
         const subscription = form.watch((values, { name }) => {
             const responsavel = values?.families?.[familyIndex]?.responsavel;
             const pessoaEmancipada = values?.families?.[familyIndex]?.pessoaEmancipada;
@@ -358,7 +425,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     useEffect(() => {
 
-        if (formValues.naoSeAplicaEntrevistado) {
+        if (initializedRef.current && formValues.naoSeAplicaEntrevistado) {
             const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialEntrevistado`);
             if (nomeResponsavel) {
                 form.setValue(`families[${familyIndex}].nomeSocialEntrevistado`, "");
@@ -605,7 +672,16 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

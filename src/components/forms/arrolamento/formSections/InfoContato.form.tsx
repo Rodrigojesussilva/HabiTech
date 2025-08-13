@@ -9,21 +9,28 @@ import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/inf
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "../../../../service/survey_resource.api"
-import { SURVEY_RESOURCE_URL, API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import Swal from 'sweetalert2';
+import useViewMode from '@/hooks/useViewMode'
 
 interface InfoContatoFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
-const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
+const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: InfoContatoFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 
     const [mostrarContato, setMostrarContato] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
     const form = useFormContext();
+    const initializedRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
     // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const email = form.watch(`families[${familyIndex}].email`);
@@ -96,6 +103,13 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização ou concluído
+        const idLS = localStorage.getItem('arrolamentoId')
+        if (idLS) {
+            console.log('[Arrolamento][Contato] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleContatoResponse({ arrolamentos: [] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -157,18 +171,27 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     const handleContatoResponse = async (response: any) => {
-        const arrolamento = response.arrolamentos?.[0];
-        if (arrolamento) {
-            const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Contato] View/Completed: PATCH bloqueado'); return; }
+        const arrolamento = response.arrolamentos?.[0] || null;
+        const fallbackId = localStorage.getItem('arrolamentoId') || ''
+        const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+        const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+        if (target) {
+            if (!arrolamento) console.log('[Arrolamento][Contato] PATCH: usando contexto localStorage id=', fallbackId)
+            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+            if (completedResp) { console.log('[Arrolamento][Contato] Registro concluído. Abortando PATCH.'); return; }
+            const arrolamentoId = (target as any).id;
+            const criadoPor = (target as any).created_by;
+            const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
+            const token = localStorage.getItem('authToken') || ''
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
             const formPayload = {
-                created_by: criadoPor,
+                created_by: createdBy,
                 form: {
-                    family_index: 1,
+                    family_index: familyIndex + 1,
                     contato: {
                         email: email,
                         nao_sabe_email: naoSabeEmail,
@@ -201,17 +224,21 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
             try {
 
-                console.log("Payload Pessoa Deficiente:", JSON.stringify(formPayload, null, 2));
-                await survey_resource.SendFormToArrolamentoContato(API_BASE_URL, arrolamentoId, formPayload);
+                console.log('[Arrolamento][Contato] PATCH prepared (final):', { arrolamentoId, createdBy, tokenPresent: !!token, family_index: familyIndex + 1, formPayload })
+                console.log('[Arrolamento][Contato] payload snapshot', { familyIndex, payload: formPayload })
+                const res = await survey_resource.SendFormToArrolamentoContato(SURVEY_RESOURCE_URL, arrolamentoId, formPayload as any, token);
+                console.log('[Arrolamento][Contato] PATCH success:', res)
             } catch (error) {
-                console.error("Erro ao enviar formulário:", error);
-                showErrorMessage("Erro ao enviar os dados");
+                console.error("[Arrolamento][Contato] PATCH error:", error);
+                if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados");
             }
         }
     };
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
+            const idLS = localStorage.getItem('arrolamentoId')
+            if (idLS) { console.log('[Arrolamento][Contato] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
             return !isEmpty;
@@ -222,7 +249,17 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     };
 
     useEffect(() => {
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção
+            if (!firstBlurSkippedRef.current) {
+                firstBlurSkippedRef.current = true;
+                return;
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const allFields = {
@@ -290,6 +327,8 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
+        isViewMode,
         email,
         telefone1, telefone2, telefone3, telefone4,
         tipoTelefone1, tipoTelefone2, tipoTelefone3, tipoTelefone4,
@@ -337,36 +376,28 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     ]);
 
     useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        // Garante valor inicial do checkbox 'naoSabeEmail'
         if (formValues.naoSabeEmail === undefined) {
             form.setValue(`families[${familyIndex}].naoSabeEmail`, false);
         }
-
-    }, [
-        formValues.naoSabeEmail,
-        form,
-        familyIndex
-    ]);
+    }, [formValues.naoSabeEmail, form, familyIndex]);
 
     useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
+        // Garante valor inicial do checkbox 'naoSabeTelefoneComercial'
         if (formValues.naoSabeTelefoneComercial === undefined) {
             form.setValue(`families[${familyIndex}].naoSabeTelefoneComercial`, false);
         }
-
-    }, [
-        formValues.naoSabeTelefoneComercial,
-        form,
-        familyIndex
-    ]);
+    }, [formValues.naoSabeTelefoneComercial, form, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (formValues.naoSabeEmail) {
             // Verifica se os valores já não estão vazios antes de setar
             const email = form.getValues(`families[${familyIndex}].email`);
 
 
             if (email) {
+                console.log('[Arrolamento][Contato] Limpando email por naoSabeEmail=true')
                 form.setValue(`families[${familyIndex}].email`, "");
 
             }
@@ -374,7 +405,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [formValues.naoSabeEmail, form, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone2) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone2 por ativarTelefone2=false')
             form.setValue(`families[${familyIndex}].telefone2`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone2`, "");
             form.setValue(`families[${familyIndex}].nomeRecado2`, "");
@@ -384,7 +417,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [ativarTelefone2, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone3) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone3 por ativarTelefone3=false')
             form.setValue(`families[${familyIndex}].telefone3`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone3`, "");
             form.setValue(`families[${familyIndex}].nomeRecado3`, "");
@@ -394,7 +429,9 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     }, [ativarTelefone3, familyIndex]);
 
     useEffect(() => {
+        if (!initializedRef.current) return;
         if (!ativarTelefone4) {
+            console.log('[Arrolamento][Contato] Limpando campos de telefone4 por ativarTelefone4=false')
             form.setValue(`families[${familyIndex}].telefone4`, "");
             form.setValue(`families[${familyIndex}].tipoTelefone4`, "");
             form.setValue(`families[${familyIndex}].nomeRecado4`, "");
@@ -403,12 +440,48 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         }
     }, [ativarTelefone4, familyIndex]);
 
+    // Marca que inicialização foi concluída (evita limpar valores carregados)
+    useEffect(() => { initializedRef.current = true }, [])
+
+    // Antes de concluir inicialização, se já existem telefones 2/3/4 vindos do GET, habilita os toggles
+    useEffect(() => {
+        if (initializedRef.current) return;
+        const t2 = form.getValues(`families[${familyIndex}].telefone2`)
+        const t3 = form.getValues(`families[${familyIndex}].telefone3`)
+        const t4 = form.getValues(`families[${familyIndex}].telefone4`)
+        if (t2) {
+            console.log('[Arrolamento][Contato] Detectado telefone2 carregado. Habilitando ativarTelefone2.')
+            form.setValue(`families[${familyIndex}].ativarTelefone2`, true, { shouldValidate: false })
+        }
+        if (t3) {
+            console.log('[Arrolamento][Contato] Detectado telefone3 carregado. Habilitando ativarTelefone3.')
+            form.setValue(`families[${familyIndex}].ativarTelefone3`, true, { shouldValidate: false })
+        }
+        if (t4) {
+            console.log('[Arrolamento][Contato] Detectado telefone4 carregado. Habilitando ativarTelefone4.')
+            form.setValue(`families[${familyIndex}].ativarTelefone4`, true, { shouldValidate: false })
+        }
+    }, [familyIndex])
+
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
 
+    useEffect(() => {
+        console.log('[Arrolamento][Contato] watched values', { familyIndex, email, telefone1, telefone2, telefone3, telefone4 })
+    }, [familyIndex, email, telefone1, telefone2, telefone3, telefone4])
+
     return (
         <div className="text-left">
-            <Collapsible open={mostrarContato} onOpenChange={setMostrarContato}>
+            <Collapsible
+                open={mostrarContato}
+                onOpenChange={(open) => {
+                    setMostrarContato(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

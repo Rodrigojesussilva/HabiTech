@@ -11,20 +11,27 @@ import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
 	familyIndex: number;
+	isActive?: boolean;
 }
 
-const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) => {
+const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: DocsFormProps) => {
+	const isViewMode = useViewMode();
+	const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
 	const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
 	const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
 	const form = useFormContext();
+	const hasSectionBeenOpenedRef = useRef(false);
+	const firstBlurSkippedRef = useRef(false);
+
 
 	// Observar todos os valores da família
 	const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -90,6 +97,13 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	};
 
 	const fetchData = async () => {
+		if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
+		const idLS = localStorage.getItem('arrolamentoId')
+		if (idLS) {
+			console.log('[Arrolamento][Docs] fetchData: usando fallback localStorage para PATCH imediato')
+			await handleDocumentacaoResponse({ arrolamentos: [] })
+			return
+		}
 		const seiFromStorageRaw = localStorage.getItem("seiNumber");
 		const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -133,7 +147,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				}
 			}
 
-			const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+			const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 			const res = await fetch(url, {
 				method: req.method,
 				headers: {
@@ -152,10 +166,17 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 	};
 
 	const handleDocumentacaoResponse = async (response: any) => {
-		const arrolamento = response.arrolamentos?.[0];
-		if (arrolamento) {
-			const arrolamentoId = arrolamento.id;
-			const criadoPor = arrolamento.created_by;
+		if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
+		const arrolamento = response.arrolamentos?.[0] || null;
+		const fallbackId = localStorage.getItem('arrolamentoId') || ''
+		const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+		const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+		if (target) {
+			if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
+			const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+			if (completedResp) { console.log('[Arrolamento][Docs] Registro concluído. Abortando PATCH.'); return; }
+			const arrolamentoId = (target as any).id;
+			const criadoPor = (target as any).created_by;
 
 			localStorage.setItem("arrolamentoId", arrolamentoId);
 			localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -169,7 +190,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			const documentacaoPayload = {
 				created_by: criadoPor,
 				form: {
-					family_index: 1,
+					family_index: familyIndex + 1,
 					documentacao: {
 						cidade: Cidade,
 						cpf: Cpf,
@@ -198,18 +219,21 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			};
 
 			try {
-				console.log("Payload final enviado:", JSON.stringify(documentacaoPayload, null, 2));
-				await survey_resource.SendFormToArrolamentoDoc(API_BASE_URL, arrolamentoId, documentacaoPayload);
+				console.log('[Arrolamento][Docs] PATCH prepared (final):', { family_index: familyIndex + 1, payload: documentacaoPayload });
+				const token = localStorage.getItem('authToken') || ''
+				await survey_resource.SendFormToArrolamentoDoc(SURVEY_RESOURCE_URL, arrolamentoId, documentacaoPayload, token);
 				// showSuccessMessage("Documentação enviada com sucesso");
 			} catch (error) {
 				console.error("Erro ao enviar documentação:", error);
-				showErrorMessage("Erro ao enviar os dados de documentação");
+				if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de documentação");
 			}
 		}
 	};
 
 	const hasArrolamento = async (request: any): Promise<boolean> => {
 		try {
+			const idLS = localStorage.getItem('arrolamentoId')
+			if (idLS) { console.log('[Arrolamento][Docs] hasArrolamento: usando contexto localStorage id=', idLS); return true }
 			const response = await fetchArrolamento(request);
 
 			const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -221,7 +245,12 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 		}
 	};
 	useEffect(() => {
+		if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
 		const handleBlur = async () => {
+			// Evita PATCH antes do usuário abrir a seção ao menos uma vez
+			if (!hasSectionBeenOpenedRef.current) {
+				return;
+			}
 			const activeFieldName = document.activeElement?.getAttribute("name");
 
 			const fields = {
@@ -261,6 +290,11 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 				}
 			}
 
+			if (!firstBlurSkippedRef.current && !shouldFetch) {
+				firstBlurSkippedRef.current = true;
+				return;
+			}
+
 			if (shouldFetch) {
 				const seiNumber = localStorage.getItem("seiNumber");
 				const request = {
@@ -286,6 +320,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 			window.removeEventListener("blur", handleBlur, true);
 		};
 	}, [
+		isActive,
+		isViewMode,
 		Cidade,
 		Cpf,
 		dataExpedicaoRg,
@@ -616,7 +652,16 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex }: DocsFormProps) =
 
 	return (
 		<div className="text-left">
-			<Collapsible open={mostrarDocumentacao} onOpenChange={setMostrarDocumentacao}>
+			<Collapsible
+				open={mostrarDocumentacao}
+				onOpenChange={(open) => {
+					setMostrarDocumentacao(open);
+					if (open) {
+						hasSectionBeenOpenedRef.current = true;
+						firstBlurSkippedRef.current = false;
+					}
+				}}
+			>
 				<CollapsibleTrigger asChild>
 					<div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
 						<h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>

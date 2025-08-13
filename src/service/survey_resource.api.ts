@@ -839,27 +839,27 @@ namespace survey_resource {
                 return acc;
             }
             if (key === 'created_by') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'main_metadata') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'outras_informacoes') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'status_notas') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
             if (key === 'form') {
-                acc.query_parameters[key] = value
+                acc.body[key] = value
                 return acc
             }
 
@@ -879,6 +879,19 @@ namespace survey_resource {
             query_parameters: Record<string, any>;
             body: Record<string, any>;
         });
+
+        try {
+            const safeHeaders = { ...headers } as Record<string, any>
+            if (safeHeaders.authorization_token) {
+                safeHeaders.authorization_token = '***'
+            }
+            console.log('[SurveyResource][PatchArrolamento] composed request', {
+                path,
+                method: 'PATCH',
+                headers: safeHeaders,
+                body,
+            })
+        } catch {}
 
         return handler({
             path: path,
@@ -1441,27 +1454,36 @@ namespace survey_resource {
                     nome_social: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][IdentResp] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][IdentResp] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            const json = await response.json();
             return json;
         } catch (error) {
             console.error("Erro ao enviar formulário para arrolamento:", error);
@@ -1504,27 +1526,36 @@ namespace survey_resource {
                     ativar_telefone4: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][Contato] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][Contato] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            const json = await response.json();
             return json;
         } catch (error) {
             console.error("Erro ao enviar formulário para arrolamento:", error);
@@ -1549,29 +1580,36 @@ namespace survey_resource {
                     valor_locacao: string;
                 };
             };
-        }
-
-
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][SituacaoUso] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][SituacaoUso] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            const json = await response.json();
             return json;
         } catch (error) {
             console.error("Erro ao enviar formulário para arrolamento:", error);
@@ -1611,27 +1649,37 @@ namespace survey_resource {
                     uf: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][Documentacao] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][Documentacao] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error("Erro ao enviar formulário para arrolamento:", error);
             throw error;
@@ -1651,27 +1699,37 @@ namespace survey_resource {
                     genero_outro: string;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][EtnicoRacial] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][EtnicoRacial] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error("Erro ao enviar identificação étnico-racial para arrolamento:", error);
             throw error;
@@ -1691,27 +1749,37 @@ namespace survey_resource {
                     vive_com_companheiro: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][Nupcidade] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][Nupcidade] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error("Erro ao enviar dados de nupcidade para arrolamento:", error);
             throw error;
@@ -1748,7 +1816,6 @@ namespace survey_resource {
                     muleta_bengala4pontas_andador: boolean;
                     ortese_protese: boolean;
                     outras_tec_assistiva: boolean;
-                    possui_laudo: string;
                     prancha_comunicacao_alternativa: boolean;
                     qtd_def_auditiva: number;
                     qtd_def_fisica: number;
@@ -1784,26 +1851,36 @@ namespace survey_resource {
                     utiliza_tecnologia_assistida: boolean;
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][PessoaDef] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][PessoaDef] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error(
                 "Erro ao enviar dados de pessoa com deficiência para arrolamento:",
@@ -1836,27 +1913,37 @@ namespace survey_resource {
                     numeros_por_pais: string[];
                 };
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][InfoFamilia] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][InfoFamilia] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error("Erro ao enviar dados de informação da família para arrolamento:", error);
             throw error;
@@ -1874,27 +1961,37 @@ namespace survey_resource {
             outras_informacoes: {
                 texto: string;
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const response = await fetch(`${baseUrl}${path}`, {
+            const url = `${baseUrl}${path}`
+            console.log('[Arrolamento][API][OutrasInf] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+
+            const response = await fetch(url, {
                 method: "PATCH",
                 headers,
                 body: JSON.stringify(formData),
             });
 
+            const text = await response.text();
+            let json: any = null;
+            try { json = text ? JSON.parse(text) : null } catch {}
+
+            console.log('[Arrolamento][API][OutrasInf] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`);
+                throw new Error(`Erro na requisição: ${response.status} - ${text}`);
             }
 
-            return await response.json();
+            return json;
         } catch (error) {
             console.error("Erro ao enviar outras informações da família para arrolamento:", error);
             throw error;
@@ -1915,14 +2012,16 @@ namespace survey_resource {
                 observacao: string;
                 status: string;
             };
-        }
+        },
+        authorization_token?: string
     ): Promise<any> => {
         try {
             const path = `/survey-resource/v1/arrolamentos/${arrolamentoId}`;
 
-            const headers = {
+            const headers: Record<string, string> = {
                 "Content-Type": "application/json",
             };
+            if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
             const response = await fetch(`${baseUrl}${path}`, {
                 method: "PATCH",

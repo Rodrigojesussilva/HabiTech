@@ -10,7 +10,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import Swal from 'sweetalert2'
 
 export function NavMain({
   items,
@@ -29,12 +28,7 @@ export function NavMain({
   const location = useLocation();
   console.log("location", location);
 
-  const handleClick = (e: React.MouseEvent, url: string) => {
-    if (url.includes('arrolamento')) {
-      e.preventDefault()
-      Swal.fire({ icon: 'info', title: 'Indisponível', text: 'Arrolamento temporariamente desativado.' })
-    }
-  }
+  const handleClick = (_e: React.MouseEvent, _url: string) => {}
 
   return (
     <SidebarGroup className="-ml-2">

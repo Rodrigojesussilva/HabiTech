@@ -9,17 +9,18 @@ import {
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
-import { API_BASE_URL } from "../../../../service/constants"
+import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 
 interface PessoaDefFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isActive?: boolean;
 }
 
 
 
-const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFormProps) => {
+const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: PessoaDefFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -36,6 +37,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     const nomeSupervisor = form.watch(`families[${familyIndex}].nomeSupervisor`);
     const observacao = form.watch(`families[${familyIndex}].observacao`);
     const triggeredByBlurRef = useRef(false);
+    const hasSectionBeenOpenedRef = useRef(false);
+    const firstBlurSkippedRef = useRef(false);
 
     const prevValuesRef = useRef<Record<string, any>>({
         justificativa: justificativa,
@@ -91,7 +94,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                 }
             }
 
-            const url = `${API_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
             const res = await fetch(url, {
                 method: req.method,
                 headers: {
@@ -121,7 +124,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             const payload = {
                 created_by: criadoPor,
                 form: {
-                    family_index: 1,
+                    family_index: (typeof familyIndex === 'number' ? familyIndex + 1 : 1),
                 },
                 status_notas: {
                     justificativa: justificativa || "",
@@ -133,7 +136,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
 
             try {
                 console.log("Payload Status Notas:", JSON.stringify(payload, null, 2));
-                await survey_resource.SendFormToArrolamentoStatusNotas(API_BASE_URL, arrolamentoId, payload);
+                const token = localStorage.getItem('authToken') || ''
+                await survey_resource.SendFormToArrolamentoStatusNotas(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
             } catch (error) {
                 console.error("Erro ao enviar status_notas:", error);
                 showErrorMessage("Erro ao enviar status_notas da família");
@@ -153,7 +157,18 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     };
 
     useEffect(() => {
+        if (!isActive) return;
         const handleBlur = async () => {
+            // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            if (!hasSectionBeenOpenedRef.current) {
+                return;
+            }
+            // Evita PATCH no primeiro blur após a abertura da seção somente quando não houve mudança
+            // (para que a primeira edição real já dispare o PATCH)
+            // Nota: esta seção pode já estar aberta por padrão conforme UX
+            if (!firstBlurSkippedRef.current) {
+                // Ainda vamos calcular mudanças antes de decidir retornar
+            }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -172,6 +187,11 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
                     shouldFetch = true;
                     prevValuesRef.current[key] = currentValue;
                 }
+            }
+
+            if (!firstBlurSkippedRef.current && !shouldFetch) {
+                firstBlurSkippedRef.current = true;
+                return;
             }
 
             if (shouldFetch) {
@@ -200,6 +220,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             window.removeEventListener("blur", handleBlur, true);
         };
     }, [
+        isActive,
         justificativa,
         nomeSupervisor,
         observacao,
@@ -209,7 +230,16 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     return (
 
         <div className="text-left">
-            <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
+            <Collapsible
+                open={mostrarIdentificacao}
+                onOpenChange={(open) => {
+                    setMostrarIdentificacao(open);
+                    if (open) {
+                        hasSectionBeenOpenedRef.current = true;
+                        firstBlurSkippedRef.current = false;
+                    }
+                }}
+            >
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>

@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, CirclePlus } from "lucide-react"
-import Swal from 'sweetalert2'
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -17,12 +16,6 @@ export default function Header({ children }: HeaderProps) {
   };
 
   const navigateToForm = (formPath: string) => {
-    // Bloquear arrolamento por enquanto
-    if (formPath.includes('arrolamento')) {
-      Swal.fire({ icon: 'info', title: 'Indisponível', text: 'Funcionalidade de Arrolamento temporariamente desativada.' })
-      setIsMenuOpen(false);
-      return;
-    }
     navigate(formPath);
     setIsMenuOpen(false);
   };
