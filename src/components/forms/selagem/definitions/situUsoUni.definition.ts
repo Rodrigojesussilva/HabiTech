@@ -124,7 +124,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     if (formValues.usoUnidade === "UsoMisto") {
         usoUnidadeConditionals.push({
             name: "quaisTipos",
-            label: "Quais tipos?:",
+            label: "Quais tipos?",
             type: "text",
             required: true,
             placeholder: "Digite quais os usos aqui"
