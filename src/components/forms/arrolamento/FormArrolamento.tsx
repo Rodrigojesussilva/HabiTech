@@ -795,7 +795,7 @@ return (
 									}
 
 									setIsMetadataModalOpen(false);
-									Swal.fire({ position: 'top-end', icon: 'success', title: 'Metadados salvos', showConfirmButton: false, timer: 1500 })
+									Swal.fire({ position: 'top-end', icon: 'success', title: 'Arrolamento cadastrado com sucesso', showConfirmButton: false, timer: 1500 })
 
 								} catch (error) {
 									console.error("Erro ao enviar os dados:", error);

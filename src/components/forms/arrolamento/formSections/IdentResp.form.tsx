@@ -221,14 +221,15 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
     };
 
     useEffect(() => {
-        // Inicializa guarda conforme estado inicial da seção
-        if (!isActive) return;
-        if (mostrarIdentificacao) {
+        // Inicializa guarda quando a seção está ativa e aberta
+        if (isActive && mostrarIdentificacao) {
             hasSectionBeenOpenedRef.current = true;
+            firstBlurSkippedRef.current = false;
         }
         // Marcar inicializado após um tick para permitir form.reset concluir
-        setTimeout(() => { initializedRef.current = true; }, 0);
-    }, []);
+        const t = setTimeout(() => { initializedRef.current = true; }, 0);
+        return () => clearTimeout(t)
+    }, [isActive, mostrarIdentificacao]);
 
     useEffect(() => {
         if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou inativa
@@ -253,10 +254,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, onChangeMostr
                 [`families[${familyIndex}].nomeCompletoEntrevistado`]: nomeCompletoEntrevistado,
                 [`families[${familyIndex}].naoSeAplicaEntrevistado`]: naoSeAplicaEntrevistado,
                 [`families[${familyIndex}].nomeSocialEntrevistado`]: nomeSocialEntrevistado,
-                [`families.${familyIndex}.DescrevParentesco`]: descrevParentesco,
-                [`families.${familyIndex}.DescrevParentesco`]: pessoaEmancipada,
-                [`families.${familyIndex}.DescrevParentesco`]: certidaoEmancipacao,
-            };
+                [`families[${familyIndex}].DescrevParentesco`]: descrevParentesco,
+                [`families[${familyIndex}].pessoaEmancipada`]: pessoaEmancipada,
+                [`families[${familyIndex}].certidaoEmancipacao`]: certidaoEmancipacao,
+            } as Record<string, any>;
 
             let shouldFetch = false;
 

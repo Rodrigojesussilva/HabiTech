@@ -131,7 +131,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
             const payload = {
                 created_by: criadoPor,
                 form: {
-                    family_index: 1,
+                    family_index: (typeof familyIndex === 'number' ? familyIndex + 1 : 1),
                     identificacao_etnico_racial: {
                         etnico_racial: etnicoRacial,
                         genero: genero,

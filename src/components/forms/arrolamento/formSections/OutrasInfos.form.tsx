@@ -135,7 +135,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             const payload = {
                 created_by: criadoPor,
                 form: {
-                    family_index: 1,
+                    family_index: (typeof familyIndex === 'number' ? familyIndex + 1 : 1),
                 },
                 outras_informacoes: {
                     texto: outrasInformacoesTexto,
