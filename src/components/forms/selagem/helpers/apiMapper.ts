@@ -187,18 +187,19 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
       
       // Situação Uso Unidade (schema: situUsoUniSchema)
       situacaoUsoUnidade: situUso.situacao || "",
-      usoUnidade: situUso.uso || "",
+      usoUnidade: situUso.uso_unidade || "",
       qualUso: situUso.qual_uso || "",
       quaisTipos: situUso.tipos_uso || "",
       nome_responsavel: situUso.nome_responsavel || "",
       telefone_responsavel: situUso.telefone_responsavel || "",
       responsavel_nao_identificado: situUso.responsavel_identificado || false,
       uso_terreno: situUso.uso_terreno || "",
+      uso: situUso.uso || "",
       
       // Características Unidade (schema: caractUnidadeSchema)
       numeroComodos: caractUnidade.numero_comodos || "",
-      numeroPavimento: caractUnidade.numero_pavimentos || "",
-      numeroSanitario: caractUnidade.numero_sanitarios || "",
+      numeroPavimentos: caractUnidade.numero_pavimentos || "",
+      numeroSanitarios: caractUnidade.numero_sanitarios || "",
       
       // Status e Notas (schema: statusNotasSchema)
       status: statusNotas.status || "",

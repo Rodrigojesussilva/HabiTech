@@ -5,7 +5,7 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 export const caractUnidadeSchema = z.object({
     numeroComodos: z.string().optional(),
     numeroPavimentos: z.string().optional(),
-    numeroSanitario: z.string().optional(),
+    numeroSanitarios: z.string().optional(),
 
     selagem_id: z.string().optional(),
     idLocal: z.string().optional(),
@@ -18,7 +18,7 @@ export type FormValues = z.infer<typeof caractUnidadeSchema>;
 export const defaultValues: Partial<FormValues> = {
     numeroComodos: "",
     numeroPavimentos:"",
-    numeroSanitario: "",
+    numeroSanitarios: "",
 
     idLocal: "not",
     

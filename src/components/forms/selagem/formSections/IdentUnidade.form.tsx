@@ -286,8 +286,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     console.log('Endereço retornado:', endereco);  // <-- aqui
                     setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '');
-                    setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');
-                    setValue(`families[${familyIndex}].complemento`, endereco.complemento || '');
+                    setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');                    
                     setValue(`families[${familyIndex}].uf`, endereco.uf || '');
                     setValue(`families[${familyIndex}].cidade`, endereco.cidade || '');
                 } catch (error) {

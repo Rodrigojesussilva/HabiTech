@@ -115,7 +115,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
     };
 
-
     const handleSelagemResponse = async (response: any) => {
         console.log("Acessando handleSelagemResponse")
         const selagem = response.selagens?.[0];
@@ -137,7 +136,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                     situacao: situacao,
                     telefone_responsavel: telefoneResponsavel,
                     tipos_uso: tiposUso,
-                    uso,
+                    uso: uso,
                     uso_terreno: usoTerreno,
                     uso_unidade: usoUnidade,
                 },
@@ -176,21 +175,57 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     };
 
     useEffect(() => {
-
-        form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
-        form.setValue(`families[${familyIndex}].nome_responsavel`, "");
-        form.setValue(`families[${familyIndex}].usoUnidade`, "");
-        form.setValue(`families[${familyIndex}].uso_terreno`, "");
-
-    }, [situacao, familyIndex]);
+        if (
+            formValues.situacaoUsoUnidade !== "TerrenoCercado" &&
+            formValues.situacaoUsoUnidade !== "TerrenoSemCercamento"
+        ) {
+            // Só limpa se o valor não estiver vazio ou padrão
+            if (formValues.nome_responsavel !== "") {
+                form.setValue(`families[${familyIndex}].nome_responsavel`, "");
+            }
+            if (formValues.telefone_responsavel !== "") {
+                form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
+            }
+            if (formValues.responsavel_nao_identificado !== false) {
+                form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
+            }
+            if (formValues.uso_terreno !== "") {
+                form.setValue(`families[${familyIndex}].uso_terreno`, "");
+            }
+        }
+    }, [formValues.situacaoUsoUnidade, familyIndex, form, formValues]);
 
     useEffect(() => {
+        // Define os usos que exigem "qualUso"
+        const usoQueExigemQualUso = [
+            "Comercial",
+            "UsoMisto",
+            "Servico",
+            "Institucional",
+            "Industrial",
+        ];
 
-        form.setValue(`families[${familyIndex}].quaisTipos`, "");
-        form.setValue(`families[${familyIndex}].uso`, "");
-        form.setValue(`families[${familyIndex}].qualUso`, "");
+        // Limpa "qualUso" se usoUnidade não estiver nesses valores
+        if (!usoQueExigemQualUso.includes(formValues.usoUnidade ?? "")) {
+            if (formValues.qualUso !== "") {
+                form.setValue(`families[${familyIndex}].qualUso`, "");
+            }
+        }
 
-    }, [usoUnidade, familyIndex]);
+        // Limpa "uso" se usoUnidade não for "Outros"
+        if (formValues.usoUnidade !== "Outros") {
+            if (formValues.uso !== "") {
+                form.setValue(`families[${familyIndex}].uso`, "");
+            }
+        }
+
+        // Limpa "quaisTipos" se usoUnidade não for "UsoMisto"
+        if (formValues.usoUnidade !== "UsoMisto") {
+            if (formValues.quaisTipos !== "") {
+                form.setValue(`families[${familyIndex}].quaisTipos`, "");
+            }
+        }
+    }, [formValues.usoUnidade, familyIndex, form, formValues.qualUso, formValues.uso, formValues.quaisTipos]);
 
 
     useEffect(() => {
