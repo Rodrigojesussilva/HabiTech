@@ -30,10 +30,10 @@ export const statusNotasDefinition: FormConfig = {
                     type: "radio" as const,
                     required: false,
                     options: [
-                        { label: "Concluída", value: "Concluida" },
-                        { label: "Concluída Incompleta", value: "ConcluidaIncompleta" },
-                        { label: "Concluída Morador Ausente", value: "ConcluidaMoradorAusente" },
-                        { label: "Concluída Recusa", value: "ConcluidaRecusa" }
+                        { label: "Concluída", value: "COMPLETED" },
+                        { label: "Concluída Incompleta", value: "COMPLETED_INCOMPLETE" },
+                        { label: "Concluída Morador Ausente", value: "COMPLETED_ABSENT_RESIDENT" },
+                        { label: "Concluída Recusa", value: "COMPLETED_REFUSAL" }
                     ]
                 },
                 {
