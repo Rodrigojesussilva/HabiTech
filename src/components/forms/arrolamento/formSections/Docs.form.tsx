@@ -6,7 +6,6 @@ import {
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
-import { validarData, DataValidade } from "@/components/forms/arrolamento/helpers/docs.helper";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 import Swal from 'sweetalert2';
@@ -115,7 +114,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			};
 
 			const response = await fetchArrolamento(request);
-			
+
 
 			if (isGetArrolamentoResponse(response)) {
 				await handleDocumentacaoResponse(response);
@@ -346,7 +345,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		Uf,
 	]);
 
-	useEffect(() => {
+	/*
+useEffect(() => {
 
 		form.setValue(`families[${familyIndex}].uf`, "");
 		form.setValue(`families[${familyIndex}].cidade`, "");
@@ -443,36 +443,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		}
 	}, [formValues.dataExpedicaoRg]);
 
-	// Atualiza UF
-	useEffect(() => {
-		fetchEstados()
-			.then(list => {
-				const options = list.map(e => ({ label: e.nome, value: e.sigla }));
 
-				// Encontra São Paulo e remove da lista
-				const spIndex = options.findIndex(e => e.label === 'São Paulo');
-				if (spIndex > -1) {
-					const [sp] = options.splice(spIndex, 1); // remove SP
-					options.unshift(sp); // adiciona SP no começo
-				}
-
-				setEstadoOptions(options);
-			})
-			.catch(console.error);
-	}, []);
-
-	// Atualiza cidades ao mudar UF
-	useEffect(() => {
-		if (!ufSelecionada) {
-			setCidadeOptions([]);
-			return;
-		}
-		getCidadesOptions(ufSelecionada)
-			.then(setCidadeOptions)
-			.catch(console.error);
-	}, [ufSelecionada]);
-
-	useEffect(() => {
+useEffect(() => {
 		const pathCin = `families[${familyIndex}].cin`;
 		const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
 		const pathExpedicao = `families[${familyIndex}].dataExpedicaoCIN`;
@@ -541,27 +513,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		form.watch(`families[${familyIndex}].dataExpedicaoCIN`)
 	]);
 
-	useEffect(() => {
-		const pathCpf = `families[${familyIndex}].cpf`;
-		const cpfRaw = form.getValues(pathCpf);
-
-		form.clearErrors(pathCpf);
-
-		if (cpfRaw) {
-			const onlyNumbers = unMask(cpfRaw);
-			const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
-			form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
-
-			if (!cpfValidator.isValid(onlyNumbers)) {
-				form.setError(pathCpf, {
-					type: 'manual',
-					message: 'CPF inválido.',
-				});
-			}
-		}
-	}, [form.watch(`families[${familyIndex}].cpf`)]);
-
-	// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
+// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
 	useEffect(() => {
 		const idadeRaw = formValues.idadeResp;
 		const idade = Number(idadeRaw);
@@ -630,6 +582,57 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		formValues.dataExpedicaoPassaporte,
 		formValues.pessoaEmancipada
 	]);
+	*/
+
+	// Atualiza UF
+	useEffect(() => {
+		fetchEstados()
+			.then(list => {
+				const options = list.map(e => ({ label: e.nome, value: e.sigla }));
+
+				// Encontra São Paulo e remove da lista
+				const spIndex = options.findIndex(e => e.label === 'São Paulo');
+				if (spIndex > -1) {
+					const [sp] = options.splice(spIndex, 1); // remove SP
+					options.unshift(sp); // adiciona SP no começo
+				}
+
+				setEstadoOptions(options);
+			})
+			.catch(console.error);
+	}, []);
+
+	// Atualiza cidades ao mudar UF
+	useEffect(() => {
+		if (!ufSelecionada) {
+			setCidadeOptions([]);
+			return;
+		}
+		getCidadesOptions(ufSelecionada)
+			.then(setCidadeOptions)
+			.catch(console.error);
+	}, [ufSelecionada]);
+
+
+	useEffect(() => {
+		const pathCpf = `families[${familyIndex}].cpf`;
+		const cpfRaw = form.getValues(pathCpf);
+
+		form.clearErrors(pathCpf);
+
+		if (cpfRaw) {
+			const onlyNumbers = unMask(cpfRaw);
+			const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+			form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+
+			if (!cpfValidator.isValid(onlyNumbers)) {
+				form.setError(pathCpf, {
+					type: 'manual',
+					message: 'CPF inválido.',
+				});
+			}
+		}
+	}, [form.watch(`families[${familyIndex}].cpf`)]);
 
 	// Mescla seções e preenche opções dinâmicas
 	formSections = getMergedFormSections(formValues).map(section => ({
