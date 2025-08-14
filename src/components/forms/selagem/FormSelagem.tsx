@@ -190,6 +190,17 @@ const FormSelagem = ({
 			form.setValue("seiNumber", "");
 		}
 	}, [naoAplica, form]);
+
+	// In create route, clear any stale selagem context to force POST
+	useEffect(() => {
+		if (!selagemId) {
+			localStorage.removeItem('selagemId')
+			localStorage.removeItem('selagemCreated_by')
+			localStorage.removeItem('seiNumberS')
+			setLoadedSelagemData(null)
+		}
+	}, [selagemId])
+
 	const { setForm, setMetadata } = useFormMetadata();
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -380,12 +391,15 @@ const FormSelagem = ({
 	const ignoreNextCloseRef = useRef(false);
 
 	const handleSelagemModalOpenChange = async (isOpen: boolean) => {
+		console.log('[Selagem][Meta] onOpenChange triggered', { isOpen })
 		if (isOpen) {
 			setIsMetadataModalOpen(true); // deve existir este state
+			console.log('[Selagem][Meta] Modal opening; leaving open=true')
 			return;
 		}
 
 		if (ignoreNextCloseRef.current) {
+			console.log('[Selagem][Meta] ignoreNextCloseRef=true; closing without prompt')
 			ignoreNextCloseRef.current = false;
 			setIsMetadataModalOpen(false);
 			return;
@@ -404,6 +418,8 @@ const FormSelagem = ({
 				initial_date: initialDate,
 				end_date: endDate,
 			};
+
+			console.log('[Selagem][Meta] Attempting to close; checking existing record via GET', { request })
 
 			console.log("🎯 [handleSelagemModalOpenChange] Request para buscar selagem:", request);
 			console.log("📊 [handleSelagemModalOpenChange] Detalhes do request:", {
@@ -434,6 +450,7 @@ const FormSelagem = ({
 					localStorage.setItem("selagemCreated_by", selagem.created_by);
 
 					setIsMetadataModalOpen(false);
+					console.log('[Selagem][Meta] Existing record found; modal closed without prompt')
 					return; // sai da função aqui, não mostra alerta
 				} else {
 					console.warn("⚠️  [handleSelagemModalOpenChange] Array selagens está vazio ou primeira selagem é null/undefined");
@@ -463,6 +480,7 @@ const FormSelagem = ({
 
 		// Se chegou aqui, não encontrou selagem — mostra alerta
 		setIsMetadataModalOpen(false);
+		console.log('[Selagem][Meta] No existing record; showing confirm prompt to enforce fill')
 
 		Swal.fire({
 			position: "top-end",
@@ -474,9 +492,11 @@ const FormSelagem = ({
 			cancelButtonText: "Não, continuar preenchendo",
 		}).then((result) => {
 			if (result.isConfirmed) {
+				console.log('[Selagem][Meta] User confirmed exit; redirecting and suppressing next close')
 				ignoreNextCloseRef.current = true;
 				window.location.href = "/";
 			} else {
+				console.log('[Selagem][Meta] User canceled exit; re-opening modal')
 				setIsMetadataModalOpen(true);
 			}
 		});
@@ -911,7 +931,7 @@ const FormSelagem = ({
 									if (isEditMode && selagemId) {
 										// MODO EDIÇÃO: Atualizar metadados usando PATCH direto (mesmo padrão dos outros componentes)
 										const mainMetadataFormData = {
-											created_by: questionario,
+											created_by: (localStorage.getItem('userEmail') || questionario),
 											main_metadata: {
 												numero_sei: values.naoAplica ? "N/A" : seiNumber,
 												numero_sei_nao_aplicavel: Boolean(values.naoAplica),
@@ -920,7 +940,7 @@ const FormSelagem = ({
 
 										// Se tem sealNumber, também atualizar identificacao_espaco_habitado
 										const espacoHabitadoFormData = sealNumber ? {
-											created_by: questionario,
+											created_by: (localStorage.getItem('userEmail') || questionario),
 											identificacao_espaco_habitado: {
 												numero_selo: sealNumber,
 											}
@@ -1009,9 +1029,9 @@ const FormSelagem = ({
 										}
 									} else {
 										// MODO CRIAÇÃO: Usar POST para criar nova selagem (lógica original)
-										const dataToSend = {
-											created_by: questionario,
-											main_metadata: {
+																			const dataToSend = {
+										created_by: (localStorage.getItem('userEmail') || questionario),
+										main_metadata: {
 												numero_sei: values.naoAplica ? "N/A" : seiNumber,
 												numero_selo: sealNumber,
 												quantidade_familias: numberFamilies,

@@ -118,6 +118,7 @@ const FormArrolamento = ({
  	const [finalizing, setFinalizing] = useState(false);
  	const [saving, setSaving] = useState(false);
  	const serverMainMetadataRef = useRef<any>(null);
+    const ignoreNextCloseRef = useRef(false);
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -160,15 +161,18 @@ const FormArrolamento = ({
  		}
  	}, [params.id]);
 
- 	// In create route, clear any stale arrolamento context to force POST
- 	useEffect(() => {
- 		if (!params.id) {
- 			localStorage.removeItem('arrolamentoId')
- 			localStorage.removeItem('arrolamentoCreated_by')
- 			localStorage.setItem('arrolamentoCompleted', 'false')
- 			setLoadedArrolamentoData(null)
- 		}
- 	}, [params.id])
+ 		// In create route, clear any stale arrolamento context to force POST
+	useEffect(() => {
+		if (!params.id) {
+			localStorage.removeItem('arrolamentoId')
+			localStorage.removeItem('arrolamentoCreated_by')
+			localStorage.removeItem('seiNumber')
+			localStorage.removeItem('sealNumber')
+			localStorage.removeItem('numberFamilies')
+			localStorage.setItem('arrolamentoCompleted', 'false')
+			setLoadedArrolamentoData(null)
+		}
+	}, [params.id])
 
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -409,8 +413,76 @@ const FormArrolamento = ({
   }
 
 	// Modal de metadados: handler simples
-	const handleMetadataModalOpenChange = (isOpen: boolean) => {
-		setIsMetadataModalOpen(isOpen)
+	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
+        console.log('[Arrolamento][Meta] onOpenChange triggered', { isOpen })
+        if (isOpen) {
+            setIsMetadataModalOpen(true);
+            console.log('[Arrolamento][Meta] Modal opening; leaving open=true')
+            return;
+        }
+
+        if (ignoreNextCloseRef.current) {
+            console.log('[Arrolamento][Meta] ignoreNextCloseRef=true; closing without prompt')
+            ignoreNextCloseRef.current = false;
+            setIsMetadataModalOpen(false);
+            return;
+        }
+
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+
+        try {
+            const seiFromStorageRaw = localStorage.getItem('seiNumber') || '';
+            const numero_sei = Number(seiFromStorageRaw);
+            const request = { numero_sei, authorization_token: localStorage.getItem('authToken') || '' } as any;
+            console.log('[Arrolamento][Meta] Attempting to close; checking existing record via GET', { request })
+
+            const response = await survey_resource.GetArrolamento(request, async (req: any) => {
+                const searchParams = new URLSearchParams();
+                for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+                    if (value !== undefined && value !== "") searchParams.append(key, String(value));
+                }
+                const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+                const headers: Record<string, string> = { "Content-Type": "application/json", ...(req.headers || {}) };
+                const res = await fetch(url, { method: req.method, headers });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            });
+
+            const arrolamento = (response as any)?.arrolamentos?.[0] || null;
+            if (arrolamento) {
+                console.log('[Arrolamento][Meta] Existing record found; saving id & created_by to localStorage and closing')
+                localStorage.setItem('arrolamentoId', arrolamento.id || '');
+                localStorage.setItem('arrolamentoCreated_by', arrolamento.created_by || '');
+                setIsMetadataModalOpen(false);
+                return;
+            }
+        } catch (error) {
+            // loga e segue para alerta
+            console.warn('[Arrolamento][Meta] Falha ao verificar arrolamento ao fechar modal:', error);
+        }
+
+        setIsMetadataModalOpen(false);
+        console.log('[Arrolamento][Meta] No existing record; showing confirm prompt to enforce fill')
+        Swal.fire({
+            position: 'top-end',
+            title: 'Deseja realmente sair?',
+            text: 'Os dados preenchidos serão perdidos.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Não, continuar preenchendo',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                console.log('[Arrolamento][Meta] User confirmed exit; redirecting and suppressing next close')
+                ignoreNextCloseRef.current = true;
+                window.location.href = '/';
+            } else {
+                console.log('[Arrolamento][Meta] User canceled exit; re-opening modal')
+                setIsMetadataModalOpen(true);
+            }
+        });
 	}
 
 // Define the form structure using FormFieldType for each field
