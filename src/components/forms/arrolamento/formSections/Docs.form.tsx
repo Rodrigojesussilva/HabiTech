@@ -383,7 +383,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			return
 		}
 		const seiFromStorageRaw = localStorage.getItem("seiNumber");
-		const seiFromStorage = Number(seiFromStorageRaw);
+		const seiFromStorage = seiFromStorageRaw;
 
 		try {
 			const request = {
@@ -577,7 +577,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			if (shouldFetch) {
 				const seiNumber = localStorage.getItem("seiNumber");
 				const request = {
-					numero_sei: Number(seiNumber),
+					numero_sei: seiNumber,
 					initial_date: initialDate,
 					end_date: endDate,
 				};

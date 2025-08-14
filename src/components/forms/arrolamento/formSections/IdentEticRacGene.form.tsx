@@ -53,7 +53,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
 
     const fetchData = async () => {
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -201,7 +201,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumber");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

@@ -111,7 +111,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             return
         }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
         try {
             const request = {
@@ -306,7 +306,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             const seiNumber = localStorage.getItem("seiNumber");
 
             const request = {
-                numero_sei: Number(seiNumber),
+                numero_sei: seiNumber,
                 initial_date: initialDate,
                 end_date: endDate,
             };
