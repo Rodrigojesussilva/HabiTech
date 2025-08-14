@@ -589,7 +589,6 @@ const FormSelagem = ({
 
 	const handleSaveVisit = async () => {
 		setIsSaveModalOpen(false)
-		navigate('/lista-selagens')
 	}
 
 	// Define the form structure using FormFieldType for each field
