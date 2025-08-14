@@ -14,9 +14,28 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
   const contato = formEntry?.contato || {}
   const situacaoUso = formEntry?.situacao_uso || {}
   const doc = formEntry?.documentacao || {}
+  const etnicoRacial = formEntry?.identificacao_etnico_racial || {}
+  const nup = formEntry?.nupcidade || {}
   const pessoaDef = formEntry?.pessoa_deficiente || {}
+  //const outrasInf = formEntry?.outras_informacoes || {}
+
+
+  const contatoProprietarioBack = situacaoUso.contato_proprietario
+  // Aplica o fallback para string vazia
+  const contatoProprietarioCampo = contatoProprietarioBack ?? ''
+
+  console.log('Valor do back situacaoUso.contato_proprietario:', contatoProprietarioBack)
+  console.log('Valor no campo contato_proprietario:', contatoProprietarioCampo)
+
+  const possuiCINBack = doc.possui_cin;
+  // Aplica o fallback para string vazia
+  const possuiCINCampo = possuiCINBack ? 'sim' : '';
+
+  console.log('Valor do back doc.possui_cin:', possuiCINBack);
+  console.log('Valor no campo possui_cin:', possuiCINCampo);
 
   return {
+
     // Identificação do responsável
     responsavel: ident.responsavel === true ? 'sim' : ident.responsavel === false ? 'nao' : '',
     nomeCompletoResp: ident.nome_completo || '',
@@ -116,11 +135,24 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     numeroRnm: doc.numero_rnm || '',
     orgaoExpedidor: doc.orgao_expedidor || '',
     paisOrigem: doc.pais_origem || '',
-    possuiCIN: doc.possui_cin ? 'sim' : '',
+    possui_cin: doc.possui_cin ? 'sim' : '',
     rg: doc.rg || '',
     statusCrnm: doc.status_crnm || '',
     statusRnm: doc.status_rnm || '',
     uf: doc.uf || '',
+
+    //Identidade Étnico-Racial e de Gênero
+    etnicoRacial: etnicoRacial.etnico_racial,
+    genero: etnicoRacial.genero,
+    generoOutro: etnicoRacial.genero_outro,
+
+    //Nupcialidade
+    estadoCivil: nup.estado_civil ,
+    nomeCompanheiro: nup.nome_companheiro ,
+    viveComCompanheiro: nup.vive_com_companheiro ? 'sim' : '',
+
+    //Outras informações relevantes
+   // texto: outrasInf.texto,
 
     // Pessoa com deficiência
     tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',

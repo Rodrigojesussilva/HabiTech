@@ -16,7 +16,7 @@ export const docsSchema = z.object({
     uf: z.string().optional(),
     dataExpedicaoPassaporte: z.string().optional(),
     cidade: z.string().optional(),
-    possuiCIN: z.string().optional(),
+    possui_cin: z.string().optional(),
     dataExpedicaoCIN: z.string().optional(),
     cin: z.number(),
     rg: z.string().optional(),
@@ -55,7 +55,7 @@ export const defaultValues: Partial<FormValues> = {
     dataExpedicaoPassaporte: "",
     uf: "",
     cidade: "",
-    possuiCIN: "",
+    possui_cin: "",
     cin:0,
     rg: "",
     orgaoExpedidor: "",
@@ -372,7 +372,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 ]
             },
             {
-                name: "possuiCIN",
+                name: "possui_cin",
                 label: "Possui CIN?",
                 type: "radio",
                 required: true,
@@ -383,7 +383,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             }
 
         );
-        if (formValues.possuiCIN === "sim") {
+        if (formValues.possui_cin === "sim") {
             conditionalFields.push(
                 {
                     name: "cin",
@@ -400,7 +400,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
             );
         }
-        else if (formValues.possuiCIN === "nao") {
+        else if (formValues.possui_cin === "nao") {
             conditionalFields.push(
                 {
                     name: "rg",
