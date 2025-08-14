@@ -891,7 +891,7 @@ namespace survey_resource {
                 headers: safeHeaders,
                 body,
             })
-        } catch {}
+        } catch { }
 
         return handler({
             path: path,
@@ -1448,10 +1448,17 @@ namespace survey_resource {
             form: {
                 family_index: number;
                 identificacao_responsavel: {
-                    responsavel: boolean;
-                    nome_completo: string;
+                    certidao_emancipacao: string;
                     data_nascimento: string;
+                    descrev_parentesco: string;
+                    idade: number;
+                    nome_completo: string;
+                    nome_completo_entrevistado: string;
                     nome_social: string;
+                    nome_social_aplicavel: boolean;
+                    pessoa_emancipada: boolean;
+                    relacao_social: string;
+                    responsavel: boolean;
                 };
             };
         },
@@ -1465,8 +1472,8 @@ namespace survey_resource {
             };
             if (authorization_token) headers["Authorization"] = `Bearer ${authorization_token}`;
 
-            const url = `${baseUrl}${path}`
-            console.log('[Arrolamento][API][IdentResp] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData })
+            const url = `${baseUrl}${path}`;
+            console.log('[Arrolamento][API][IdentResp] PATCH request', { url, headers: { ...headers, Authorization: headers.Authorization ? 'Bearer ***' : undefined }, body: formData });
 
             const response = await fetch(url, {
                 method: "PATCH",
@@ -1476,9 +1483,9 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
-            console.log('[Arrolamento][API][IdentResp] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
+            console.log('[Arrolamento][API][IdentResp] PATCH response', { status: response.status, ok: response.ok, body: json ?? text });
 
             if (!response.ok) {
                 throw new Error(`Erro na requisição: ${response.status} - ${text}`);
@@ -1490,6 +1497,7 @@ namespace survey_resource {
             throw error;
         }
     };
+
 
     export const SendFormToArrolamentoContato = async (
         baseUrl: string,
@@ -1548,7 +1556,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][Contato] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1602,7 +1610,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][SituacaoUso] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1671,7 +1679,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][Documentacao] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1721,7 +1729,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][EtnicoRacial] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1771,7 +1779,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][Nupcidade] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1872,7 +1880,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][PessoaDef] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1935,7 +1943,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][InfoFamilia] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -1983,7 +1991,7 @@ namespace survey_resource {
 
             const text = await response.text();
             let json: any = null;
-            try { json = text ? JSON.parse(text) : null } catch {}
+            try { json = text ? JSON.parse(text) : null } catch { }
 
             console.log('[Arrolamento][API][OutrasInf] PATCH response', { status: response.status, ok: response.ok, body: json ?? text })
 
@@ -2260,7 +2268,6 @@ namespace survey_resource {
         }
     };
 
-
     export const SendFormToSelagemOutrasInformacoes = async (
         baseUrl: string,
         selagemId: string,
@@ -2333,7 +2340,6 @@ namespace survey_resource {
             throw error;
         }
     };
-
     // Sua função já exportada, que faz o POST para enviar o arquivo
     export const SendFileToUpload = async (
         baseUrl: string,

@@ -6,6 +6,7 @@ import {
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
+import { validarData, DataValidade } from '../helpers/docs.helper';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
 import Swal from 'sweetalert2';
@@ -20,6 +21,7 @@ interface DocsFormProps {
 }
 
 const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: DocsFormProps) => {
+
 	const isViewMode = useViewMode();
 	const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
 	const [mostrarDocumentacao, setMostrarDocumentacao] = useState(false);
@@ -63,6 +65,11 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 	// Pegar estrutura dos campos dinâmicos
 	let formSections = getMergedFormSections(formValues);
 
+	const previousPaisOrigemRef = useRef(paisOrigem);
+	const previousPossuiCinRef = useRef(possuiCin);
+	const previousDocumentacaoRef = useRef(Documentacao);
+
+
 	const prevValuesRef = useRef<Record<string, any>>({
 		cidade: Cidade,
 		cpf: Cpf,
@@ -88,6 +95,278 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		uf: Uf,
 	});
 
+	useEffect(() => {
+		const documentacaoAtual = Documentacao;
+		const documentacaoAnterior = previousDocumentacaoRef.current;
+
+		// Limpa os campos se Documentacao estiver vazio ou mudou
+		if (!documentacaoAtual || documentacaoAtual !== documentacaoAnterior) {
+			form.setValue(`families[${familyIndex}].numeroProtocolo`, "");
+			form.setValue(`families[${familyIndex}].numeroRnm`, "");
+			form.setValue(`families[${familyIndex}].statusRnm`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoRnm`, "");
+			form.setValue(`families[${familyIndex}].numeroCrnm`, "");
+			form.setValue(`families[${familyIndex}].statusCrnm`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoCrnm`, "");
+			form.setValue(`families[${familyIndex}].numeroPassaporte`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoPassaporte`, "");
+		}
+
+		// Atualiza o valor anterior
+		previousDocumentacaoRef.current = documentacaoAtual;
+
+	}, [Documentacao, familyIndex]);
+
+	useEffect(() => {
+		const possuiCinAtual = possuiCin;
+		const possuiCinAnterior = previousPossuiCinRef.current;
+
+		// Limpa os campos se `possuiCin` estiver vazio ou mudou de valor
+		if (!possuiCinAtual || possuiCinAtual !== possuiCinAnterior) {
+			form.setValue(`families[${familyIndex}].rg`, "");
+			form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
+			form.setValue(`families[${familyIndex}].contato_proprietario`, "");
+			form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
+			form.setValue(`families[${familyIndex}].cpf`, "");
+			form.setValue(`families[${familyIndex}].fonteCpf`, "");
+			form.setValue(`families[${familyIndex}].cin`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoCIN`, "");
+		}
+
+		// Atualiza o valor anterior
+		previousPossuiCinRef.current = possuiCinAtual;
+
+	}, [possuiCin, familyIndex]);
+
+	useEffect(() => {
+		const paisOrigemAtual = paisOrigem;
+		const paisOrigemAnterior = previousPaisOrigemRef.current;
+
+		// Limpa os campos se paisOrigem estiver vazio ou tiver mudado
+		if (!paisOrigemAtual || paisOrigemAtual !== paisOrigemAnterior) {
+			form.setValue(`families[${familyIndex}].uf`, "");
+			form.setValue(`families[${familyIndex}].cidade`, "");
+			form.setValue(`families[${familyIndex}].rg`, "");
+			form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
+			form.setValue(`families[${familyIndex}].contato_proprietario`, "");
+			form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
+			form.setValue(`families[${familyIndex}].cpf`, "");
+			form.setValue(`families[${familyIndex}].fonteCpf`, "");
+			form.setValue(`families[${familyIndex}].documentacao`, "");
+			form.setValue(`families[${familyIndex}].possui_cin`, "");
+			form.setValue(`families[${familyIndex}].cin`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoCIN`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoRnm`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoCrnm`, "");
+			form.setValue(`families[${familyIndex}].dataExpedicaoPassaporte`, "");
+			form.setValue(`families[${familyIndex}].numeroCrnm`, "");
+			form.setValue(`families[${familyIndex}].numeroPassaporte`, "");
+			form.setValue(`families[${familyIndex}].numeroProtocolo`, "");
+			form.setValue(`families[${familyIndex}].numeroRnm`, "");
+			form.setValue(`families[${familyIndex}].statusCrnm`, "");
+			form.setValue(`families[${familyIndex}].statusRnm`, "");
+		}
+
+		previousPaisOrigemRef.current = paisOrigemAtual;
+
+	}, [paisOrigem, familyIndex]);
+
+	useEffect(() => {
+		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
+	}, [dataExpedicaoRg, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
+	}, [dataExpedicaoRg, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		validarData(dataExpedicaoRnm, familyIndex, "dataExpedicaoRnm", form.setValue);
+	}, [dataExpedicaoRnm, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		validarData(dataExpedicaoCrnm, familyIndex, "dataExpedicaoCrnm", form.setValue);
+	}, [dataExpedicaoCrnm, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		validarData(dataExpedicaoCin, familyIndex, "dataExpedicaoCIN", form.setValue);
+	}, [dataExpedicaoCin, familyIndex, form.setValue]);
+
+	useEffect(() => {
+		DataValidade(dataExpedicaoPassaporte, familyIndex, "dataExpedicaoPassaporte", form.setValue);
+	}, [dataExpedicaoPassaporte, familyIndex, form.setValue]);
+
+	// Validação da data de expedição	
+	useEffect(() => {
+		const rawDate = formValues.dataExpedicaoRg;
+		if (rawDate && rawDate.length === 10) {
+			const [day, month, year] = rawDate.split('/');
+			const date = new Date(`${year}-${month}-${day}`);
+			const today = new Date();
+
+			if (!isNaN(date.getTime())) {
+				let diffInYears = today.getFullYear() - date.getFullYear();
+				const monthDiff = today.getMonth() - date.getMonth();
+				const dayDiff = today.getDate() - date.getDate();
+
+				if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+					diffInYears--;
+				}
+
+				if (diffInYears >= 10) {
+					form.setError(`families[${familyIndex}].dataExpedicaoRg`, {
+						type: "manual",
+						message: "A data de expedição tem mais de 10 anos.",
+					});
+				} else {
+					form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
+				}
+			}
+		} else {
+			form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
+		}
+	}, [formValues.dataExpedicaoRg]);
+	
+
+	useEffect(() => {
+		const pathCin = `families[${familyIndex}].cin`;
+		const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
+		const pathExpedicao = `families[${familyIndex}].dataExpedicaoCIN`;
+
+		const cinRaw = form.getValues(pathCin);
+		const nascimentoRaw = form.getValues(pathNascimento);
+		const expedicaoRaw = form.getValues(pathExpedicao);
+
+		form.clearErrors(pathCin);
+
+		if (cinRaw) {
+			const onlyNumbers = unMask(cinRaw);
+			const maskedCin = mask(onlyNumbers, ['999.999.999-99']);
+			form.setValue(pathCin, maskedCin, { shouldValidate: false });
+
+			if (!cpfValidator.isValid(onlyNumbers)) {
+				form.setError(pathCin, {
+					type: 'manual',
+					message: 'CIN inválido.',
+				});
+				return;
+			}
+
+			if (nascimentoRaw?.length === 10 && expedicaoRaw?.length === 10) {
+				const [bd, bm, by] = nascimentoRaw.split('/');
+				const [ed, em, ey] = expedicaoRaw.split('/');
+
+				const birthDate = new Date(`${by}-${bm}-${bd}`);
+				const expedicaoDate = new Date(`${ey}-${em}-${ed}`);
+				const today = new Date();
+
+				if (!isNaN(birthDate.getTime()) && !isNaN(expedicaoDate.getTime())) {
+					let age = today.getFullYear() - birthDate.getFullYear();
+					const monthDiff = today.getMonth() - birthDate.getMonth();
+
+					if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+						age--;
+					}
+
+					let validadeAnos: number | 'permanente' = 10;
+					if (age <= 11) validadeAnos = 5;
+					else if (age >= 60) validadeAnos = 'permanente';
+
+					if (validadeAnos === 'permanente') {
+						form.setError(pathCin, {
+							type: 'manual',
+							message: 'Documento permanente (idoso). Sem necessidade de renovação.',
+						});
+					} else {
+						const validadeDate = new Date(expedicaoDate);
+						validadeDate.setFullYear(validadeDate.getFullYear() + validadeAnos);
+
+						if (validadeDate < today) {
+							form.setError(pathCin, {
+								type: 'manual',
+								message: `O documento está vencido. Válido por ${validadeAnos} anos a partir da expedição.`,
+							});
+						}
+					}
+				}
+			}
+		}
+	}, [
+		form.watch(`families[${familyIndex}].cin`),
+		form.watch(`families[${familyIndex}].dataNascimentoResp`),
+		form.watch(`families[${familyIndex}].dataExpedicaoCIN`)
+	]);
+
+	// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
+	useEffect(() => {
+		const idadeRaw = formValues.idadeResp;
+		const idade = Number(idadeRaw);
+		const rawDate = formValues.dataExpedicaoPassaporte;
+		const pessoaEmancipada = formValues.pessoaEmancipada;
+
+		// Limpa erro no início
+		form.clearErrors(`families[${familyIndex}].dataExpedicaoPassaporte`);
+
+		// 1. Verifica se idade foi informada
+		if (!idadeRaw || isNaN(idade)) {
+			form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
+				type: "manual",
+				message: "Informe a idade da pessoa responsável.",
+			});
+			return;
+		}
+
+		// 2. Se idade for 16 ou 17, verifica se emancipação foi informada
+		if ((idade === 16 || idade === 17) && (pessoaEmancipada === undefined || pessoaEmancipada === "")) {
+			form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
+				type: "manual",
+				message: "Informe se a pessoa é emancipada.",
+			});
+			return;
+		}
+
+		// 3. Regras de quem deve validar a validade do passaporte
+		const isEmancipado = pessoaEmancipada === "sim" || pessoaEmancipada === true || pessoaEmancipada === "true";
+		const deveValidar = idade >= 18 || ((idade === 16 || idade === 17) && isEmancipado);
+
+		// 4. Se deve validar, verifica se data está válida
+		if (deveValidar) {
+			if (!rawDate || rawDate.length !== 10) {
+				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
+					type: "manual",
+					message: "Informe uma data de validade válida no formato DD/MM/AAAA.",
+				});
+				return;
+			}
+
+			const [day, month, year] = rawDate.split('/');
+			const validadeDate = new Date(`${year}-${month}-${day}`);
+			const today = new Date();
+
+			if (isNaN(validadeDate.getTime())) {
+				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
+					type: "manual",
+					message: "Data de validade do passaporte inválida.",
+				});
+				return;
+			}
+
+			const dezAnosAtras = new Date();
+			dezAnosAtras.setFullYear(today.getFullYear() - 10);
+
+			if (validadeDate <= dezAnosAtras) {
+				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
+					type: "manual",
+					message: "A validade do passaporte ultrapassa 10 anos, o que não é permitido para maiores de 18 anos ou menores emancipados.",
+				});
+			}
+		}
+	}, [
+		formValues.idadeResp,
+		formValues.dataExpedicaoPassaporte,
+		formValues.pessoaEmancipada
+	]);
 
 	function isGetArrolamentoResponse(
 		response: any
@@ -345,247 +624,6 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		StatusCrnm,
 		Uf,
 	]);
-
-	
-
-	/*
-useEffect(() => {
-
-		form.setValue(`families[${familyIndex}].uf`, "");
-		form.setValue(`families[${familyIndex}].cidade`, "");
-		form.setValue(`families[${familyIndex}].rg`, "");
-		form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
-		form.setValue(`families[${familyIndex}].contato_proprietario`, "");
-		form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
-		form.setValue(`families[${familyIndex}].cpf`, "");
-		form.setValue(`families[${familyIndex}].fonteCpf`, "");
-		form.setValue(`families[${familyIndex}].documentacao`, "");
-		form.setValue(`families[${familyIndex}].possuiCIN`, "");
-		form.setValue(`families[${familyIndex}].cin`, "");
-
-	}, [paisOrigem, familyIndex]);
-
-	useEffect(() => {
-
-		form.setValue(`families[${familyIndex}].rg`, "");
-		form.setValue(`families[${familyIndex}].orgaoExpedidor`, "");
-		form.setValue(`families[${familyIndex}].contato_proprietario`, "");
-		form.setValue(`families[${familyIndex}].estadoEmissaoRg`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoRg`, "");
-		form.setValue(`families[${familyIndex}].cpf`, "");
-		form.setValue(`families[${familyIndex}].fonteCpf`, "");
-		form.setValue(`families[${familyIndex}].cin`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoCIN`, "");
-
-
-	}, [possuiCin, familyIndex]);
-
-	useEffect(() => {
-
-		form.setValue(`families[${familyIndex}].numeroProtocolo`, "");
-		form.setValue(`families[${familyIndex}].numeroRnm`, "");
-		form.setValue(`families[${familyIndex}].statusRnm`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoRnm`, "");
-		form.setValue(`families[${familyIndex}].numeroCrnm`, "");
-		form.setValue(`families[${familyIndex}].statusCrnm`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoCrnm`, "");
-		form.setValue(`families[${familyIndex}].numeroPassaporte`, "");
-		form.setValue(`families[${familyIndex}].dataExpedicaoPassaporte`, "");
-
-	}, [Documentacao, familyIndex]);
-
-	useEffect(() => {
-		validarData(dataExpedicaoRg, familyIndex, "dataExpedicaoRg", form.setValue);
-	}, [dataExpedicaoRg, familyIndex, form.setValue]);
-
-	useEffect(() => {
-		validarData(dataExpedicaoRnm, familyIndex, "dataExpedicaoRnm", form.setValue);
-	}, [dataExpedicaoRnm, familyIndex, form.setValue]);
-
-	useEffect(() => {
-		validarData(dataExpedicaoCrnm, familyIndex, "dataExpedicaoCrnm", form.setValue);
-	}, [dataExpedicaoCrnm, familyIndex, form.setValue]);
-
-	useEffect(() => {
-		validarData(dataExpedicaoCin, familyIndex, "dataExpedicaoCIN", form.setValue);
-	}, [dataExpedicaoCin, familyIndex, form.setValue]);
-
-	useEffect(() => {
-		DataValidade(dataExpedicaoPassaporte, familyIndex, "dataExpedicaoPassaporte", form.setValue);
-	}, [dataExpedicaoPassaporte, familyIndex, form.setValue]);
-
-	// Validação da data de expedição	
-	useEffect(() => {
-		const rawDate = formValues.dataExpedicaoRg;
-		if (rawDate && rawDate.length === 10) {
-			const [day, month, year] = rawDate.split('/');
-			const date = new Date(`${year}-${month}-${day}`);
-			const today = new Date();
-
-			if (!isNaN(date.getTime())) {
-				let diffInYears = today.getFullYear() - date.getFullYear();
-				const monthDiff = today.getMonth() - date.getMonth();
-				const dayDiff = today.getDate() - date.getDate();
-
-				if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-					diffInYears--;
-				}
-
-				if (diffInYears >= 10) {
-					form.setError(`families[${familyIndex}].dataExpedicaoRg`, {
-						type: "manual",
-						message: "A data de expedição tem mais de 10 anos.",
-					});
-				} else {
-					form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
-				}
-			}
-		} else {
-			form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
-		}
-	}, [formValues.dataExpedicaoRg]);
-
-
-useEffect(() => {
-		const pathCin = `families[${familyIndex}].cin`;
-		const pathNascimento = `families[${familyIndex}].dataNascimentoResp`;
-		const pathExpedicao = `families[${familyIndex}].dataExpedicaoCIN`;
-
-		const cinRaw = form.getValues(pathCin);
-		const nascimentoRaw = form.getValues(pathNascimento);
-		const expedicaoRaw = form.getValues(pathExpedicao);
-
-		form.clearErrors(pathCin);
-
-		if (cinRaw) {
-			const onlyNumbers = unMask(cinRaw);
-			const maskedCin = mask(onlyNumbers, ['999.999.999-99']);
-			form.setValue(pathCin, maskedCin, { shouldValidate: false });
-
-			if (!cpfValidator.isValid(onlyNumbers)) {
-				form.setError(pathCin, {
-					type: 'manual',
-					message: 'CIN inválido.',
-				});
-				return;
-			}
-
-			if (nascimentoRaw?.length === 10 && expedicaoRaw?.length === 10) {
-				const [bd, bm, by] = nascimentoRaw.split('/');
-				const [ed, em, ey] = expedicaoRaw.split('/');
-
-				const birthDate = new Date(`${by}-${bm}-${bd}`);
-				const expedicaoDate = new Date(`${ey}-${em}-${ed}`);
-				const today = new Date();
-
-				if (!isNaN(birthDate.getTime()) && !isNaN(expedicaoDate.getTime())) {
-					let age = today.getFullYear() - birthDate.getFullYear();
-					const monthDiff = today.getMonth() - birthDate.getMonth();
-
-					if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-						age--;
-					}
-
-					let validadeAnos: number | 'permanente' = 10;
-					if (age <= 11) validadeAnos = 5;
-					else if (age >= 60) validadeAnos = 'permanente';
-
-					if (validadeAnos === 'permanente') {
-						form.setError(pathCin, {
-							type: 'manual',
-							message: 'Documento permanente (idoso). Sem necessidade de renovação.',
-						});
-					} else {
-						const validadeDate = new Date(expedicaoDate);
-						validadeDate.setFullYear(validadeDate.getFullYear() + validadeAnos);
-
-						if (validadeDate < today) {
-							form.setError(pathCin, {
-								type: 'manual',
-								message: `O documento está vencido. Válido por ${validadeAnos} anos a partir da expedição.`,
-							});
-						}
-					}
-				}
-			}
-		}
-	}, [
-		form.watch(`families[${familyIndex}].cin`),
-		form.watch(`families[${familyIndex}].dataNascimentoResp`),
-		form.watch(`families[${familyIndex}].dataExpedicaoCIN`)
-	]);
-
-// Validação da validade do passaporte para maiores de 18 anos ou emanciapados
-	useEffect(() => {
-		const idadeRaw = formValues.idadeResp;
-		const idade = Number(idadeRaw);
-		const rawDate = formValues.dataExpedicaoPassaporte;
-		const pessoaEmancipada = formValues.pessoaEmancipada;
-
-		// Limpa erro no início
-		form.clearErrors(`families[${familyIndex}].dataExpedicaoPassaporte`);
-
-		// 1. Verifica se idade foi informada
-		if (!idadeRaw || isNaN(idade)) {
-			form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
-				type: "manual",
-				message: "Informe a idade da pessoa responsável.",
-			});
-			return;
-		}
-
-		// 2. Se idade for 16 ou 17, verifica se emancipação foi informada
-		if ((idade === 16 || idade === 17) && (pessoaEmancipada === undefined || pessoaEmancipada === "")) {
-			form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
-				type: "manual",
-				message: "Informe se a pessoa é emancipada.",
-			});
-			return;
-		}
-
-		// 3. Regras de quem deve validar a validade do passaporte
-		const isEmancipado = pessoaEmancipada === "sim" || pessoaEmancipada === true || pessoaEmancipada === "true";
-		const deveValidar = idade >= 18 || ((idade === 16 || idade === 17) && isEmancipado);
-
-		// 4. Se deve validar, verifica se data está válida
-		if (deveValidar) {
-			if (!rawDate || rawDate.length !== 10) {
-				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
-					type: "manual",
-					message: "Informe uma data de validade válida no formato DD/MM/AAAA.",
-				});
-				return;
-			}
-
-			const [day, month, year] = rawDate.split('/');
-			const validadeDate = new Date(`${year}-${month}-${day}`);
-			const today = new Date();
-
-			if (isNaN(validadeDate.getTime())) {
-				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
-					type: "manual",
-					message: "Data de validade do passaporte inválida.",
-				});
-				return;
-			}
-
-			const dezAnosAtras = new Date();
-			dezAnosAtras.setFullYear(today.getFullYear() - 10);
-
-			if (validadeDate <= dezAnosAtras) {
-				form.setError(`families[${familyIndex}].dataExpedicaoPassaporte`, {
-					type: "manual",
-					message: "A validade do passaporte ultrapassa 10 anos, o que não é permitido para maiores de 18 anos ou menores emancipados.",
-				});
-			}
-		}
-	}, [
-		formValues.idadeResp,
-		formValues.dataExpedicaoPassaporte,
-		formValues.pessoaEmancipada
-	]);
-	*/
 
 	// Atualiza UF
 	useEffect(() => {
