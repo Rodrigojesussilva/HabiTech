@@ -15,7 +15,7 @@ function toIsoDate(dateStr?: string): string {
 }
 
 
-function mapFamilyFormToFields(formEntry: any): Record<string, any> {
+function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusNotas?: any): Record<string, any> {
   const ident = formEntry?.identificacao_responsavel || {}
   const infoFamilia = formEntry?.informacao_familia || {}
   const contato = formEntry?.contato || {}
@@ -151,8 +151,8 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     nomeCompanheiro: nup.nome_companheiro,
     viveComCompanheiro: nup.vive_com_companheiro ? 'sim' : '',
 
-    //Outras informações relevantes
-    // texto: outrasInf.texto,
+    //Outras informações relevantes (do nível raiz do survey)
+    texto: rootOutrasInfo?.texto || '',
 
     // Pessoa com deficiência
     tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
@@ -213,16 +213,24 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     responsavelMuletaBengala4pontasAndador: !!pessoaDef.responsavel_muleta_bengala4pontas_andador,
     responsavelOrteseProtese: !!pessoaDef.responsavel_ortese_protese,
     responsavelOutraTecAssistiva: !!pessoaDef.responsavel_outra_tec_assistiva,
+
+    // Status e Notas (do nível raiz do survey)
+    status: rootStatusNotas?.status || '',
+    justificativa: rootStatusNotas?.justificativa || '',
+    nomeSupervisor: rootStatusNotas?.nome_supervisor || '',
+    observacao: rootStatusNotas?.observacao || '',
   }
 }
 
 export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
   const survey = api?.survey || {}
   const forms = Array.isArray(survey?.forms) ? survey.forms : []
+  const rootOutrasInfo = survey?.outras_informacoes || {}
+  const rootStatusNotas = survey?.status_notas || {}
 
   const families = forms.length > 0
-    ? forms.map((f: any) => mapFamilyFormToFields(f))
-    : [mapFamilyFormToFields({})]
+    ? forms.map((f: any) => mapFamilyFormToFields(f, rootOutrasInfo, rootStatusNotas))
+    : [mapFamilyFormToFields({}, rootOutrasInfo, rootStatusNotas)]
 
   return {
     questionario: api?.created_by || 'SEHAB-123',
