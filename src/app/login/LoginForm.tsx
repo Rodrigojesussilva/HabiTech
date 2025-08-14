@@ -17,15 +17,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// Split the schema based on the step
-const EmailSchema = z.object({
+// Login schema with email and password
+const LoginSchema = z.object({
   email: z.string().email("Email inválido"),
-  otp: z.string(),
-});
-
-const OTPSchema = z.object({
-  email: z.string(),
-  otp: z.string().min(6, "Código OTP deve ter pelo menos 6 caracteres"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 type LoginFormProps = {
@@ -33,53 +28,40 @@ type LoginFormProps = {
 } & React.ComponentPropsWithoutRef<"form">;
 
 export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProps) {
-  const [isOTPSent, setIsOTPSent] = useState(false);
-  //const [userEmail, setUserEmail] = useState("");
-
   const navigate = useNavigate();
 
-  const form = useForm<z.infer<typeof EmailSchema>>({
-    resolver: zodResolver(isOTPSent ? OTPSchema : EmailSchema),
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
     mode: "onChange",
     defaultValues: {
       email: "",
-      otp: "",
+      password: "",
     },
   });
 
-  async function onSubmit(data: z.infer<typeof EmailSchema>) {
+  async function onSubmit(data: z.infer<typeof LoginSchema>) {
     console.log("Form submitted with data:", data);
-    console.log("isOTPSent:", isOTPSent);
 
-    if (!isOTPSent) {
-      try {
-        console.log("Sending email verification...");
-   
-        //await axios.post(`/api/send-otp`, { email: data.email });
-        //setUserEmail(data.email);
-        form.setValue('otp', ''); // Reset OTP field when switching to OTP view
-        setIsOTPSent(true);
-      } catch (error) {
-        console.error("Error sending OTP:", error);
-        alert("Erro ao enviar o código OTP");
+    try {
+      console.log("Authenticating user...");
+      
+      // TODO: Replace with actual API call
+      // await axios.post(`/api/login`, { 
+      //   email: data.email,
+      //   password: data.password 
+      // });
+      if (data.email !== "piloto@sehab.gov.br" || data.password !== "sehab2025") {
+        throw new Error("Email ou senha inválidos");
       }
-    } else {
-      try {
-        console.log("Verifying OTP...");
-        //await axios.post(`/api/verify-otp`, { 
-        //   email: userEmail,
-        //  otp: data.otp 
-        //});
- 
-        // Store authentication state
-        localStorage.setItem('isAuthenticated', 'true');
-        //localStorage.setItem('userEmail', userEmail); 
-        setIsLoginDone(true);
-        navigate("/home");
-      } catch (error) {
-        console.error("Error verifying OTP:", error);
-        alert("Código OTP inválido");
-      }
+
+      // Store authentication state
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userEmail', data.email); 
+      setIsLoginDone(true);
+      navigate("/home");
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      alert("Email ou senha inválidos");
     }
   }
 
@@ -88,12 +70,10 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
       <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold">
-            {!isOTPSent ? "Logar na sua conta" : "Confirmar acesso"}
+            Entrar na sua conta
           </h1>
           <p className="text-balance text-sm text-muted-foreground">
-            {!isOTPSent 
-              ? "Insira o seu e-mail para receber um código de acesso"
-              : "Digite o código enviado para seu email"}
+            Digite seu email e senha para acessar o sistema
           </p>
         </div>
         <div className="grid gap-6">
@@ -102,7 +82,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className={isOTPSent ? 'hidden' : ''}>
+                <FormItem>
                   <FormLabel className="block text-left">Email</FormLabel>
                   <FormControl>
                     <Input 
@@ -117,14 +97,14 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
             />
             <FormField
               control={form.control}
-              name="otp"
+              name="password"
               render={({ field }) => (
-                <FormItem className={!isOTPSent ? 'hidden' : ''}>
-                  <FormLabel className="block text-left">Confirmar</FormLabel>
+                <FormItem>
+                  <FormLabel className="block text-left">Senha</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Digite o código recebido"
-                      type="text"
+                      placeholder="Digite sua senha"
+                      type="password"
                       {...field}
                     />
                   </FormControl>
@@ -138,7 +118,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
             className="w-full"
             onClick={() => console.log("Button clicked")}
           >
-            {!isOTPSent ? "Login" : "Confirmar"}
+            Entrar
           </Button>
         </div>
       </form>

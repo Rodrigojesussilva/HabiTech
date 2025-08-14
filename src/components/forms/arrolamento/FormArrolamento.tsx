@@ -124,7 +124,7 @@ const FormArrolamento = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
-			interviewerName: "",
+			interviewerName: "Piloto Instrumentos",
 			interviewDate: "",
 			startTime: "",
 			endTime: "",
@@ -145,6 +145,10 @@ const FormArrolamento = ({
 			families: [{}],
 		},
 	});
+
+	useEffect(() => {
+		form.setValue('interviewerName', 'Piloto Instrumentos', { shouldValidate: true, shouldDirty: true });
+	}, [form]);
 
 	const { setForm, setMetadata } = useFormMetadata();
 	// removed unused initialDate/endDate
@@ -691,22 +695,22 @@ return (
 									const existingId = params.id || loadedArrolamentoData?.id || ''
 									if (!existingId) {
 										// Criar (POST)
-										const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
-										console.log("[Arrolamento][Create] Resposta da API:", json);
-										const newId = (json && (json.arrolamento?.id || json.id)) || ''
-										const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
-										const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
+									const json = await survey_resource.CreateArrolamento(SURVEY_RESOURCE_URL, dataToSend);
+									console.log("[Arrolamento][Create] Resposta da API:", json);
+									const newId = (json && (json.arrolamento?.id || json.id)) || ''
+									const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
+									const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
 										const newMainMetadata = (json && (json.arrolamento?.survey?.main_metadata || json.survey?.main_metadata)) || dataToSend.main_metadata
-										if (newId) {
-											localStorage.setItem('arrolamentoId', newId)
-											localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
-											localStorage.setItem('arrolamentoCompleted', 'false')
-											setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
+									if (newId) {
+										localStorage.setItem('arrolamentoId', newId)
+										localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
+										localStorage.setItem('arrolamentoCompleted', 'false')
+										setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
 											serverMainMetadataRef.current = newMainMetadata || null
-											console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
-										} else {
-											console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
-										}
+										console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
+									} else {
+										console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
+									}
 									} else {
  										// Atualizar (PATCH/PUT) main_metadata (quantidade_familias e números)
  										const token = localStorage.getItem('authToken') || ''

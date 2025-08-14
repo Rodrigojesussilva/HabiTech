@@ -289,9 +289,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 
                         { label: "Sim", value: "sim" },
                         { label: "Não", value: "nao" },
-                        { label: "Não sabe informar", value: "NaoSabeInformar" },
-                        { label: "Não respondeu", value: "NaoRepondeu" }
-                    ],
+                        ],
 
                 },
             );

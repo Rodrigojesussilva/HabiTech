@@ -21,8 +21,9 @@ export default function Header({ children }: HeaderProps) {
   };
 
   const formOptions = [
-    { name: "Arrolamento", path: "/create-arrolamento" },
+    
     { name: "Selagem", path: "/create-selagem" },
+    { name: "Arrolamento", path: "/create-arrolamento" },
     { name: "Residencial", path: "/create-residencial" },
     { name: "Não Residencial", path: "/create-nao-residencial" },
     { name: "Ocupação Predial", path: "/create-ocupacao-predial" },
