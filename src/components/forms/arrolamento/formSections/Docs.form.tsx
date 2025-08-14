@@ -55,7 +55,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 	const StatusCrnm = form.watch(`families[${familyIndex}].statusCrnm`);
 	const StatusRmn = form.watch(`families[${familyIndex}].statusRnm`);
 	const Uf = form.watch(`families[${familyIndex}].uf`);
-	const possuiCin = form.watch(`families[${familyIndex}].possuiCIN`);
+	const possuiCin = form.watch(`families[${familyIndex}].possui_cin`);
 	const Cin = form.watch(`families[${familyIndex}].cin`);
 	const triggeredByBlurRef = useRef(false);
 
@@ -208,7 +208,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 						numero_rnm: numeroRnm,
 						orgao_expedidor: orgaoExpedidor,
 						pais_origem: paisOrigem,
-						possui_cin: possuiCin === "sim", // <-- aqui está a correção
+						possui_cin: possuiCin == "sim",
 						rg: Rg,
 						status_crnm: StatusCrnm,
 						status_rnm: StatusRmn,
@@ -243,6 +243,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			return false;
 		}
 	};
+
 	useEffect(() => {
 		if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
 		const handleBlur = async () => {
@@ -344,6 +345,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		StatusCrnm,
 		Uf,
 	]);
+
+	
 
 	/*
 useEffect(() => {

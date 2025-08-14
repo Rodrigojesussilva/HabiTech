@@ -1,12 +1,19 @@
 export type ArrolamentoApiData = any
 
-function toBrDate(isoOrBr?: string): string {
-  if (!isoOrBr) return ''
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(isoOrBr)) return isoOrBr
-  const m = isoOrBr.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (m) return `${m[3]}/${m[2]}/${m[1]}`
-  return isoOrBr
+function toIsoDate(dateStr?: string): string {
+  if (!dateStr) return "";
+
+  // Se já estiver em formato ISO, retorna direto
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+  // Converte "11/12/2019" → "2019-12-11"
+  const parts = dateStr.split("/");
+  if (parts.length !== 3) return "";
+
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
+
 
 function mapFamilyFormToFields(formEntry: any): Record<string, any> {
   const ident = formEntry?.identificacao_responsavel || {}
@@ -20,26 +27,19 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
   //const outrasInf = formEntry?.outras_informacoes || {}
 
 
-  const contatoProprietarioBack = situacaoUso.contato_proprietario
-  // Aplica o fallback para string vazia
-  const contatoProprietarioCampo = contatoProprietarioBack ?? ''
-
-  console.log('Valor do back situacaoUso.contato_proprietario:', contatoProprietarioBack)
-  console.log('Valor no campo contato_proprietario:', contatoProprietarioCampo)
-
   const possuiCINBack = doc.possui_cin;
-  // Aplica o fallback para string vazia
-  const possuiCINCampo = possuiCINBack ? 'sim' : '';
+  // Aplica o fallback para string vazia se não vier data
+  const possuiCINCampo = possuiCINBack || '';
 
-  console.log('Valor do back doc.possui_cin:', possuiCINBack);
-  console.log('Valor no campo possui_cin:', possuiCINCampo);
-
+  // Logs para depuração
+  console.log('Valor do back doc.possuiCIN():', possuiCINBack);
+  console.log('Valor no campo dataExpedicaoCIN:', possuiCINCampo);
   return {
 
     // Identificação do responsável
     responsavel: ident.responsavel === true ? 'sim' : ident.responsavel === false ? 'nao' : '',
     nomeCompletoResp: ident.nome_completo || '',
-    dataNascimentoResp: toBrDate(ident.data_nascimento),
+    dataNascimentoResp: toIsoDate(ident.data_nascimento),
     relacaoResponsavel: ident.relacao_social || '',
     DescrevParentesco: ident.descrev_parentesco || '',
     nomeSocialEntrevistado: ident.nome_social || '',
@@ -120,11 +120,11 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     // Documentação
     cidade: doc.cidade || '',
     cpf: doc.cpf || '',
-    dataExpedicaoRg: toBrDate(doc.data_emissao_rg),
-    dataExpedicaoCIN: toBrDate(doc.data_expedicao_cin),
-    dataExpedicaoCrnm: toBrDate(doc.data_expedicao_crnm),
-    dataExpedicaoPassaporte: toBrDate(doc.data_expedicao_passaporte),
-    dataExpedicaoRnm: toBrDate(doc.data_expedicao_rnm),
+    dataExpedicaoRg: toIsoDate(doc.data_emissao_rg),
+    dataExpedicaoCIN: toIsoDate(doc.data_expedicao_cin),
+    dataExpedicaoCrnm: toIsoDate(doc.data_expedicao_crnm),
+    dataExpedicaoPassaporte: toIsoDate(doc.data_expedicao_passaporte),
+    dataExpedicaoRnm: toIsoDate(doc.data_expedicao_rnm),
     documentacao: doc.documentacao || '',
     estadoEmissaoRg: doc.estado_emissao_rg || '',
     fonteCpf: doc.fonte_cpf || '',
@@ -135,7 +135,7 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     numeroRnm: doc.numero_rnm || '',
     orgaoExpedidor: doc.orgao_expedidor || '',
     paisOrigem: doc.pais_origem || '',
-    possui_cin: doc.possui_cin ? 'sim' : '',
+    possui_cin: doc.possui_cin === true ? 'sim' : 'nao',
     rg: doc.rg || '',
     statusCrnm: doc.status_crnm || '',
     statusRnm: doc.status_rnm || '',
@@ -147,12 +147,12 @@ function mapFamilyFormToFields(formEntry: any): Record<string, any> {
     generoOutro: etnicoRacial.genero_outro,
 
     //Nupcialidade
-    estadoCivil: nup.estado_civil ,
-    nomeCompanheiro: nup.nome_companheiro ,
+    estadoCivil: nup.estado_civil,
+    nomeCompanheiro: nup.nome_companheiro,
     viveComCompanheiro: nup.vive_com_companheiro ? 'sim' : '',
 
     //Outras informações relevantes
-   // texto: outrasInf.texto,
+    // texto: outrasInf.texto,
 
     // Pessoa com deficiência
     tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
