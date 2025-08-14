@@ -99,7 +99,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
             return
         }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        const seiFromStorage = seiFromStorageRaw;
 
 
 
@@ -517,7 +517,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
             if (shouldFetch) {
                 const seiNumber = localStorage.getItem("seiNumber");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

@@ -27,17 +27,17 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
   //const outrasInf = formEntry?.outras_informacoes || {}
 
 
-  const possuiCINBack = doc.possui_cin;
-  // Aplica o fallback para string vazia se não vier data
-  const possuiCINCampo = possuiCINBack || '';
+  const responsavelBack = doc.responsavel;
+  // Aplica o fallback para 'não' caso o valor não seja verdadeiro (true)
+  const responsavelCampo = responsavelBack === true ? 'sim' : 'nao';
 
   // Logs para depuração
-  console.log('Valor do back doc.possuiCIN():', possuiCINBack);
-  console.log('Valor no campo dataExpedicaoCIN:', possuiCINCampo);
+  console.log('Valor do back doc.responsavel:', responsavelBack);
+  console.log('Valor no campo responsavelCampo:', responsavelCampo);
   return {
 
     // Identificação do responsável
-    responsavel: ident.responsavel === true ? 'sim' : ident.responsavel === false ? 'nao' : '',
+    responsavel: ident.responsavel === true ? 'sim' : 'nao',
     nomeCompletoResp: ident.nome_completo || '',
     dataNascimentoResp: toIsoDate(ident.data_nascimento),
     relacaoResponsavel: ident.relacao_social || '',
