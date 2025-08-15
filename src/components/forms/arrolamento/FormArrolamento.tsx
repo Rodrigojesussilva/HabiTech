@@ -136,7 +136,7 @@ const FormArrolamento = ({
 			timeElapsed: "",
 			sealNumber: "",
 			numberFamilies: 1,
-			firstVisitStart: new Date().toLocaleString('pt-BR', {
+			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
 				day: '2-digit',
 				month: '2-digit',
 				year: 'numeric',
@@ -156,12 +156,7 @@ const FormArrolamento = ({
 	const { setForm, setMetadata } = useFormMetadata();
 	// removed unused initialDate/endDate
 
- 	// If editing, avoid pre-filling firstVisitStart
- 	useEffect(() => {
- 		if (params.id) {
- 			form.setValue('firstVisitStart', '');
- 		}
- 	}, [params.id]);
+
 
  		// In create route, clear any stale arrolamento context to force POST
 	useEffect(() => {
@@ -533,7 +528,7 @@ const metaDataSections: FormSection[] = [
 				type: "text",
 				readonly: true,
 				required: true,
-				sidebarform: false,
+				sidebarform: true,
 				showinmodal: false,
 				sidebarlabel: "Término"
 			} as FormFieldType,

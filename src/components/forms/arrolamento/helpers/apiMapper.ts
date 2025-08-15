@@ -239,11 +239,23 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
     numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
     visitNumber: api?.visit_count != null ? String(api.visit_count) : '',
     interviewerName: api?.created_by || interviewerNameFromStorage,
-    firstVisitStart: '',
-    firstVisitEnd: '',
+    interviewDate: api?.created_at ? new Date(api.created_at).toISOString().split('T')[0] : "",
+    firstVisitStart: api?.created_at ? new Date(api.created_at).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', ' -') : "",
+    firstVisitEnd: api?.completed_at ? new Date(api.completed_at).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric', 
+      hour: '2-digit',
+      minute: '2-digit'
+    }).replace(',', ' -') : "",
     secondVisit: '',
     thirdVisit: '',
-    interviewDate: '',
     startTime: '',
     endTime: '',
     timeElapsed: '',
