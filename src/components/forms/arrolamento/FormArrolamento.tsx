@@ -111,21 +111,23 @@ const FormArrolamento = ({
 }: FormArrolamentoProps) => {
  	const navigate = useNavigate();
  	const params = useParams();
- 	const isViewMode = useViewMode();
- 	const [loadedArrolamentoData, setLoadedArrolamentoData] = useState<any>(null);
- 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
- 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
- 	const [finalizing, setFinalizing] = useState(false);
- 	const [saving, setSaving] = useState(false);
- 	const serverMainMetadataRef = useRef<any>(null);
-    const ignoreNextCloseRef = useRef(false);
+ 		const isViewMode = useViewMode();
+	const [loadedArrolamentoData, setLoadedArrolamentoData] = useState<any>(null);
+	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
+	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+	const [finalizing, setFinalizing] = useState(false);
+	const [saving, setSaving] = useState(false);
+	const serverMainMetadataRef = useRef<any>(null);
+   const ignoreNextCloseRef = useRef(false);
+	
+	const interviewerNameFromStorage = 'Piloto Instrumentos';
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
-			interviewerName: "Piloto Instrumentos",
+			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
 			endTime: "",
@@ -147,9 +149,7 @@ const FormArrolamento = ({
 		},
 	});
 
-	useEffect(() => {
-		form.setValue('interviewerName', 'Piloto Instrumentos', { shouldValidate: true, shouldDirty: true });
-	}, [form]);
+
 
 	const { setForm, setMetadata } = useFormMetadata();
 	// removed unused initialDate/endDate
@@ -285,10 +285,10 @@ const FormArrolamento = ({
  				})
  				const arrs = (response as any)?.arrolamentos || []
  				const item = arrs[0]
- 				if (item) {
- 					console.log('[Arrolamento][Load] GET success:', item)
- 					const mapped = mapArrolamentoToFormData(item)
- 					serverMainMetadataRef.current = item?.survey?.main_metadata || null
+ 								if (item) {
+					console.log('[Arrolamento][Load] GET success:', item)
+					const mapped = mapArrolamentoToFormData(item, interviewerNameFromStorage)
+					serverMainMetadataRef.current = item?.survey?.main_metadata || null
  					console.log('[Arrolamento][Load] mapped form data:', mapped)
  					console.log('[Arrolamento][Load] mapped families length:', Array.isArray(mapped.families) ? mapped.families.length : 0)
  					if (Array.isArray(mapped.families)) {
@@ -553,9 +553,10 @@ const metaDataSections: FormSection[] = [
 				name: "interviewerName",
 				label: "Nome completo da(o) Entrevistador(a)",
 				type: "text",
+				readonly: true,
 				required: true,
-				sidebarform: false,
-				showinmodal: false
+				sidebarform: true,
+				showinmodal: true
 			} as FormFieldType,
 			{
 				name: "interviewDate",

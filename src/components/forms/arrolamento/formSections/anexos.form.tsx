@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "@/service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 interface AnexosFormProps {
   id?: string;
@@ -27,6 +28,8 @@ type AttachmentItem = {
 const SECTION_KEY = 'anexos'
 
 const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProps) => {
+  const isViewMode = useViewMode();
+  const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
   const [open, setOpen] = useState(false)
   const form = useFormContext();
   const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -164,6 +167,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   useEffect(() => { loadAttachments() }, [routeArrolamentoId])
 
   const handleUpload = async (file: File, fieldName: string) => {
+    if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Anexos] Upload bloqueado: viewMode/completed'); return; }
     try {
       const { currentId, token } = ensureIds()
       console.log('[Arrolamento][Anexos] handleUpload ids:', { currentId, tokenPresent: Boolean(token) })
@@ -225,6 +229,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const handleRemove = async (attachmentId: string, fieldName: string) => {
+    if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Anexos] Remove bloqueado: viewMode/completed'); return; }
     try {
       const { currentId, token } = ensureIds()
       if (!currentId) return
@@ -289,7 +294,9 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           <li key={a.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
             <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
             <span className="flex items-center gap-2">
-              <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+              {!isViewMode && !isCompletedNow() && (
+                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+              )}
             </span>
           </li>
         ))}
@@ -298,6 +305,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const handleSendAll = async () => {
+    if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Anexos] SendAll bloqueado: viewMode/completed'); return; }
     try {
       console.log('[Arrolamento][Anexos] Iniciando envio em lote...')
       const { currentId, token } = ensureIds()
@@ -368,11 +376,13 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                 </div>
               </div>
 
-              <div className="mt-3">
-                <button type="button" onClick={handleSendAll} className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
-                  Enviar Anexos
-                </button>
-              </div>
+              {!isViewMode && !isCompletedNow() && (
+                <div className="mt-3">
+                  <button type="button" onClick={handleSendAll} className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
+                    Enviar Anexos
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </CollapsibleContent>

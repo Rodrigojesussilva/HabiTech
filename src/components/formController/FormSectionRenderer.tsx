@@ -60,7 +60,7 @@ export const FormSectionRenderer = ({
                     );
 
                     if (controllingCheckbox) {
-                        isDisabled = !!formValues[controllingCheckbox.name];
+                        isDisabled = isDisabled || !!formValues[controllingCheckbox.name];
                     }
 
                     const isDependent = field.dependent;

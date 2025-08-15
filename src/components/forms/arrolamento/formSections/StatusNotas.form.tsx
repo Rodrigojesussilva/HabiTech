@@ -10,6 +10,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 interface PessoaDefFormProps {
     id?: string;
@@ -21,6 +22,8 @@ interface PessoaDefFormProps {
 
 
 const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }: PessoaDefFormProps) => {
+    const isViewMode = useViewMode();
+    const isCompletedNow = () => localStorage.getItem('arrolamentoCompleted') === 'true';
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -52,6 +55,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     }
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = Number(seiFromStorageRaw);
 
@@ -113,6 +117,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     };
 
     const handleStatusNotasResponse = async (response: any) => {
+        if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][StatusNotas] View/Completed: PATCH bloqueado'); return; }
         const arrolamento = response.arrolamentos?.[0];
         if (arrolamento) {
             const arrolamentoId = arrolamento.id;
@@ -157,7 +162,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     };
 
     useEffect(() => {
-        if (!isActive) return;
+        if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
         const handleBlur = async () => {
             // Evita PATCH antes do usuário abrir a seção ao menos uma vez
             if (!hasSectionBeenOpenedRef.current) {
@@ -221,6 +226,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
         };
     }, [
         isActive,
+        isViewMode,
         justificativa,
         nomeSupervisor,
         observacao,
