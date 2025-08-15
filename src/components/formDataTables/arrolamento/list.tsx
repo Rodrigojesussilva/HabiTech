@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Arrolamento, columns } from "./columns"
-import { DataTable } from "./data-table"
 import survey_resource from "../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../service/constants"
 import Loader from "../../loader/Loader"
+
+// Mobile and Desktop Components
+import { CardList } from "./mobile/card-list"
+import { MobileFilters } from "./mobile/mobile-filters"
+import { DesktopDataTable } from "./desktop/data-table"
+import { DesktopFilters } from "./desktop/desktop-filters"
+
+// Shared Types
+import { Arrolamento, FilterState } from "./shared/types"
 
 function isGetArrolamentoResponse(response: any): response is { arrolamentos: any[] } {
   return response && (Array.isArray(response.arrolamentos) || response.arrolamentos === undefined)
@@ -14,9 +21,14 @@ export default function ArrolamentoList() {
   const navigate = useNavigate()
   const [data, setData] = useState<Arrolamento[]>([])
   const [loading, setLoading] = useState(false)
-  const [initialDate, setInitialDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [createdBy, setCreatedBy] = useState("")
+  
+  // Unified Filter State
+  const [filters, setFilters] = useState<FilterState>({
+    createdBy: "",
+    initialDate: "",
+    endDate: "",
+    searchQuery: ""
+  })
 
   const handleView = (row: any) => {
     if (!row?.id) return
@@ -134,9 +146,12 @@ export default function ArrolamentoList() {
 
   const clearData = () => {
     setData([])
-    setCreatedBy("")
-    setInitialDate("")
-    setEndDate("")
+    setFilters({
+      createdBy: "",
+      initialDate: "",
+      endDate: "",
+      searchQuery: ""
+    })
   }
 
   const fetchData = async () => {
@@ -145,12 +160,16 @@ export default function ArrolamentoList() {
       // Lógica de filtro: SOMENTE um parâmetro de filtro por vez
       // - Se houver created_by, NÃO enviar datas (filtro por criador)
       // - Caso contrário, enviar apenas intervalo de datas (com valores padrão amplos)
+      // - searchQuery funciona como filtro geral para mobile
       let request: any = {}
-      if (createdBy.trim()) {
-        request = { created_by: createdBy.trim() }
+      if (filters.createdBy.trim()) {
+        request = { created_by: filters.createdBy.trim() }
+      } else if (filters.searchQuery.trim()) {
+        // Para mobile: busca geral (pode ser melhorada no backend)
+        request = { created_by: filters.searchQuery.trim() }
       } else {
-        const initial = initialDate || '1900-01-01'
-        const end = endDate || '2100-01-01'
+        const initial = filters.initialDate || '1900-01-01'
+        const end = filters.endDate || '2100-01-01'
         request = { initial_date: initial, end_date: end }
       }
       const token = localStorage.getItem('authToken') || ''
@@ -201,74 +220,67 @@ export default function ArrolamentoList() {
   useEffect(() => { fetchData() /* auto load */ }, [])
 
   return (
-    <>
-      <div className="flex flex-col text-left ml-10 mt-10 gap-4">
-        <h1 className="text-2xl font-bold">Listagem de Formulários de Arrolamento</h1>
-        <div className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="flex flex-col">
-            <label htmlFor="created-by" className="text-sm font-medium text-gray-700">
-              Criado por
-            </label>
-            <input
-              type="text"
-              id="created-by"
-              className="border border-gray-300 rounded px-3 py-1 mt-1"
-              value={createdBy}
-              onChange={(e) => setCreatedBy(e.target.value)}
-              placeholder="Nome do criador"
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <label htmlFor="initial-date" className="text-sm font-medium text-gray-700">
-              Data Inicial
-            </label>
-            <input
-              type="date"
-              id="initial-date"
-              className="border border-gray-300 rounded px-3 py-1 mt-1"
-              value={initialDate}
-              onChange={(e) => setInitialDate(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
-              Data Final
-            </label>
-            <input
-              type="date"
-              id="end-date"
-              className="border border-gray-300 rounded px-3 py-1 mt-1"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-
-          <button
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? "Carregando..." : "Filtrar"}
-          </button>
-
-          <button
-            onClick={clearData}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-          >
-            🗑️ Limpar
-          </button>
-
-          {loading && <Loader />}
+    <div className="px-4 py-6 sm:px-6 md:px-10">
+      {/* HEADER RESPONSIVO */}
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">
+          Arrolamentos
+        </h1>
+        
+        {/* FILTROS MOBILE */}
+        <div className="block md:hidden">
+          <MobileFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onFilter={fetchData}
+            onClear={clearData}
+            loading={loading}
+          />
         </div>
-        <p className="text-sm text-gray-500">
+        
+        {/* FILTROS DESKTOP */}
+        <div className="hidden md:block">
+          <DesktopFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onFilter={fetchData}
+            onClear={clearData}
+            loading={loading}
+          />
+        </div>
+        
+        <p className="text-sm text-gray-500 mt-4">
           Visualize ou modifique os dados de arrolamento. Use os filtros por criador ou por período de datas.
         </p>
+        
+        {loading && (
+          <div className="flex justify-center mt-4">
+            <Loader />
+          </div>
+        )}
       </div>
-      <div className="container mx-auto p-10">
-        <DataTable columns={columns as any} data={data} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} onDelete={handleDelete} />
+      
+      {/* LISTAGEM MOBILE (CARDS) */}
+      <div className="block md:hidden">
+        <CardList
+          data={data}
+          onView={handleView}
+          onEdit={handleEdit}
+          onNewVisit={handleNewVisit}
+          onDelete={handleDelete}
+        />
       </div>
-    </>
+      
+      {/* LISTAGEM DESKTOP (TABELA) */}
+      <div className="hidden md:block">
+        <DesktopDataTable
+          data={data}
+          onView={handleView}
+          onEdit={handleEdit}
+          onNewVisit={handleNewVisit}
+          onDelete={handleDelete}
+        />
+      </div>
+    </div>
   )
 }
