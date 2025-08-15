@@ -138,7 +138,7 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
   const anexosData = selagemData.attachments || []
 
   return {
-    questionario: "SEHAB-123",
+    questionario: selagemData.survey_id || "SEHAB-123",
     seiNumber: mainMetadata.numero_sei || "",
     naoAplica: mainMetadata.numero_sei_nao_aplicavel ? "true" : "",
     interviewerName: selagemData.created_by || interviewerNameFromStorage,

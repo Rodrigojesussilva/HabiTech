@@ -23,7 +23,7 @@ export const columns: ColumnDef<Arrolamento>[] = [
     accessorKey: "survey_id",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        Survey ID
+        Id Arrolamento
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),

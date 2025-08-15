@@ -233,7 +233,7 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData) {
     : [mapFamilyFormToFields({}, rootOutrasInfo, rootStatusNotas)]
 
   return {
-    questionario: api?.created_by || 'SEHAB-123',
+    questionario: api?.survey_id || 'SEHAB-123',
     seiNumber: survey?.main_metadata?.numero_sei || '',
     sealNumber: survey?.main_metadata?.numero_selo || '',
     numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
