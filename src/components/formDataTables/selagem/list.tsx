@@ -64,7 +64,7 @@ export default function DemoPage() {
         return res.json()
       })
 
-      await fetchData(true)
+      await fetchData()
       alert('Selagem deletada com sucesso!')
     } catch (error) {
       console.error('Erro ao deletar selagem:', error)
@@ -214,7 +214,7 @@ export default function DemoPage() {
         console.warn('Aviso: não foi possível marcar a nova visita como em andamento automaticamente.', e)
       }
 
-      await fetchData(true)
+      await fetchData()
       alert('Nova visita criada com sucesso!')
     } catch (error) {
       console.error('Erro ao criar nova visita:', error)
@@ -231,16 +231,14 @@ export default function DemoPage() {
     setEndDate("")
   }
 
-  const fetchData = async (ignoreCreatedByFilter: boolean = false) => {
-    // Não retornar mais cedo; vamos sempre buscar usando um intervalo amplo quando não houver filtros
+  const fetchData = async () => {
     setLoading(true)
-    console.log("ignoreCreatedByFilter", ignoreCreatedByFilter);
     try {
       const token = localStorage.getItem('authToken') || ''
 
-      // Regra: SOMENTE um parâmetro de filtro por vez
-      // - Se houver created_by, NÃO enviar datas
-      // - Caso contrário, enviar apenas intervalo amplo de datas
+      // Lógica de filtro: SOMENTE um parâmetro de filtro por vez
+      // - Se houver created_by, NÃO enviar datas (filtro por criador)
+      // - Caso contrário, enviar apenas intervalo de datas (com valores padrão amplos)
       let request: any = {}
       if (createdBy.trim()) {
         request = { created_by: createdBy.trim() }
@@ -314,7 +312,7 @@ export default function DemoPage() {
 
   // Buscar automaticamente ao montar, sem filtro
   useEffect(() => {
-    fetchData(true)
+    fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -323,7 +321,7 @@ export default function DemoPage() {
       <div className="flex flex-col text-left ml-10 mt-10 gap-4">
         <h1 className="text-2xl font-bold">Listagem de Formulários de Selagens</h1>
         
-        <div className="flex flex-row gap-4 items-end">
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex flex-col">
             <label htmlFor="created-by" className="text-sm font-medium text-gray-700">
               Criado por
@@ -338,8 +336,34 @@ export default function DemoPage() {
             />
           </div>
 
+          <div className="flex flex-col">
+            <label htmlFor="initial-date" className="text-sm font-medium text-gray-700">
+              Data Inicial
+            </label>
+            <input
+              type="date"
+              id="initial-date"
+              className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={initialDate}
+              onChange={(e) => setInitialDate(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
+              Data Final
+            </label>
+            <input
+              type="date"
+              id="end-date"
+              className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+
           <button
-            onClick={() => fetchData(true)}
+            onClick={() => fetchData()}
             disabled={loading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
@@ -357,7 +381,7 @@ export default function DemoPage() {
         </div>
 
         <p className="text-sm text-gray-500">
-          Visualize ou modifique os dados de selagens. 
+          Visualize ou modifique os dados de selagens. Use os filtros por criador ou por período de datas.
         </p>
       </div>
 

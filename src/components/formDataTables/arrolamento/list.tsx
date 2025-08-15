@@ -100,7 +100,7 @@ export default function ArrolamentoList() {
         console.warn('Aviso: não foi possível marcar a nova visita como em andamento automaticamente.', e)
       }
 
-      await fetchData(true)
+      await fetchData()
       alert('Nova visita criada com sucesso!')
     } catch (e) {
       console.error('Erro ao criar nova visita de arrolamento:', e)
@@ -122,7 +122,7 @@ export default function ArrolamentoList() {
         if (!res.ok) throw new Error(await res.text())
         return res.json()
       })
-      await fetchData(true)
+      await fetchData()
       alert('Arrolamento removido com sucesso!')
     } catch (e) {
       console.error('Erro ao remover arrolamento:', e)
@@ -132,9 +132,19 @@ export default function ArrolamentoList() {
     }
   }
 
-  const fetchData = async (_ignoreCreatedByFilter: boolean = false) => {
+  const clearData = () => {
+    setData([])
+    setCreatedBy("")
+    setInitialDate("")
+    setEndDate("")
+  }
+
+  const fetchData = async () => {
     setLoading(true)
     try {
+      // Lógica de filtro: SOMENTE um parâmetro de filtro por vez
+      // - Se houver created_by, NÃO enviar datas (filtro por criador)
+      // - Caso contrário, enviar apenas intervalo de datas (com valores padrão amplos)
       let request: any = {}
       if (createdBy.trim()) {
         request = { created_by: createdBy.trim() }
@@ -188,22 +198,73 @@ export default function ArrolamentoList() {
     }
   }
 
-  useEffect(() => { fetchData(true) /* auto load */ }, [])
+  useEffect(() => { fetchData() /* auto load */ }, [])
 
   return (
     <>
       <div className="flex flex-col text-left ml-10 mt-10 gap-4">
         <h1 className="text-2xl font-bold">Listagem de Formulários de Arrolamento</h1>
-        <div className="flex flex-row gap-4 items-end">
+        <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex flex-col">
-            <label htmlFor="created-by" className="text-sm font-medium text-gray-700">Criado por</label>
-            <input type="text" id="created-by" className="border border-gray-300 rounded px-3 py-1 mt-1" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)} placeholder="Nome do criador" />
+            <label htmlFor="created-by" className="text-sm font-medium text-gray-700">
+              Criado por
+            </label>
+            <input
+              type="text"
+              id="created-by"
+              className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={createdBy}
+              onChange={(e) => setCreatedBy(e.target.value)}
+              placeholder="Nome do criador"
+            />
           </div>
-          <button onClick={() => fetchData(true)} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">{loading ? "Carregando..." : "Filtrar"}</button>
-          <button onClick={() => { setData([]); setCreatedBy(""); setInitialDate(""); setEndDate("") }} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">🗑️ Limpar</button>
+
+          <div className="flex flex-col">
+            <label htmlFor="initial-date" className="text-sm font-medium text-gray-700">
+              Data Inicial
+            </label>
+            <input
+              type="date"
+              id="initial-date"
+              className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={initialDate}
+              onChange={(e) => setInitialDate(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
+              Data Final
+            </label>
+            <input
+              type="date"
+              id="end-date"
+              className="border border-gray-300 rounded px-3 py-1 mt-1"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Carregando..." : "Filtrar"}
+          </button>
+
+          <button
+            onClick={clearData}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            🗑️ Limpar
+          </button>
+
           {loading && <Loader />}
         </div>
-        <p className="text-sm text-gray-500">Visualize ou modifique os dados de arrolamento.</p>
+        <p className="text-sm text-gray-500">
+          Visualize ou modifique os dados de arrolamento. Use os filtros por criador ou por período de datas.
+        </p>
       </div>
       <div className="container mx-auto p-10">
         <DataTable columns={columns as any} data={data} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} onDelete={handleDelete} />
