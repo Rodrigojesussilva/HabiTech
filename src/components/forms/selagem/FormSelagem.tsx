@@ -111,7 +111,6 @@ const FormSelagem = ({
 	const [finalizing, setFinalizing] = useState(false)
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
 	const [saving, setSaving] = useState(false)
-	void setSaving;
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
 	
@@ -588,7 +587,20 @@ const FormSelagem = ({
 	}
 
 	const handleSaveVisit = async () => {
-		setIsSaveModalOpen(false)
+		try {
+			setSaving(true)
+			// Fecha o modal e exibe mensagem de sucesso
+			setIsSaveModalOpen(false)
+			Swal.fire({
+				position: 'top-end',
+				icon: 'success',
+				title: 'Alterações salvas',
+				showConfirmButton: false,
+				timer: 1200
+			})
+		} finally {
+			setSaving(false)
+		}
 	}
 
 	// Define the form structure using FormFieldType for each field

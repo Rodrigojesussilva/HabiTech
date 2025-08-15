@@ -112,6 +112,8 @@ const FormArrolamento = ({
  	const navigate = useNavigate();
  	const params = useParams();
  		const isViewMode = useViewMode();
+	const isEditMode = Boolean(params.id);
+	const [isLoadingData, setIsLoadingData] = useState(false);
 	const [loadedArrolamentoData, setLoadedArrolamentoData] = useState<any>(null);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -261,6 +263,7 @@ const FormArrolamento = ({
  	useEffect(() => {
  		const load = async () => {
  			if (!params.id) return;
+ 			setIsLoadingData(true);
  			try {
  				const token = localStorage.getItem('authToken') || ''
  				console.log('[Arrolamento][Load] starting GET by id', { id: params.id, tokenPresent: !!token })
@@ -328,10 +331,12 @@ const FormArrolamento = ({
  				}
  			} catch (e) {
  				console.warn('Falha ao carregar arrolamento para exibição do cabeçalho:', e)
+ 			} finally {
+ 				setIsLoadingData(false);
  			}
  		}
  		load()
- 	}, [params.id])
+ 	}, [params.id, interviewerNameFromStorage])
 
 	// Handle form submission for FormArrolamento
 	const handleSubmit = (data: FormValues) => {
@@ -655,10 +660,17 @@ return (
 					>
 
 						<DialogHeader>
-							<DialogTitle>Arrolamento {loadedArrolamentoData?.survey_id ? `- ${loadedArrolamentoData.survey_id}` : ''}</DialogTitle>
+							<DialogTitle>
+								{isViewMode ? `👁️ Visualizando Arrolamento ${loadedArrolamentoData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : 
+								 isEditMode ? `✏️ Editando Arrolamento ${loadedArrolamentoData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : "➕ Novo Arrolamento"}
+							</DialogTitle>
 
 							<DialogDescription>
-								Preencha os campos abaixo:
+								{isViewMode ? "Visualização somente leitura" :
+								 isEditMode 
+									? `Modifique os dados do arrolamento existente${loadedArrolamentoData ? ' (dados carregados)' : ' (carregando...)'}`
+									: "Preencha os campos abaixo:"
+								}
 							</DialogDescription>
 						</DialogHeader>
 
@@ -898,14 +910,22 @@ return (
 				</Dialog>
 
 				<div className="flex flex-row justify-between gap-2">
-					<div className="text-left text-lg font-bold">
-						Arrolamento {loadedArrolamentoData?.survey_id ? `- ${loadedArrolamentoData.survey_id}` : ''}
+					<div className="text-left text-lg font-bold flex items-center gap-2">
+						{isEditMode ? (
+							<>
+								<span>Editando Arrolamento</span>
+								{isLoadingData && <span className="text-sm text-blue-600 animate-pulse">(Carregando dados...)</span>}
+								{loadedArrolamentoData && <span className="text-sm text-green-600">({loadedArrolamentoData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
+							</>
+						) : (
+							<span>Novo Arrolamento</span>
+						)}
 					</div>
 
 					<div className="text-right flex flex-row gap-2">
 						<h3>Preenchimento:</h3>
 						<p className="text-primary">
-							0%
+							{isEditMode && loadedArrolamentoData ? "Dados carregados" : "0%"}
 						</p>
 					</div>
 				</div>
