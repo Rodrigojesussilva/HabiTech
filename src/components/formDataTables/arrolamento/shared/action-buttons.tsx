@@ -22,7 +22,7 @@ export function ActionButtons({
   size = 'default'
 }: ActionButtonsProps) {
   const baseButtonClass = layout === 'grid' 
-    ? "h-12 flex flex-col items-center gap-1" 
+    ? "h-11 flex flex-col items-center gap-1 text-xs" 
     : "cursor-pointer";
   
   const buttonSize = size === 'sm' ? 'sm' : undefined;
@@ -30,7 +30,7 @@ export function ActionButtons({
   const padding = layout === 'horizontal' ? "p-0.5 md:p-1" : "";
   
   const containerClass = layout === 'grid' 
-    ? "grid grid-cols-2 gap-2" 
+    ? "grid grid-cols-2 gap-1.5" 
     : "flex items-center justify-center gap-0.5 md:gap-1 px-1 py-1 md:px-2 md:py-1";
 
   return (
@@ -43,7 +43,7 @@ export function ActionButtons({
         title="Visualizar"
       >
         <EyeIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs">Visualizar</span>}
+        {layout === 'grid' && <span className="text-xs leading-tight">Visualizar</span>}
       </Button>
       
       <Button
@@ -55,7 +55,7 @@ export function ActionButtons({
         title={item.completed ? 'Edição indisponível para visitas concluídas' : 'Editar'}
       >
         <PencilIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs">Editar</span>}
+        {layout === 'grid' && <span className="text-xs leading-tight">Editar</span>}
       </Button>
       
       <Button
@@ -67,7 +67,7 @@ export function ActionButtons({
         title={!item.completed ? 'Finalize a visita atual para liberar nova visita' : 'Criar nova visita'}
       >
         <PlusIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs">Nova Visita</span>}
+        {layout === 'grid' && <span className="text-xs leading-tight">Nova Visita</span>}
       </Button>
       
       <Button
@@ -78,7 +78,7 @@ export function ActionButtons({
         title="Deletar"
       >
         <TrashIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs">Deletar</span>}
+        {layout === 'grid' && <span className="text-xs leading-tight">Deletar</span>}
       </Button>
     </div>
   );

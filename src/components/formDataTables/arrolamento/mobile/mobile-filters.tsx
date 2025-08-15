@@ -70,7 +70,7 @@ export function MobileFilters({
       
       {/* FILTROS AVANÇADOS COLLAPSIBLE */}
       {showAdvanced && (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-md border">
+        <div className="space-y-3 p-3 bg-gray-50 rounded-md border">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Criado por
@@ -84,7 +84,7 @@ export function MobileFilters({
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Data Inicial

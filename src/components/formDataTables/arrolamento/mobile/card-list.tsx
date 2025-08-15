@@ -15,7 +15,7 @@ export function CardList({ data, onView, onEdit, onNewVisit, onDelete }: Arrolam
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 w-full">
       {data.map((item) => (
         <CardItem
           key={item.id}

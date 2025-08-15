@@ -24,7 +24,7 @@ export function CardItem({ item, onView, onEdit, onNewVisit, onDelete }: CardIte
   };
 
   return (
-    <div className="bg-white rounded-lg border p-4 shadow-sm">
+    <div className="bg-white rounded-lg border p-3 shadow-sm w-full">
       {/* HEADER DO CARD */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
