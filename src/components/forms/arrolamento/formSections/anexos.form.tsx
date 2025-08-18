@@ -7,6 +7,8 @@ import Swal from 'sweetalert2';
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import survey_resource from "@/service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constants"
+import { useCameraModal } from "@/components/camera/useCameraModal";
+import { useAtualizaOnClickBotao } from "@/components/camera/useAtualizaOnClickBotao";
 
 interface AnexosFormProps {
   id?: string;
@@ -27,6 +29,11 @@ type AttachmentItem = {
 const SECTION_KEY = 'anexos'
 
 const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProps) => {
+
+
+
+
+
   const [open, setOpen] = useState(false)
   const form = useFormContext();
   const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -36,7 +43,13 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   const params = useParams<{ id: string }>()
   const routeArrolamentoId = params.id || ''
   const arrolamentoIdLS = localStorage.getItem('arrolamentoId') || ''
-
+  // ... dentro do AnexosForm:
+  const { abrirCamera } = useCameraModal();
+  const camposComOnClick = useAtualizaOnClickBotao(
+    formSections[0]?.fields || [],
+    familyIndex,
+    abrirCamera
+  );
   const getAuthToken = (): string => {
     const keys = ['authToken', 'authorization_token', 'token', 'access_token', 'jwt', 'idToken']
     for (const k of keys) {
@@ -55,6 +68,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const localKey = (sid: string) => `arrolamento_attachments_${sid}`
+
   const saveLocalAttachment = (sid: string, field: string, item: AttachmentItem) => {
     try {
       const key = localKey(sid)
@@ -207,7 +221,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         setAttachmentsByField(prev => {
           const next = { ...prev }
           if (!next[fieldName]) next[fieldName] = []
-          next[fieldName] = [ ...(next[fieldName] || []), newItem ]
+          next[fieldName] = [...(next[fieldName] || []), newItem]
           return next
         })
         saveLocalAttachment(currentId, fieldName, newItem)
@@ -332,6 +346,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
+
+
   return (
     <div className="text-left">
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -344,7 +360,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           {formSections.map((section, sectionIndex) => (
             <div key={section.id} className="mb-2">
               <FormSectionRenderer
-                section={section}
+                section={{ ...formSections[0], fields: camposComOnClick }}
                 formControl={form.control}
                 getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
                 sectionIndex={sectionIndex}
@@ -352,6 +368,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                 showSectionLabel={false}
                 familyIndex={familyIndex}
               />
+
               {/* listas por campo */}
               <div className="grid grid-cols-1 gap-2">
                 <div>
