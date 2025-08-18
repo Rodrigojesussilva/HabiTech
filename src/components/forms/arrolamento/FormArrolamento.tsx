@@ -97,6 +97,7 @@ interface FormArrolamentoProps {
 	activeFamilyIndex: number;
 	mostrarSecoes: boolean;
 	onChangeMostrarSecoes: (value: boolean) => void;
+	isMobile?: boolean;
 }
 
 const FormArrolamento = ({
@@ -107,7 +108,8 @@ const FormArrolamento = ({
 	setIsMetadataModalOpen,
 	activeFamilyIndex,
 	mostrarSecoes,
-	onChangeMostrarSecoes
+	onChangeMostrarSecoes,
+	isMobile = false
 }: FormArrolamentoProps) => {
  	const navigate = useNavigate();
  	const params = useParams();
@@ -640,7 +642,7 @@ const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 
 return (
 
-	<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+	<div ref={ref} className={`text-left ${isMobile ? 'pb-20' : ''}`} nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 				{/* Dialog for metadata fields */}
@@ -953,8 +955,8 @@ return (
 					</div>
 				))}
 
- 				{/* Botões finais */}
- 				<div className="flex flex-row justify-end gap-2 mt-6">
+ 								{/* Botões finais */}
+				<div className={`flex flex-row justify-end gap-2 mt-6 ${isMobile ? 'mb-20' : ''}`}>
  					<Button type="button" variant="outline" disabled={isViewMode || saving} onClick={() => setIsSaveModalOpen(true)}>
  						{saving ? 'Salvando...' : 'Salvar'}
  					</Button>
