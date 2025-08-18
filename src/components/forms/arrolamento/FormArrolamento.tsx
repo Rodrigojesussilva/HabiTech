@@ -123,7 +123,7 @@ const FormArrolamento = ({
 	const [saving, setSaving] = useState(false);
 	const serverMainMetadataRef = useRef<any>(null);
    const ignoreNextCloseRef = useRef(false);
-	
+	console.log(isMobile);
 	const interviewerNameFromStorage = 'Piloto Instrumentos';
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({

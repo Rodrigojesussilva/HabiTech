@@ -115,7 +115,7 @@ const FormSelagem = ({
 	const [saving, setSaving] = useState(false)
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
-	
+	console.log(isMobile);
 	const interviewerNameFromStorage = 'Piloto Instrumentos';
 
 	const form = useForm<FormValues>({
