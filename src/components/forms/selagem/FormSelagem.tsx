@@ -83,7 +83,7 @@ const formSchema = z.object({
 // Define the form data type from the schema
 type FormValues = z.infer<typeof formSchema>;
 
-interface FormArrolamentoProps {
+interface FormSelagemProps {
 	ref: Ref<HTMLDivElement>;
 	defaultValues?: Partial<FormValues>;
 	onSubmit?: (data: FormValues) => void;
@@ -91,6 +91,7 @@ interface FormArrolamentoProps {
 	setIsMetadataModalOpen: (open: boolean) => void;
 	activeFamilyIndex: number;
 	viewMode?: boolean;
+	isMobile?: boolean;
 }
 
 const FormSelagem = ({
@@ -100,8 +101,9 @@ const FormSelagem = ({
 	isMetadataModalOpen,
 	setIsMetadataModalOpen,
 	activeFamilyIndex,
-	viewMode = false
-}: FormArrolamentoProps) => {
+	viewMode = false,
+	isMobile = false
+}: FormSelagemProps) => {
 	const { id: selagemId } = useParams<{ id: string }>()
 	const navigate = useNavigate()
 	const isEditMode = Boolean(selagemId)
@@ -763,7 +765,7 @@ const FormSelagem = ({
 	};
 
 	return (
-		<div ref={ref} className="text-left" nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+		<div ref={ref} className={`text-left ${isMobile ? 'pb-20' : ''}`} nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 			{/* Modal de confirmação */}
 			<Dialog open={isFinalizeModalOpen} onOpenChange={setIsFinalizeModalOpen}>
 				<DialogContent>
@@ -1147,7 +1149,7 @@ const FormSelagem = ({
 					))}
 
 					{/* Botões de ação no final do formulário */}
-					<div className="flex justify-end mt-6 gap-2">
+					<div className={`flex justify-end mt-6 gap-2 ${isMobile ? 'mb-20' : ''}`}>
 						<Button
 							variant="default"
 							onClick={(e) => { e.preventDefault(); setIsSaveModalOpen(true) }}
