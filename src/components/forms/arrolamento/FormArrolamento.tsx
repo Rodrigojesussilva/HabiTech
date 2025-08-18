@@ -642,7 +642,7 @@ const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 
 return (
 
-	<div ref={ref} className={`text-left ${isMobile ? 'pb-20' : ''}`} nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+	<div ref={ref} className="text-left" nome-form="Arrolamento" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 				{/* Dialog for metadata fields */}
@@ -956,7 +956,7 @@ return (
 				))}
 
  								{/* Botões finais */}
-				<div className={`flex flex-row justify-end gap-2 mt-6 ${isMobile ? 'mb-20' : ''}`}>
+				<div className="flex flex-row justify-end gap-2 mt-6">
  					<Button type="button" variant="outline" disabled={isViewMode || saving} onClick={() => setIsSaveModalOpen(true)}>
  						{saving ? 'Salvando...' : 'Salvar'}
  					</Button>

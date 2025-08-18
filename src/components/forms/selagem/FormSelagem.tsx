@@ -765,7 +765,7 @@ const FormSelagem = ({
 	};
 
 	return (
-		<div ref={ref} className={`text-left ${isMobile ? 'pb-20' : ''}`} nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
+		<div ref={ref} className="text-left" nome-form="Selagem" descr-form="Este formulário tem como objetivo coletar informações dos moradores em situação precária">
 			{/* Modal de confirmação */}
 			<Dialog open={isFinalizeModalOpen} onOpenChange={setIsFinalizeModalOpen}>
 				<DialogContent>
@@ -937,12 +937,23 @@ const FormSelagem = ({
 
 									console.log("✅ Validação passou - preparando dados para envio...");
 
-									localStorage.setItem("seiNumberS", String(seiNumber));									
-									console.log("📋 Modo de operação:", isEditMode ? "EDIÇÃO (PATCH)" : "CRIAÇÃO (POST)");
+									localStorage.setItem("seiNumberS", String(seiNumber));
+									
+									// LÓGICA CONDICIONAL: POST vs PATCH baseada no ID efetivo (corrigido para evitar duplicatas)
+									const effectiveSelagemId = selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId') || ''
+									console.log("🔍 Verificando ID efetivo para decidir operação:", {
+										selagemId,
+										loadedSelagemDataId: loadedSelagemData?.id,
+										localStorageId: localStorage.getItem('selagemId'),
+										effectiveSelagemId
+									});
+									
+									console.log("📋 Modo de operação:", effectiveSelagemId ? "EDIÇÃO (PATCH)" : "CRIAÇÃO (POST)");
 
-									// LÓGICA CONDICIONAL: POST vs PATCH baseada na tabela de controle
-									if (isEditMode && selagemId) {
-										// MODO EDIÇÃO: Atualizar metadados usando PATCH direto (mesmo padrão dos outros componentes)
+									if (effectiveSelagemId) {
+										// MODO EDIÇÃO/ATUALIZAÇÃO: Atualizar metadados usando PATCH com ID efetivo
+										console.log("📝 MODO EDIÇÃO - Atualizando registro existente:", effectiveSelagemId);
+										
 										const mainMetadataFormData = {
 											created_by: (localStorage.getItem('userEmail') || questionario),
 											main_metadata: {
@@ -966,8 +977,8 @@ const FormSelagem = ({
 
 										try {
 											// PATCH 1: Atualizar main_metadata
-											console.log("🔄 Atualizando main_metadata para selagem:", selagemId);
-											const path = `/v1/selagens/${selagemId}`;
+											console.log("🔄 Atualizando main_metadata para selagem:", effectiveSelagemId);
+											const path = `/v1/selagens/${effectiveSelagemId}`;
 											const url = `${SURVEY_RESOURCE_BASE_URL}${path}`;
 
 											const response1 = await fetch(url, {
@@ -1041,7 +1052,8 @@ const FormSelagem = ({
 											});
 										}
 									} else {
-										// MODO CRIAÇÃO: Usar POST para criar nova selagem (lógica original)
+										// MODO CRIAÇÃO: Usar POST para criar nova selagem
+										console.log("➕ MODO CRIAÇÃO - Criando novo registro");
 																			const dataToSend = {
 										created_by: (localStorage.getItem('userEmail') || questionario),
 										main_metadata: {
@@ -1062,6 +1074,7 @@ const FormSelagem = ({
 											if (json?.selagem?.id) {
 												setLoadedSelagemData(json.selagem)
 												localStorage.setItem('selagemId', json.selagem.id)
+												console.log("💾 Registro criado com sucesso - ID salvo:", json.selagem.id);
 												if (json.selagem.visit_count !== undefined) {
 													form.setValue('visitNumber', String(json.selagem.visit_count))
 												}
@@ -1107,7 +1120,7 @@ const FormSelagem = ({
 									}}
 									className="mt-4"
 								>
-									{isEditMode ? "Atualizar Selagem" : "Abrir Visita"}
+									{(selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId')) ? "Atualizar Selagem" : "Abrir Visita"}
 								</Button>
 							)}
 
@@ -1149,7 +1162,7 @@ const FormSelagem = ({
 					))}
 
 					{/* Botões de ação no final do formulário */}
-					<div className={`flex justify-end mt-6 gap-2 ${isMobile ? 'mb-20' : ''}`}>
+					<div className="flex justify-end mt-6 gap-2">
 						<Button
 							variant="default"
 							onClick={(e) => { e.preventDefault(); setIsSaveModalOpen(true) }}
