@@ -70,7 +70,7 @@ const familySchema = z.object({
 const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
-	naoAplica: z.string().optional(),
+	naoAplica: z.boolean().optional(),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
 	interviewDate: z.string(),
 	startTime: z.string(),
@@ -132,7 +132,7 @@ const FormArrolamento = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
-			naoAplica: "",
+			naoAplica: false,
 			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
@@ -706,6 +706,7 @@ return (
 									sectionIndex={sectionIndex}
 									handleModalFields={true}
 									showSectionLabel={false}
+									formValues={{ ...form.watch(), naoAplica: !!form.watch('naoAplica') }}
 								/>
 							</div>
 						))}
@@ -790,12 +791,12 @@ return (
 
 								const dataToSend = {
 									created_by: (localStorage.getItem('userEmail') || questionario),
-									main_metadata: {
-										numero_sei: values.naoAplica ? "N/A" : seiNumber,
-										numero_sei_nao_aplicavel: Boolean(values.naoAplica),
-										numero_selo: sealNumber,
-										quantidade_familias: numberFamilies,
-									},
+																					main_metadata: {
+													numero_sei: values.naoAplica ? "N/A" : seiNumber,
+													numero_sei_nao_aplicavel: values.naoAplica,
+													numero_selo: sealNumber,
+													quantidade_familias: numberFamilies,
+												},
 									authorization_token: localStorage.getItem('authToken') || ''
 								};
 

@@ -235,7 +235,7 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
   return {
     questionario: api?.survey_id || 'SEHAB-123',
     seiNumber: survey?.main_metadata?.numero_sei || '',
-    naoAplica: survey?.main_metadata?.numero_sei_nao_aplicavel ? "true" : "",
+    naoAplica: Boolean(survey?.main_metadata?.numero_sei_nao_aplicavel),
     sealNumber: survey?.main_metadata?.numero_selo || '',
     numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
     visitNumber: api?.visit_count != null ? String(api.visit_count) : '',
