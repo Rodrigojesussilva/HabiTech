@@ -35,52 +35,17 @@ export const anexosDefinition: FormConfig = {
                     required: false,
                 },
                 {
-                    name: "botaoComprovanteRenda",
-                    label: "", // sem label no botão
-                    type: "button" as const,
-                    required: false,
-                    insertAfterField: "anexoComprovanteRenda",
-                    dependent: true,
-                    onClick: () => {
-                        console.log("Abrir câmera para comprovante de renda");
-                    },
-                },
-
-                {
                     name: "anexoCarteiraTrabalho",
                     label: "Anexos - Carteira de trabalho",
                     type: "file" as const,
                     required: false,
                 },
                 {
-                    name: "botaoCarteiraTrabalho",
-                    label: "", // sem label no botão
-                    type: "button" as const,
-                    required: false,
-                    insertAfterField: "anexoCarteiraTrabalho",
-                    dependent: true,
-                    onClick: () => {
-                        console.log("Abrir câmera para carteira de trabalho");
-                    },
-                },
-
-                {
                     name: "anexoArea",
                     label: "Anexos - Área",
                     type: "file" as const,
                     required: false,
-                },
-                {
-                    name: "botaoArea",
-                    label: "", // sem label no botão
-                    type: "button" as const,
-                    required: false,
-                    insertAfterField: "anexoArea",
-                    dependent: true,
-                    onClick: () => {
-                        console.log("Abrir câmera para área");
-                    },
-                },
+                }               
             ],
         },
     ],
