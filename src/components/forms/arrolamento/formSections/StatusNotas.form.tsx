@@ -209,6 +209,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
                 // Ainda vamos calcular mudanças antes de decidir retornar
             }
             const activeFieldName = document.activeElement?.getAttribute("name");
+            console.log('[Arrolamento][StatusNotas] useEffect: activeFieldName', activeFieldName);
 
             const currentValues = {
                 justificativa: form.getValues(`families[${familyIndex}].justificativa`),
