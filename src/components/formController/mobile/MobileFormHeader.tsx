@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
+import { useEffect, useState } from 'react';
 
 interface MobileFormHeaderProps {
   activeFamilyIndex: number;
@@ -14,12 +15,42 @@ export function MobileFormHeader({
   setIsMetadataModalOpen,
   formName 
 }: MobileFormHeaderProps) {
-  const { form } = useFormMetadata();
+  const { form: globalForm } = useFormMetadata();
+  const [form, setForm] = useState(globalForm || null);
+  // Force re-render on any form change (watch) so SEI/Selo update after form.reset
+  const [formVersion, setFormVersion] = useState(0);
+  useEffect(() => {
+    if (!form) return;
+    const subscription: any = (form as any).watch(() => {
+      setFormVersion((v) => v + 1);
+    });
+    return () => {
+      if (typeof subscription === 'function') subscription();
+      else if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe();
+    };
+  }, [form]);
 
-  if (!form) return null;
+  void formVersion;
 
-  const numberFamilies = form.getValues("numberFamilies") || 1;
+  // Detect when the global form becomes available after mount (e.g., after navigation from list)
+  useEffect(() => {
+    if (form) return; // already set
+    let tries = 0;
+    const id = setInterval(() => {
+      const { form: current } = useFormMetadata();
+      if (current) {
+        setForm(current);
+        clearInterval(id);
+      }
+      if (++tries > 50) clearInterval(id); // ~5s max
+    }, 100);
+    return () => clearInterval(id);
+  }, [form]);
+
+  const numberFamilies = form?.getValues("numberFamilies") || 1;
   const isArrolamento = formName === "Arrolamento";
+  const sei = form?.getValues('seiNumber') || '-';
+  const selo = form?.getValues('sealNumber') || '-';
 
   return (
     <div className="lg:hidden md:hidden bg-white border-b p-3 sticky top-0 z-40 shadow-sm">
@@ -28,15 +59,11 @@ export function MobileFormHeader({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <span className="text-xs text-gray-600">SEI:</span>
-            <span className="text-sm font-mono font-medium">
-              {form.getValues('seiNumber') || '-'}
-            </span>
+            <span className="text-sm font-mono font-medium">{sei}</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="text-xs text-gray-600">Selo:</span>
-            <span className="text-sm font-mono">
-              {form.getValues('sealNumber') || '-'}
-            </span>
+            <span className="text-sm font-mono">{selo}</span>
           </div>
         </div>
         <Button 
@@ -81,7 +108,7 @@ export function MobileFormHeader({
             <div className="flex items-center gap-1">
               <span className="text-gray-600">Início:</span>
               <span className="font-mono">
-                {form.getValues('firstVisitStart')?.split(' - ')[1] || '-'}
+                {form?.getValues('firstVisitStart')?.split(' - ')[1] || '-'}
               </span>
             </div>
           </div>
