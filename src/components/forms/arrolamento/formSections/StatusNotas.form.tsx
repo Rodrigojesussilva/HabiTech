@@ -55,23 +55,48 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     }
 
     const fetchData = async () => {
-        if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
-        const seiFromStorageRaw = localStorage.getItem("seiNumber");
-        const seiFromStorage = Number(seiFromStorageRaw);
+        // Sempre faz GET para refletir dados atuais; PATCH fica no handler de blur
+        const idLS = localStorage.getItem('arrolamentoId')
+        const token = localStorage.getItem('authToken') || ''
 
         try {
-            const request = {
-                numero_sei: seiFromStorage,
-                initial_date: initialDate,
-                end_date: endDate,
-                
-            };
-                        
-            const response = await fetchArrolamento(request);
-
-            if (isGetArrolamentoResponse(response)) {
-                await handleStatusNotasResponse(response);
+            let request: any
+            console.log('[Arrolamento][StatusNotas] fetchData: idLS', idLS);
+            console.log('[Arrolamento][StatusNotas] fetchData: token', token);  
+            if (idLS) {
+                request = { id: idLS, authorization_token: token }
+            } else {
+                const seiFromStorage = localStorage.getItem("seiNumber")
+                request = {
+                    numero_sei: seiFromStorage,
+                    initial_date: initialDate,
+                    end_date: endDate,
+                    authorization_token: token,
+                }
             }
+            const response = await fetchArrolamento(request);
+            console.log('[Arrolamento][StatusNotas] fetchData: response', response);
+            if (isGetArrolamentoResponse(response)) {
+                console.log('[Arrolamento][StatusNotas] fetchData: triggeredByBlurRef1', triggeredByBlurRef.current);
+                if (triggeredByBlurRef.current) {
+                    // Edição ativa: envia PATCH com os valores atuais do formulário
+                    await handleStatusNotasResponse(response)
+                } else {
+                    // Apenas popular campos para exibição
+                    const arrolamento = response.arrolamentos?.[0]
+                    const sn = arrolamento ? (arrolamento as any).status_notas : undefined
+                    if (arrolamento && sn) {
+                        form.setValue(`families[${familyIndex}].status`, sn.status || '')
+                        form.setValue(`families[${familyIndex}].justificativa`, sn.justificativa || '')
+                        form.setValue(`families[${familyIndex}].nomeSupervisor`, sn.nome_supervisor || '')
+                        form.setValue(`families[${familyIndex}].observacao`, sn.observacao || '')
+                        localStorage.setItem('arrolamentoId', (arrolamento as any).id || idLS || '')
+                        localStorage.setItem('arrolamentoCreated_by', (arrolamento as any).created_by || localStorage.getItem('arrolamentoCreated_by') || '')
+                    }
+                }
+            }
+            console.log('[Arrolamento][StatusNotas] fetchData: triggeredByBlurRef2', triggeredByBlurRef.current);
+            triggeredByBlurRef.current = false
         } catch (error) {
             console.error("Erro ao buscar arrolamentos:", error);
             showErrorMessage("Erro ao buscar dados do arrolamento");
@@ -99,12 +124,15 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
             }
 
             const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+                ...(req.headers || {}),
+            }
+            if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
             const res = await fetch(url, {
                 method: req.method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(req.headers || {}),
-                },
+                headers,
             });
 
             if (!res.ok) {
@@ -119,9 +147,10 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     const handleStatusNotasResponse = async (response: any) => {
         if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][StatusNotas] View/Completed: PATCH bloqueado'); return; }
         const arrolamento = response.arrolamentos?.[0];
+        console.log('[Arrolamento][StatusNotas] handleStatusNotasResponse: arrolamento', arrolamento);
         if (arrolamento) {
             const arrolamentoId = arrolamento.id;
-            const criadoPor = arrolamento.created_by;
+            const criadoPor = arrolamento.created_by || localStorage.getItem('arrolamentoCreated_by') || localStorage.getItem('userEmail') || '';
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
@@ -162,12 +191,17 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     };
 
     useEffect(() => {
+        console.log('[Arrolamento][StatusNotas] useEffect: isActive', isActive);
+        console.log('[Arrolamento][StatusNotas] useEffect: isViewMode', isViewMode);
+        console.log('[Arrolamento][StatusNotas] useEffect: isCompletedNow', isCompletedNow());
         if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
         const handleBlur = async () => {
             // Evita PATCH antes do usuário abrir a seção ao menos uma vez
+            console.log('[Arrolamento][StatusNotas] useEffect: hasSectionBeenOpenedRef', hasSectionBeenOpenedRef.current);
             if (!hasSectionBeenOpenedRef.current) {
                 return;
             }
+            console.log('[Arrolamento][StatusNotas] useEffect: hasSectionBeenOpenedRef', hasSectionBeenOpenedRef.current);
             // Evita PATCH no primeiro blur após a abertura da seção somente quando não houve mudança
             // (para que a primeira edição real já dispare o PATCH)
             // Nota: esta seção pode já estar aberta por padrão conforme UX
@@ -176,23 +210,25 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
             }
             const activeFieldName = document.activeElement?.getAttribute("name");
 
-            const fields = {
-                justificativa: justificativa,
-                nome_supervisor: nomeSupervisor,
-                observacao: observacao,
-                status: status,
-            };
+            const currentValues = {
+                justificativa: form.getValues(`families[${familyIndex}].justificativa`),
+                nome_supervisor: form.getValues(`families[${familyIndex}].nomeSupervisor`),
+                observacao: form.getValues(`families[${familyIndex}].observacao`),
+                status: form.getValues(`families[${familyIndex}].status`),
+            } as Record<string, any>;
 
             let shouldFetch = false;
 
-            for (const [key, currentValue] of Object.entries(fields)) {
+            for (const [key, currentValue] of Object.entries(currentValues)) {
                 const prevValue = prevValuesRef.current[key];
-
-                if (currentValue !== prevValue && activeFieldName !== key) {
+                if (currentValue !== prevValue) {
                     shouldFetch = true;
                     prevValuesRef.current[key] = currentValue;
                 }
             }
+
+            console.log('[Arrolamento][StatusNotas] useEffect: firstBlurSkippedRef', firstBlurSkippedRef.current);
+            console.log('[Arrolamento][StatusNotas] useEffect: shouldFetch', shouldFetch);
 
             if (!firstBlurSkippedRef.current && !shouldFetch) {
                 firstBlurSkippedRef.current = true;
@@ -200,9 +236,17 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
             }
 
             if (shouldFetch) {
+                const idLS = localStorage.getItem('arrolamentoId')
+                console.log('[Arrolamento][StatusNotas] useEffect: idLS', idLS);
+                if (idLS) {
+                    // já temos ID; evita GET por SEI e dispara fetchData() com contexto local
+                    triggeredByBlurRef.current = true;
+                    await fetchData();
+                    return;
+                }
                 const seiNumber = localStorage.getItem("seiNumber");
                 const request = {
-                    numero_sei: Number(seiNumber),
+                    numero_sei: seiNumber,
                     initial_date: initialDate,
                     end_date: endDate,
                 };

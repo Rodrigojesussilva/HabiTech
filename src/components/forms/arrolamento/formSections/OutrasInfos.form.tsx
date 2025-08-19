@@ -50,10 +50,20 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
     const fetchData = async () => {
         if (isViewMode || isCompletedNow()) return;
         const idLS = localStorage.getItem('arrolamentoId')
+        const token = localStorage.getItem('authToken') || ''
         if (idLS) {
-            console.log('[Arrolamento][OutrasInf] fetchData: usando fallback localStorage para PATCH imediato')
-            await handleOutrasInfResponse({ arrolamentos: [] })
-            return
+            try {
+                const request = { id: idLS, authorization_token: token } as any
+                const response = await fetchArrolamento(request)
+                if (isGetArrolamentoResponse(response)) {
+                    await handleOutrasInfResponse(response)
+                }
+                return
+            } catch (e) {
+                console.warn('[Arrolamento][OutrasInf] GET por id falhou, caindo para PATCH imediato', e)
+                await handleOutrasInfResponse({ arrolamentos: [] })
+                return
+            }
         }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = seiFromStorageRaw;
@@ -63,6 +73,7 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
                 numero_sei: seiFromStorage,
                 initial_date: initialDate,
                 end_date: endDate,
+                authorization_token: token,
             };
 
             const response = await fetchArrolamento(request);
@@ -99,12 +110,15 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             }
 
             const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+                ...(req.headers || {}),
+            }
+            if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
             const res = await fetch(url, {
                 method: req.method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(req.headers || {}),
-                },
+                headers,
             });
 
             if (!res.ok) {
@@ -127,10 +141,16 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
             if (completedResp) { console.log('[Arrolamento][OutrasInf] Registro concluído. Abortando PATCH.'); return; }
             const arrolamentoId = (target as any).id;
-            const criadoPor = (target as any).created_by;
+            const criadoPor = (target as any).created_by || localStorage.getItem('arrolamentoCreated_by') || localStorage.getItem('userEmail') || '';
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
+
+            // Preenche o texto a partir do backend quando disponível
+            if (arrolamento && (arrolamento as any).outras_informacoes) {
+                const oi = (arrolamento as any).outras_informacoes
+                try { form.setValue(`families[${familyIndex}].texto`, oi.texto || '') } catch {}
+            }
 
             const payload = {
                 created_by: criadoPor,

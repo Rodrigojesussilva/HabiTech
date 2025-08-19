@@ -375,15 +375,17 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 	};
 
 	const fetchData = async () => {
+		console.log('[Arrolamento][Docs] fetchData:start', { isViewMode, isCompletedNow: isCompletedNow() })
 		if (isViewMode || isCompletedNow()) return; // evitar PATCH em visualização
 		const idLS = localStorage.getItem('arrolamentoId')
 		if (idLS) {
-			console.log('[Arrolamento][Docs] fetchData: usando fallback localStorage para PATCH imediato')
+			console.log('[Arrolamento][Docs] fetchData: usando fallback localStorage para PATCH imediato', { idLS })
 			await handleDocumentacaoResponse({ arrolamentos: [] })
 			return
 		}
 		const seiFromStorageRaw = localStorage.getItem("seiNumber");
 		const seiFromStorage = seiFromStorageRaw;
+		console.log('[Arrolamento][Docs] fetchData: composing GET by SEI', { seiFromStorage, initialDate, endDate })
 
 		try {
 			const request = {
@@ -396,6 +398,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 
 
 			if (isGetArrolamentoResponse(response)) {
+				console.log('[Arrolamento][Docs] fetchData: GET success, passing to handler', { hasArrolamentos: Array.isArray((response as any).arrolamentos), len: (response as any).arrolamentos?.length })
 				await handleDocumentacaoResponse(response);
 			}
 
@@ -443,29 +446,30 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		});
 	};
 
-	const handleDocumentacaoResponse = async (response: any) => {
-		if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
-		const arrolamento = response.arrolamentos?.[0] || null;
-		const fallbackId = localStorage.getItem('arrolamentoId') || ''
-		const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
-		const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
-		if (target) {
-			if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
-			const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
-			if (completedResp) { console.log('[Arrolamento][Docs] Registro concluído. Abortando PATCH.'); return; }
-			const arrolamentoId = (target as any).id;
-			const criadoPor = (target as any).created_by;
+			const handleDocumentacaoResponse = async (response: any) => {
+			if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
+			const arrolamento = response.arrolamentos?.[0] || null;
+			const fallbackId = localStorage.getItem('arrolamentoId') || ''
+			const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+			const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+			console.log('[Arrolamento][Docs] handleResponse:target', { hasArrolamento: !!arrolamento, fallbackId, created_by: (target as any)?.created_by })
+			if (target) {
+				if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
+				const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+				if (completedResp) { console.log('[Arrolamento][Docs] Registro concluído. Abortando PATCH.'); return; }
+				const arrolamentoId = (target as any).id;
+				const criadoPor = (target as any).created_by;
 
-			localStorage.setItem("arrolamentoId", arrolamentoId);
-			localStorage.setItem("arrolamentoCreated_by", criadoPor);
+				localStorage.setItem("arrolamentoId", arrolamentoId);
+				localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-			const formatarDataParaBR = (data: string): string => {
-				if (!data) return "";
-				const [ano, mes, dia] = data.split("-");
-				return `${dia}/${mes}/${ano}`;
-			};
+				const formatarDataParaBR = (data: string): string => {
+					if (!data) return "";
+					const [ano, mes, dia] = data.split("-");
+					return `${dia}/${mes}/${ano}`;
+				};
 
-			const documentacaoPayload = {
+				const documentacaoPayload = {
 				created_by: criadoPor,
 				form: {
 					family_index: familyIndex + 1,
@@ -500,7 +504,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 				console.log('[Arrolamento][Docs] PATCH prepared (final):', { family_index: familyIndex + 1, payload: documentacaoPayload });
 				const token = localStorage.getItem('authToken') || ''
 				await survey_resource.SendFormToArrolamentoDoc(SURVEY_RESOURCE_URL, arrolamentoId, documentacaoPayload, token);
-				// showSuccessMessage("Documentação enviada com sucesso");
+				console.log('[Arrolamento][Docs] PATCH ok')
 			} catch (error) {
 				console.error("Erro ao enviar documentação:", error);
 				if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar os dados de documentação");
@@ -526,6 +530,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 	useEffect(() => {
 		if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
 		const handleBlur = async () => {
+			console.log('[Arrolamento][Docs] blur:start', { familyIndex, opened: hasSectionBeenOpenedRef.current })
 			// Evita PATCH antes do usuário abrir a seção ao menos uma vez
 			if (!hasSectionBeenOpenedRef.current) {
 				return;
@@ -569,6 +574,8 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 				}
 			}
 
+			console.log('[Arrolamento][Docs] blur:diff', { shouldFetch, activeFieldName })
+
 			if (!firstBlurSkippedRef.current && !shouldFetch) {
 				firstBlurSkippedRef.current = true;
 				return;
@@ -590,6 +597,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 				}
 
 				triggeredByBlurRef.current = true;
+				console.log('[Arrolamento][Docs] blur:will PATCH via fetchData', { familyIndex })
 				fetchData(); // função de envio do formulário/documentação
 			}
 		};

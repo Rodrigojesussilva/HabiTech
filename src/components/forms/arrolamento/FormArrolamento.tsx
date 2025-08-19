@@ -70,6 +70,7 @@ const familySchema = z.object({
 const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
+	naoAplica: z.string().optional(),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
 	interviewDate: z.string(),
 	startTime: z.string(),
@@ -131,6 +132,7 @@ const FormArrolamento = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
+			naoAplica: "",
 			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
@@ -435,35 +437,48 @@ const FormArrolamento = ({
         }
 
         try {
-            const seiFromStorageRaw = localStorage.getItem('seiNumber') || '';
-            const numero_sei = Number(seiFromStorageRaw);
-            const request = { numero_sei, authorization_token: localStorage.getItem('authToken') || '' } as any;
-            console.log('[Arrolamento][Meta] Attempting to close; checking existing record via GET', { request })
+			// Prioriza ID já salvo e casos de "não se aplica"
+			const idLS = localStorage.getItem('arrolamentoId');
+			if (idLS) {
+				console.log('[Arrolamento][Meta] ID presente no localStorage; fechando modal sem GET por SEI')
+				setIsMetadataModalOpen(false);
+				return;
+			}
+			const naoAplica = form.getValues('naoAplica');
+			if (naoAplica) {
+				console.log('[Arrolamento][Meta] naoAplica=true; pulando GET por SEI ao fechar')
+				setIsMetadataModalOpen(false);
+				return;
+			}
 
-            const response = await survey_resource.GetArrolamento(request, async (req: any) => {
-                const searchParams = new URLSearchParams();
-                for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
-                    if (value !== undefined && value !== "") searchParams.append(key, String(value));
-                }
-                const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-                const headers: Record<string, string> = { "Content-Type": "application/json", ...(req.headers || {}) };
-                const res = await fetch(url, { method: req.method, headers });
-                if (!res.ok) throw new Error(await res.text());
-                return res.json();
-            });
+			const seiFromStorageRaw = localStorage.getItem('seiNumber') || '';
+			const request = { numero_sei: seiFromStorageRaw, authorization_token: localStorage.getItem('authToken') || '' } as any;
+			console.log('[Arrolamento][Meta] Attempting to close; checking existing record via GET', { request })
 
-            const arrolamento = (response as any)?.arrolamentos?.[0] || null;
-            if (arrolamento) {
-                console.log('[Arrolamento][Meta] Existing record found; saving id & created_by to localStorage and closing')
-                localStorage.setItem('arrolamentoId', arrolamento.id || '');
-                localStorage.setItem('arrolamentoCreated_by', arrolamento.created_by || '');
-                setIsMetadataModalOpen(false);
-                return;
-            }
-        } catch (error) {
-            // loga e segue para alerta
-            console.warn('[Arrolamento][Meta] Falha ao verificar arrolamento ao fechar modal:', error);
-        }
+			const response = await survey_resource.GetArrolamento(request, async (req: any) => {
+				const searchParams = new URLSearchParams();
+				for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+					if (value !== undefined && value !== "") searchParams.append(key, String(value));
+				}
+				const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+				const headers: Record<string, string> = { "Content-Type": "application/json", ...(req.headers || {}) };
+				const res = await fetch(url, { method: req.method, headers });
+				if (!res.ok) throw new Error(await res.text());
+				return res.json();
+			});
+
+			const arrolamento = (response as any)?.arrolamentos?.[0] || null;
+			if (arrolamento) {
+				console.log('[Arrolamento][Meta] Existing record found; saving id & created_by to localStorage and closing')
+				localStorage.setItem('arrolamentoId', arrolamento.id || '');
+				localStorage.setItem('arrolamentoCreated_by', arrolamento.created_by || '');
+				setIsMetadataModalOpen(false);
+				return;
+			}
+		} catch (error) {
+			// loga e segue para alerta
+			console.warn('[Arrolamento][Meta] Falha ao verificar arrolamento ao fechar modal:', error);
+		}
 
         setIsMetadataModalOpen(false);
         console.log('[Arrolamento][Meta] No existing record; showing confirm prompt to enforce fill')
@@ -541,6 +556,16 @@ const metaDataSections: FormSection[] = [
 				required: true,
 				sidebarform: true,
 				showinmodal: true
+			} as FormFieldType,
+			{
+				name: "naoAplica",
+				label: "Não se aplica",
+				type: "checkbox",
+				required: true,
+				sidebarform: false,
+				showinmodal: true,
+				disableField: "seiNumber",
+				dependent: true
 			} as FormFieldType,
 			{
 				name: "sealNumber",
@@ -704,7 +729,7 @@ return (
 									form.clearErrors("questionario");
 								}
 
-								if (!values.seiNumber) {
+								if (!values.naoAplica && !values.seiNumber) {
 									form.setError("seiNumber", {
 										type: "manual",
 										message: "O campo Número SEI é obrigatório.",
@@ -766,7 +791,8 @@ return (
 								const dataToSend = {
 									created_by: (localStorage.getItem('userEmail') || questionario),
 									main_metadata: {
-										numero_sei: seiNumber,
+										numero_sei: values.naoAplica ? "N/A" : seiNumber,
+										numero_sei_nao_aplicavel: Boolean(values.naoAplica),
 										numero_selo: sealNumber,
 										quantidade_familias: numberFamilies,
 									},
@@ -831,6 +857,7 @@ return (
  												created_by: createdBy,
  												main_metadata: {
  													numero_sei: dataToSend.main_metadata.numero_sei,
+ 													numero_sei_nao_aplicavel: dataToSend.main_metadata.numero_sei_nao_aplicavel,
  													numero_selo: dataToSend.main_metadata.numero_selo,
  													quantidade_familias: newFamilies,
  												},
@@ -858,6 +885,7 @@ return (
  												created_by: createdBy,
  												main_metadata: {
  													numero_sei: dataToSend.main_metadata.numero_sei,
+ 													numero_sei_nao_aplicavel: dataToSend.main_metadata.numero_sei_nao_aplicavel,
  													numero_selo: dataToSend.main_metadata.numero_selo,
  													quantidade_familias: newFamilies,
  												},

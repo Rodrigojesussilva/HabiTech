@@ -52,27 +52,32 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     };
 
     const fetchData = async () => {
+        console.log('[Arrolamento][Nupcidade] fetchData:start', { isViewMode, completed: isCompletedNow() })
         if (isViewMode || isCompletedNow()) return;
         const idLS = localStorage.getItem('arrolamentoId')
         if (idLS) {
-            console.log('[Arrolamento][Nupcidade] fetchData: usando fallback localStorage para PATCH imediato')
+            console.log('[Arrolamento][Nupcidade] fetchData: usando fallback localStorage para PATCH imediato', { idLS })
             await handleNupcidadeResponse({ arrolamentos: [] })
             return
         }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = seiFromStorageRaw;
+        const token = localStorage.getItem('authToken') || ''
+        console.log('[Arrolamento][Nupcidade] fetchData: composing GET by SEI', { seiFromStorage, initialDate, endDate })
 
         try {
             const request = {
                 numero_sei: seiFromStorage,
                 initial_date: initialDate,
                 end_date: endDate,
+                authorization_token: token,
             };
 
             const response = await fetchArrolamento(request);
 
 
             if (isGetArrolamentoResponse(response)) {
+                console.log('[Arrolamento][Nupcidade] fetchData: GET success, passing to handler', { hasArrolamentos: Array.isArray((response as any).arrolamentos), len: (response as any).arrolamentos?.length })
                 await handleNupcidadeResponse(response);
             }
 
@@ -103,12 +108,15 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
             }
 
             const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined;
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+                ...(req.headers || {}),
+            };
+            if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`;
             const res = await fetch(url, {
                 method: req.method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(req.headers || {}),
-                },
+                headers,
             });
 
             if (!res.ok) {
@@ -126,17 +134,18 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
         const fallbackId = localStorage.getItem('arrolamentoId') || ''
         const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
         const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
-        if (target) {
-            if (!arrolamento) console.log('[Arrolamento][Nupcidade] PATCH: usando contexto localStorage id=', fallbackId)
-            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
-            if (completedResp) { console.log('[Arrolamento][Nupcidade] Registro concluído. Abortando PATCH.'); return; }
-            const arrolamentoId = (target as any).id;
-            const criadoPor = (target as any).created_by;
+                    if (target) {
+                if (!arrolamento) console.log('[Arrolamento][Nupcidade] PATCH: usando contexto localStorage id=', fallbackId)
+                const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
+                if (completedResp) { console.log('[Arrolamento][Nupcidade] Registro concluído. Abortando PATCH.'); return; }
+                const arrolamentoId = (target as any).id;
+                const criadoPor = (target as any).created_by || localStorage.getItem('arrolamentoCreated_by') || localStorage.getItem('userEmail') || '';
 
-            localStorage.setItem("arrolamentoId", arrolamentoId);
-            localStorage.setItem("arrolamentoCreated_by", criadoPor);
+                localStorage.setItem("arrolamentoId", arrolamentoId);
+                localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-            const payload = {
+                console.log('[Arrolamento][Nupcidade] handleResponse: preparing payload', { family_index: familyIndex + 1, estadoCivil, nomeCompanheiro, viveComCompanheiro })
+                const payload = {
                 created_by: criadoPor,
                 form: {
                     family_index: familyIndex + 1,
@@ -222,7 +231,7 @@ const NupcidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
                 }
 
                 triggeredByBlurRef.current = true;
-
+                console.log('[Arrolamento][Nupcidade] blur:will PATCH via fetchData', { familyIndex })
                 await fetchData(); // chama handleNupcidadeResponse internamente
             }
         };

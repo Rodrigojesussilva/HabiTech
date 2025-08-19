@@ -176,6 +176,11 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   useEffect(() => { loadAttachments() }, [routeArrolamentoId])
+  useEffect(() => { loadAttachments() }, [familyIndex])
+
+  useEffect(() => {
+    if (open) loadAttachments()
+  }, [open])
 
   const handleUpload = async (file: File, fieldName: string) => {
     if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Anexos] Upload bloqueado: viewMode/completed'); return; }
@@ -297,7 +302,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const renderAttachmentList = (fieldName: string) => {
-    const items = attachmentsByField[fieldName] || []
+    const itemsAll = attachmentsByField[fieldName] || []
+    const items = itemsAll.filter(a => a.metadado?.family_index === familyIndex)
     if (!items.length) return null
     return (
       <ul className="mt-2 space-y-1">

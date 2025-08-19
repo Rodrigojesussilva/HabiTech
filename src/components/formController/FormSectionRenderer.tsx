@@ -293,7 +293,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
         case "radio":
             return (
                 <RadioGroup
-                    defaultValue={formField.value}
+                    value={formField.value || ""}
                     onValueChange={formField.onChange}
                     disabled={formField.disabled}
                 >

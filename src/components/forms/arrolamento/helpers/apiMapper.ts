@@ -225,7 +225,7 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
 export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNameFromStorage: string) {
   const survey = api?.survey || {}
   const forms = Array.isArray(survey?.forms) ? survey.forms : []
-  const rootOutrasInfo = survey?.outras_informacoes || {}
+  const rootOutrasInfo = (survey?.outras_informacoes ?? {})
   const rootStatusNotas = survey?.status_notas || {}
 
   const families = forms.length > 0
@@ -235,6 +235,7 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
   return {
     questionario: api?.survey_id || 'SEHAB-123',
     seiNumber: survey?.main_metadata?.numero_sei || '',
+    naoAplica: survey?.main_metadata?.numero_sei_nao_aplicavel ? "true" : "",
     sealNumber: survey?.main_metadata?.numero_selo || '',
     numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
     visitNumber: api?.visit_count != null ? String(api.visit_count) : '',

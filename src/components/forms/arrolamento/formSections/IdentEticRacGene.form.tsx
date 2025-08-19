@@ -52,14 +52,23 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
     };
 
     const fetchData = async () => {
+        if (isViewMode || isCompletedNow()) return;
+        const idLS = localStorage.getItem('arrolamentoId');
+        if (idLS) {
+            console.log('[Arrolamento][EtnicoRacial] fetchData: usando fallback localStorage para PATCH imediato')
+            await handleIdentificacaoResponse({ arrolamentos: [{ id: idLS, created_by: localStorage.getItem('arrolamentoCreated_by') || '' }] })
+            return
+        }
         const seiFromStorageRaw = localStorage.getItem("seiNumber");
         const seiFromStorage = seiFromStorageRaw;
+        const token = localStorage.getItem('authToken') || ''
 
         try {
             const request = {
                 numero_sei: seiFromStorage,
                 initial_date: initialDate,
                 end_date: endDate,
+                authorization_token: token,
             };
 
             const response = await fetchArrolamento(request);
@@ -95,12 +104,15 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
             }
 
             const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+            const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined;
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+                ...(req.headers || {}),
+            };
+            if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`;
             const res = await fetch(url, {
                 method: req.method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(req.headers || {}),
-                },
+                headers,
             });
 
             if (!res.ok) {
@@ -123,7 +135,7 @@ const IdentEticRacGeneForm = ({ sectionIndex: sectionNumber, familyIndex, isActi
             const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
             if (completedResp) { console.log('[Arrolamento][EtnicoRacial] Registro concluído. Abortando PATCH.'); return; }
             const arrolamentoId = (target as any).id;
-            const criadoPor = (target as any).created_by;
+            const criadoPor = (target as any).created_by || localStorage.getItem('arrolamentoCreated_by') || localStorage.getItem('userEmail') || '';
 
             localStorage.setItem("arrolamentoId", arrolamentoId);
             localStorage.setItem("arrolamentoCreated_by", criadoPor);
