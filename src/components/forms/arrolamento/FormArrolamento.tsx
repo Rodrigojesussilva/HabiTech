@@ -76,7 +76,7 @@ const formSchema = z.object({
 	startTime: z.string(),
 	endTime: z.string(),
 	timeElapsed: z.string(),
-	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }),
+	sealNumber: z.number().int().min(0).max(999999999),
 	numberFamilies: z.number().min(0),
 	firstVisitStart: z.string(),
 	firstVisitEnd: z.string(),
@@ -138,7 +138,7 @@ const FormArrolamento = ({
 			startTime: "",
 			endTime: "",
 			timeElapsed: "",
-			sealNumber: "",
+			sealNumber: 0,
 			numberFamilies: 1,
 			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
 				day: '2-digit',
@@ -567,14 +567,16 @@ const metaDataSections: FormSection[] = [
 				disableField: "seiNumber",
 				dependent: true
 			} as FormFieldType,
-			{
-				name: "sealNumber",
-				label: "Número Selo",
-				type: "text",
-				required: true,
-				sidebarform: true,
-				showinmodal: true
-			} as FormFieldType,
+							{
+					name: "sealNumber",
+					label: "Número Selo",
+					type: "numberSpinner",
+					required: true,
+					sidebarform: true,
+					showinmodal: true,
+					min: 0,
+					step: 1
+				} as FormFieldType,
 
 			{
 				name: "interviewerName",
@@ -780,7 +782,7 @@ return (
 
 								localStorage.setItem("questionario", questionario);
 								localStorage.setItem("seiNumber", seiNumber);
-								localStorage.setItem("sealNumber", sealNumber);
+								localStorage.setItem("sealNumber", String(sealNumber));
 								localStorage.setItem("numberFamilies", numberFamilies.toString());
 
 								console.log("Valores armazenados no localStorage:");
@@ -794,7 +796,7 @@ return (
 																					main_metadata: {
 													numero_sei: values.naoAplica ? "N/A" : seiNumber,
 													numero_sei_nao_aplicavel: values.naoAplica,
-													numero_selo: sealNumber,
+																												numero_selo: String(sealNumber),
 													quantidade_familias: numberFamilies,
 												},
 									authorization_token: localStorage.getItem('authToken') || ''
@@ -859,7 +861,7 @@ return (
  												main_metadata: {
  													numero_sei: dataToSend.main_metadata.numero_sei,
  													numero_sei_nao_aplicavel: dataToSend.main_metadata.numero_sei_nao_aplicavel,
- 													numero_selo: dataToSend.main_metadata.numero_selo,
+ 													numero_selo: String(dataToSend.main_metadata.numero_selo),
  													quantidade_familias: newFamilies,
  												},
  												authorization_token: token,
@@ -887,7 +889,7 @@ return (
  												main_metadata: {
  													numero_sei: dataToSend.main_metadata.numero_sei,
  													numero_sei_nao_aplicavel: dataToSend.main_metadata.numero_sei_nao_aplicavel,
- 													numero_selo: dataToSend.main_metadata.numero_selo,
+ 													numero_selo: String(dataToSend.main_metadata.numero_selo),
  													quantidade_familias: newFamilies,
  												},
  												authorization_token: token,
