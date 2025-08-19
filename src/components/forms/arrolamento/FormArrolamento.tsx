@@ -702,7 +702,12 @@ return (
 						{metaDataSections.map((section, sectionIndex) => (
 							<div key={section.id} data-secao={section.id} data-label={section.title}>
 								<FormSectionRenderer
-									section={section}
+									section={{
+										...section,
+										fields: section.fields
+											.filter(f => f.showinmodal)
+											.map(field => ({ ...field, readonly: isViewMode || field.readonly }))
+									}}
 									formControl={form.control}
 									getFieldNumber={getFieldNumber}
 									sectionIndex={sectionIndex}
