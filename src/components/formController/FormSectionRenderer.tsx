@@ -158,6 +158,8 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             );
 
         case "numberSpinner":
+            const stepValue = field.step ?? 0.01;
+            const allowDecimals = stepValue !== 1;
             return (
                 <Input
                     type="number"
@@ -166,7 +168,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     disabled={formField.disabled}
                     min={0}
                     max={field.max || undefined}
-                    step={field.step || 0.01}
+                    step={stepValue}
                     value={formField.value ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const rawValue = e.target.value;
@@ -177,10 +179,12 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                             return;
                         }
 
-                        // Impede valores negativos e mais de duas casas decimais
-                        const numericRegex = /^(?:\d+|\d+\.\d{0,2})$/;
+                        // Validação baseada no step: se step === 1, somente inteiros; senão, até 2 casas decimais
+                        const numericRegex = allowDecimals
+                            ? /^(?:\d+|\d+\.\d{0,2})$/
+                            : /^\d+$/;
 
-                        // Se valor inválido (negativo ou mais de 2 decimais), ignora
+                        // Se valor inválido (negativo, caracteres inválidos, ou decimais quando não permitido), ignora
                         if (!numericRegex.test(rawValue)) {
                             return;
                         }
@@ -192,6 +196,10 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     onKeyDown={(e) => {
                         // Impede digitação de "-" e "e", que são permitidos por padrão em <input type="number">
                         if (["-", "e", "E"].includes(e.key)) {
+                            e.preventDefault();
+                        }
+                        // Se não permitir decimais (step === 1), bloqueia "." e ","
+                        if (!allowDecimals && (e.key === "." || e.key === ",")) {
                             e.preventDefault();
                         }
                     }}

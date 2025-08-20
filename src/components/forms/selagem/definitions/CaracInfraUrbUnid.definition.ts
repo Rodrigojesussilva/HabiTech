@@ -72,7 +72,7 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                 },
                 {
                     name: "unidadeInsalubre",
-                    label: "Unidade apresenta condições de insalubridade?",
+                    label: "Unidade aparenta condições de insalubridade?",
                     type: "radio" as const,
                     required: false,
                     options: [
@@ -90,7 +90,6 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                         { label: "Rede Publica/ligação coletiva(oficial)", value: "RedePublicaLigacaoColetiva" },
                         { label: "Poço Artesiano", value: "PocoArtesiano" },
                         { label: "Instalação de água não oficial", value: "InstalacaoNaoOficial" },
-                        { label: "Não possui", value: "NaoPossui" },
                         { label: "Não identificado", value: "NaoIdentificado" },
                         { label: "Outros", value: "Outros" },
 
@@ -111,7 +110,6 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                         { label: "Fossa séptica", value: "FossaSéptica" },
                         { label: "Fossa rudimentar", value: "FossaRudimentar" },
                         { label: "Sistema individualizado de tratamento de esgoto(área mananciais)", value: "SistemaIndividualizadoTratamentoEsgoto" },
-                        { label: "Não Possui", value: "NaoPossui" },
                         { label: "Não identificado", value: "NaoIdentificado" },
                         { label: "Outros", value: "Outros" },
 
@@ -126,7 +124,6 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                         { label: "Relógio próprio/modidor individual", value: "RologioProprioMedidorIndividual" },
                         { label: "Instalação de energia Elétrica não oficial", value: "InstalacaoEnergiaNaoOficial" },
                         { label: "Relógio comunitário/medidor coletivo", value: "RelogioComunitario" },
-                        { label: "Não possui", value: "NaoPossui" },
                         { label: "Não identificado", value: "NaoIdentificado" },
                         { label: "Outros", value: "Outros" },
                     ]

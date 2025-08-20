@@ -34,26 +34,33 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
   const [attachmentsByField, setAttachmentsByField] = useState<Record<string, AttachmentItem[]>>({})
   const [loading, setLoading] = useState(false)
-  console.log("loading", loading);
+  console.log("[Selagem][Anexos] loading state:", loading);
   const params = useParams<{ id: string }>()
   const routeSelagemId = params.id || ''
   const selagemIdLS = localStorage.getItem('selagemId') || ''
+  console.log('[Selagem][Anexos][Init] routeSelagemId:', routeSelagemId, 'selagemIdLS:', selagemIdLS, 'familyIndex:', familyIndex)
   // Busca robusta do token em múltiplas chaves
   const getAuthToken = (): string => {
     const keys = ['authToken', 'authorization_token', 'token', 'access_token', 'jwt', 'idToken']
     for (const k of keys) {
       const v = localStorage.getItem(k)
-      if (v) return v
+      if (v) {
+        console.log('[Selagem][Anexos][Auth] token source:', k, 'length:', v.length)
+        return v
+      }
     }
+    console.warn('[Selagem][Anexos][Auth] token not found in localStorage')
     return ''
   }
   const authToken = getAuthToken()
   const createdBy = localStorage.getItem('userEmail') || ''
+  console.log('[Selagem][Anexos][Init] createdBy:', createdBy)
 
   const ensureIds = () => {
     // Prioriza o id da rota; se ausente, usa localStorage
     const currentSelagemId = routeSelagemId || localStorage.getItem('selagemId') || selagemIdLS
     const token = getAuthToken() || authToken
+    console.log('[Selagem][Anexos][ensureIds] currentSelagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
     return { currentSelagemId, token }
   }
 
@@ -65,9 +72,9 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       if (!current[field]) current[field] = []
       current[field].push(item)
       localStorage.setItem(key, JSON.stringify(current))
-      console.log('[Anexos] Persistido localmente:', { key, field, item })
+      console.log('[Selagem][Anexos][Local][Save] key:', key, 'field:', field, 'item:', item)
     } catch (e) {
-      console.warn('[Anexos] Falha ao salvar localmente:', e)
+      console.warn('[Selagem][Anexos][Local][Save] failed:', e)
     }
   }
   const removeLocalAttachment = (sid: string, field: string, id: string) => {
@@ -75,12 +82,12 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const key = localKey(sid)
       const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
       if (current[field]) {
-        current[field] = current[field].filter(a => a.id !== id)
+        current[field] = (current[field] || []).filter(a => a.id !== id)
         localStorage.setItem(key, JSON.stringify(current))
-        console.log('[Anexos] Removido localmente:', { key, field, id })
+        console.log('[Selagem][Anexos][Local][Remove] key:', key, 'field:', field, 'id:', id)
       }
     } catch (e) {
-      console.warn('[Anexos] Falha ao remover localmente:', e)
+      console.warn('[Selagem][Anexos][Local][Remove] failed:', e)
     }
   }
   const loadFromLocal = (sid: string) => {
@@ -89,21 +96,22 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const parsed = JSON.parse(localStorage.getItem(key) || '{}')
       if (parsed && typeof parsed === 'object') {
         setAttachmentsByField(parsed)
-        console.log('[Anexos] Carregado anexos do localStorage:', { key, parsed })
+        console.log('[Selagem][Anexos][Local][Load] key:', key, 'parsed:', parsed)
       }
     } catch (e) {
-      console.warn('[Anexos] Falha ao carregar do localStorage:', e)
+      console.warn('[Selagem][Anexos][Local][Load] failed:', e)
     }
   }
 
   const loadAttachments = async () => {
     const { currentSelagemId, token } = ensureIds()
+    console.log('[Selagem][Anexos][Load] begin. id:', currentSelagemId, 'tokenPresent:', Boolean(token))
     if (!currentSelagemId) {
-      console.warn('[Anexos] loadAttachments: selagemId ausente; pulando.')
+      console.warn('[Selagem][Anexos][Load] selagemId missing; skipping')
       return
     }
     if (!token) {
-      console.warn('[Anexos] loadAttachments: token ausente; usando fallback local.')
+      console.warn('[Selagem][Anexos][Load] token missing; using local fallback')
       loadFromLocal(currentSelagemId)
       return
     }
@@ -115,11 +123,20 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         const headers: Record<string, string> = { 'Content-Type': 'application/json' }
         const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
         if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+        console.log('[Selagem][Anexos][Load][HTTP] GET signed_url url:', `${url}?download_mode=signed_url`, 'headersAuth:', Boolean(headers['Authorization']))
         const res = await fetch(`${url}?download_mode=signed_url`, { method: req.method, headers })
-        if (!res.ok) throw new Error(await res.text())
-        return res.json()
+        console.log('[Selagem][Anexos][Load][HTTP] GET signed_url status:', res.status)
+        if (!res.ok) {
+          const txt = await res.text()
+          console.warn('[Selagem][Anexos][Load][HTTP] GET signed_url error:', res.status, txt)
+          throw new Error(txt)
+        }
+        const json = await res.json()
+        console.log('[Selagem][Anexos][Load][HTTP] GET signed_url ok, attachments count:', Array.isArray((json as any)?.attachments) ? (json as any).attachments.length : 'n/a')
+        return json
       })
       const list = (response as any)?.attachments || []
+      console.log('[Selagem][Anexos][Load] signed_url attachments raw length:', list.length)
       if (!Array.isArray(list) || list.length === 0) {
         // Fallback: metadata_only
         throw new Error('Empty signed_url response; falling back to metadata_only')
@@ -127,10 +144,11 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const grouped: Record<string, AttachmentItem[]> = {}
       for (const f of list) {
         const meta = f.metadado || {}
+        const fieldKey = meta.field || 'outros'
+        console.log('[Selagem][Anexos][Load] map item:', { id: f.id, filename: f.filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
         if (meta.section !== SECTION_KEY) continue
-        const key = meta.field || 'outros'
-        if (!grouped[key]) grouped[key] = []
-        grouped[key].push({
+        if (!grouped[fieldKey]) grouped[fieldKey] = []
+        grouped[fieldKey].push({
           id: f.id,
           filename: f.filename || f.name || 'arquivo',
           mime: f.mime,
@@ -139,12 +157,14 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           metadado: meta,
         })
       }
+      console.log('[Selagem][Anexos][Load] grouped keys:', Object.keys(grouped))
       setAttachmentsByField(grouped)
     } catch (e) {
-      console.warn('[Anexos] signed_url indisponível, usando fallback:', e)
+      console.warn('[Selagem][Anexos][Load] signed_url unavailable, fallback metadata_only. reason:', e)
       try {
         const { currentSelagemId, token } = ensureIds()
         if (!token) {
+          console.log('[Selagem][Anexos][Load] token still missing; local fallback')
           loadFromLocal(currentSelagemId)
         } else {
           const response2 = await survey_resource.GetSelagemAttachments({ id: currentSelagemId, authorization_token: token, download_mode: 'metadata_only' as any }, async (req: any) => {
@@ -152,18 +172,28 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
             const headers: Record<string, string> = { 'Content-Type': 'application/json' }
             const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
             if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+            console.log('[Selagem][Anexos][Load][HTTP] GET metadata_only url:', `${url}?download_mode=metadata_only`, 'headersAuth:', Boolean(headers['Authorization']))
             const res = await fetch(`${url}?download_mode=metadata_only`, { method: req.method, headers })
-            if (!res.ok) throw new Error(await res.text())
-            return res.json()
+            console.log('[Selagem][Anexos][Load][HTTP] GET metadata_only status:', res.status)
+            if (!res.ok) {
+              const txt = await res.text()
+              console.warn('[Selagem][Anexos][Load][HTTP] GET metadata_only error:', res.status, txt)
+              throw new Error(txt)
+            }
+            const json = await res.json()
+            console.log('[Selagem][Anexos][Load][HTTP] GET metadata_only ok, attachments count:', Array.isArray((json as any)?.attachments) ? (json as any).attachments.length : 'n/a')
+            return json
           })
           const list2 = (response2 as any)?.attachments || []
+          console.log('[Selagem][Anexos][Load] metadata_only attachments raw length:', list2.length)
           const grouped2: Record<string, AttachmentItem[]> = {}
           for (const f of list2) {
             const meta = f.metadado || {}
+            const fieldKey = meta.field || 'outros'
+            console.log('[Selagem][Anexos][Load] map item (metadata_only):', { id: f.id, filename: f.filename, section: meta.section, field: fieldKey })
             if (meta.section !== SECTION_KEY) continue
-            const key = meta.field || 'outros'
-            if (!grouped2[key]) grouped2[key] = []
-            grouped2[key].push({
+            if (!grouped2[fieldKey]) grouped2[fieldKey] = []
+            grouped2[fieldKey].push({
               id: f.id,
               filename: f.filename || f.name || 'arquivo',
               mime: f.mime,
@@ -172,37 +202,49 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
               metadado: meta,
             })
           }
+          console.log('[Selagem][Anexos][Load] grouped2 keys:', Object.keys(grouped2))
           setAttachmentsByField(grouped2)
         }
       } catch (e2) {
-        console.error('[Anexos] Fallback metadata/local falhou:', e2)
+        console.error('[Selagem][Anexos][Load] metadata/local fallback failed:', e2)
         const { currentSelagemId } = ensureIds()
         loadFromLocal(currentSelagemId)
       }
     } finally {
       setLoading(false)
+      console.log('[Selagem][Anexos][Load] end. loading=false')
     }
   }
 
     useEffect(() => {
+    console.log('[Selagem][Anexos][Effect] routeSelagemId changed:', routeSelagemId)
     loadAttachments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeSelagemId])
 
+  useEffect(() => {
+    console.log('[Selagem][Anexos][Effect] open changed:', open)
+    if (open) {
+      loadAttachments()
+    }
+  }, [open])
+
   const handleUpload = async (file: File, fieldName: string) => {
     try {
       const { currentSelagemId, token } = ensureIds()
-      console.log('[Anexos] handleUpload ids:', { currentSelagemId, tokenPresent: Boolean(token) })
+      console.log('[Selagem][Anexos][Upload] ids:', { currentSelagemId, tokenPresent: Boolean(token) })
       if (!currentSelagemId) {
         Swal.fire({ icon: 'error', title: 'Selagem não identificada', text: 'ID da selagem ausente. Salve metadados primeiro.' })
         return
       }
+      console.log('[Selagem][Anexos][Upload] file:', { name: file.name, size: file.size, type: file.type })
       const reader = new FileReader()
       const base64: string = await new Promise((resolve, reject) => {
         reader.onloadend = () => resolve((reader.result as string).split(',')[1] || '')
         reader.onerror = reject
         reader.readAsDataURL(file)
       })
+      console.log('[Selagem][Anexos][Upload] base64 length:', base64.length)
 
       const metadado = {
         survey_id: currentSelagemId,
@@ -215,7 +257,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         uploaded_by: createdBy,
         uploaded_at: new Date().toISOString(),
       }
-      console.log('[Anexos] Enviando arquivo:', { fieldName, name: file.name, size: file.size, type: file.type, metadado })
+      console.log('[Selagem][Anexos][Upload] metadado:', metadado)
 
       const uploaded = await survey_resource.SendFileToUpload(
         SURVEY_RESOURCE_URL,
@@ -224,6 +266,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         metadado as any,
         token
       )
+      console.log('[Selagem][Anexos][Upload] response:', uploaded)
 
       // Atualiza UI local mesmo sem token (baseado na resposta ou fallback)
       try {
@@ -237,20 +280,21 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           next[fieldName] = [ ...(next[fieldName] || []), newItem ]
           return next
         })
+        console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
         // Persistir localmente para carregamento futuro sem token
         saveLocalAttachment(currentSelagemId, fieldName, newItem)
       } catch (e) {
-        console.warn('[Anexos] Não foi possível refletir resposta do upload na UI:', e)
+        console.warn('[Selagem][Anexos][Upload] could not reflect response in UI:', e)
       }
 
       if (token) {
         await loadAttachments()
       } else {
-        console.warn('[Anexos] upload OK mas token ausente; não foi possível recarregar a lista de anexos.')
+        console.warn('[Selagem][Anexos][Upload] upload OK but token missing; could not reload list.')
       }
       Swal.fire({ icon: 'success', title: 'Anexo enviado!', timer: 1200, showConfirmButton: false })
     } catch (e) {
-      console.error('Erro no upload:', e)
+      console.error('[Selagem][Anexos][Upload] error:', e)
       Swal.fire({ icon: 'error', title: 'Erro ao enviar anexo' })
     }
   }
@@ -258,6 +302,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   const handleRemove = async (attachmentId: string, fieldName: string) => {
     try {
       const { currentSelagemId, token } = ensureIds()
+      console.log('[Selagem][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'selagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
       if (!currentSelagemId) return
       if (token) {
         await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
@@ -265,8 +310,14 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           const headers: Record<string, string> = { 'Content-Type': 'application/json' }
           const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
           if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+          console.log('[Selagem][Anexos][Remove][HTTP] POST url:', url, 'headersAuth:', Boolean(headers['Authorization']))
           const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
-          if (!res.ok) throw new Error(await res.text())
+          console.log('[Selagem][Anexos][Remove][HTTP] status:', res.status)
+          if (!res.ok) {
+            const txt = await res.text()
+            console.warn('[Selagem][Anexos][Remove][HTTP] error:', res.status, txt)
+            throw new Error(txt)
+          }
           return res.json()
         })
       }
@@ -277,23 +328,28 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         return next
       })
       removeLocalAttachment(currentSelagemId, fieldName, attachmentId)
+      console.log('[Selagem][Anexos][Remove] removed locally:', attachmentId)
     } catch (e) {
-      console.error('Erro ao remover anexo:', e)
+      console.error('[Selagem][Anexos][Remove] error:', e)
     }
   }
 
   const openAttachment = async (fieldName: string, id: string) => {
     const items = attachmentsByField[fieldName] || []
     const a = items.find(x => x.id === id)
+    console.log('[Selagem][Anexos][Open] field:', fieldName, 'id:', id, 'found:', Boolean(a))
     if (!a) return
     const filename = a.metadado?.filename || a.filename || 'anexo'
     try {
       let blob: Blob | null = null
       if (a.url) {
+        console.log('[Selagem][Anexos][Open] fetching signed URL')
         const res = await fetch(a.url)
+        console.log('[Selagem][Anexos][Open] fetch status:', res.status)
         if (!res.ok) throw new Error(await res.text())
         blob = await res.blob()
       } else if (a.dataUrl) {
+        console.log('[Selagem][Anexos][Open] using dataUrl')
         const resp = await fetch(a.dataUrl)
         blob = await resp.blob()
       }
@@ -306,14 +362,16 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(href)
+      console.log('[Selagem][Anexos][Open] download triggered for:', filename)
     } catch (e) {
-      console.error('[Anexos] Falha ao baixar anexo:', e)
+      console.error('[Selagem][Anexos] Falha ao baixar anexo:', e)
       Swal.fire({ icon: 'error', title: 'Erro ao baixar anexo' })
     }
   }
 
   const renderAttachmentList = (fieldName: string) => {
     const items = attachmentsByField[fieldName] || []
+    console.log('[Selagem][Anexos][RenderList] field:', fieldName, 'count:', items.length)
     if (!items.length) return null
     return (
       <ul className="mt-2 space-y-1">

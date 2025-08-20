@@ -81,6 +81,7 @@ export const identUnidadeDefinition: FormConfig = {
                     label: "Número",
                     type: "numberSpinner" as const,
                     required: false,
+                    step: 1,
 
                 },
                 {

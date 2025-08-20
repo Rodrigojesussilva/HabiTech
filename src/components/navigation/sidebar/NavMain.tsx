@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export function NavMain({
@@ -27,8 +28,16 @@ export function NavMain({
 }) {
   const location = useLocation();
   console.log("location", location);
+  const { isMobile, setOpenMobile } = useSidebar() as any
 
-  const handleClick = (_e: React.MouseEvent, _url: string) => {}
+  const handleClick = (_e: React.MouseEvent, _url: string) => {
+    // Fecha o sidebar no mobile para liberar a tela
+    try {
+      if (isMobile && typeof setOpenMobile === 'function') {
+        setOpenMobile(false)
+      }
+    } catch {}
+  }
 
   return (
     <SidebarGroup className="-ml-2">

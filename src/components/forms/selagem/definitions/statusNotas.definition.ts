@@ -40,7 +40,10 @@ export const statusNotasDefinition: FormConfig = {
                     name: "justificativa",
                     label: "Justificativa",
                     type: "textarea", 
-                    required: false
+                    required: false,
+                    conditions: [
+                        { field: "status", operator: "notEquals", value: "COMPLETED" }
+                    ]
                 },
                 {
                     name: "nomeSupervisor",
