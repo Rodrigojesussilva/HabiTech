@@ -245,6 +245,11 @@ const FormSelagem = ({
 		control: form.control,
 		name: "naoAplica",
 	});
+	// Watch the entire families array to drive conditional section visibility
+	const familiesWatch = useWatch({
+		control: form.control,
+		name: "families",
+	});
 	// Merge all schemas to create a complete default family entry
 	const defaultFamilyEntry = {
 		...getDefaultValuesFromSchema(identEspacoHabitadoSchema),
@@ -1160,8 +1165,17 @@ const FormSelagem = ({
 							<IdentEspacoHabitado sectionIndex={0} familyIndex={index} />
 							<InfoContatoForm sectionIndex={1} familyIndex={index} />
 							<SituUsoUniForm sectionIndex={2} familyIndex={index} />
-							<CaractUnidadeForm sectionIndex={3} familyIndex={index} />
-							<CaracInfraUrbUnidForm sectionIndex={4} familyIndex={index} />
+							{/* Hide sections 4 and 5 when the situation indicates terrain */}
+							{(() => {
+								const situacaoAtual = familiesWatch?.[index]?.situacaoUsoUnidade;
+								const ocultarSecoes4e5 = situacaoAtual === 'TerrenoCercado' || situacaoAtual === 'TerrenoSemCercamento';
+								return !ocultarSecoes4e5 ? (
+									<>
+										<CaractUnidadeForm sectionIndex={3} familyIndex={index} />
+										<CaracInfraUrbUnidForm sectionIndex={4} familyIndex={index} />
+									</>
+								) : null;
+							})()}
 							<OutrasInfoRelevantesForm sectionIndex={5} familyIndex={index} />
 							<StatusNotasForm sectionIndex={6} familyIndex={index} />
 							<AnexosForm sectionIndex={7} familyIndex={index} />
