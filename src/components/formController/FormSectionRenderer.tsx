@@ -2,6 +2,7 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import DateInput from '@/components/ui/date-input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Combobox } from '@/components/ui/combobox';
@@ -377,13 +378,13 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
 
         case "date":
             return (
-                <input
-                    type="date"
-                    placeholder={field.placeholder || "aaaa-mm-dd"}
+                <DateInput
+                    name={field.name}
+                    placeholder={field.placeholder || "DD/MM/AAAA"}
                     disabled={formField.disabled}
                     value={formField.value ?? ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        formField.onChange(e.target.value);
+                    onChange={(iso: string) => {
+                        formField.onChange(iso);
                     }}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />

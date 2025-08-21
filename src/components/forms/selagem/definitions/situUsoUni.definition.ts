@@ -146,6 +146,12 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 ]
             },
             {
+                name: "responsavel_nao_identificado",
+                label: "Responsável não identificado",
+                type: "checkbox" as const,
+                required: false
+            },
+            {
                 name: "telefone_responsavel",
                 label: "Telefone da pessoa responsável pelo terreno",
                 type: "text" as const,
@@ -154,12 +160,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                     { field: "responsavel_nao_identificado", operator: "equals", value: false }
                 ]
             },
-            {
-                name: "responsavel_nao_identificado",
-                label: "Responsável não identificado",
-                type: "checkbox" as const,
-                required: false
-            },
+            
             {
                 name: "uso_terreno",
                 label: "Uso do terreno",

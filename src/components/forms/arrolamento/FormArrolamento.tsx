@@ -52,6 +52,7 @@ import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 import { mapArrolamentoToFormData } from './helpers/apiMapper'
 import { useRef } from 'react'
+import { formatarSelo } from "./helpers/selo.helper";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -76,7 +77,7 @@ const formSchema = z.object({
 	startTime: z.string(),
 	endTime: z.string(),
 	timeElapsed: z.string(),
-	sealNumber: z.number().int().min(0).max(999999999),
+	sealNumber: z.string(),
 	numberFamilies: z.number().min(0),
 	firstVisitStart: z.string(),
 	firstVisitEnd: z.string(),
@@ -138,7 +139,7 @@ const FormArrolamento = ({
 			startTime: "",
 			endTime: "",
 			timeElapsed: "",
-			sealNumber: 0,
+			sealNumber: "",
 			numberFamilies: 1,
 			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
 				day: '2-digit',
@@ -202,6 +203,27 @@ const FormArrolamento = ({
 		});
 		return () => subscription.unsubscribe();
 	}, [form]);
+
+	useEffect(() => {
+		// Formata o número do selo do metadado conforme o usuário digita (padrão 999/999999-XXXXXXX)
+		const current = form.getValues('sealNumber');
+		if (current) {
+			const formatted = formatarSelo(current);
+			if (formatted !== current) {
+				form.setValue('sealNumber', formatted);
+			}
+		}
+	}, [form.getValues('sealNumber'), form]);
+
+	useEffect(() => {
+		// Limpa o SEI quando marcar "Não se aplica"
+		const naoAplica = form.getValues('naoAplica');
+		if (naoAplica) {
+			if (form.getValues('seiNumber')) {
+				form.setValue('seiNumber', '');
+			}
+		}
+	}, [form.getValues('naoAplica'), form]);
 
 
 	const { fields: familyFields, append, remove } = useFieldArray({
@@ -570,12 +592,10 @@ const metaDataSections: FormSection[] = [
 							{
 					name: "sealNumber",
 					label: "Número Selo",
-					type: "numberSpinner",
+					type: "text",
 					required: true,
 					sidebarform: true,
-					showinmodal: true,
-					min: 0,
-					step: 1
+					showinmodal: true
 				} as FormFieldType,
 
 			{
@@ -787,7 +807,7 @@ return (
 
 								localStorage.setItem("questionario", questionario);
 								localStorage.setItem("seiNumber", seiNumber);
-								localStorage.setItem("sealNumber", String(sealNumber));
+																																	localStorage.setItem("sealNumber", String(sealNumber || ""));
 								localStorage.setItem("numberFamilies", numberFamilies.toString());
 
 								console.log("Valores armazenados no localStorage:");
@@ -801,7 +821,7 @@ return (
 																					main_metadata: {
 													numero_sei: values.naoAplica ? "N/A" : seiNumber,
 													numero_sei_nao_aplicavel: values.naoAplica,
-																												numero_selo: String(sealNumber),
+																												numero_selo: String(sealNumber || ""),
 													quantidade_familias: numberFamilies,
 												},
 									authorization_token: localStorage.getItem('authToken') || ''
@@ -816,17 +836,21 @@ return (
 									const newId = (json && (json.arrolamento?.id || json.id)) || ''
 									const newSurveyId = (json && (json.arrolamento?.survey_id || json.survey_id)) || ''
 									const newCreatedBy = (json && (json.arrolamento?.created_by || json.created_by)) || (localStorage.getItem('userEmail') || questionario)
-										const newMainMetadata = (json && (json.arrolamento?.survey?.main_metadata || json.survey?.main_metadata)) || dataToSend.main_metadata
+									const newMainMetadata = (json && (json.arrolamento?.survey?.main_metadata || json.survey?.main_metadata)) || dataToSend.main_metadata
 									if (newId) {
 										localStorage.setItem('arrolamentoId', newId)
 										localStorage.setItem('arrolamentoCreated_by', newCreatedBy || '')
 										localStorage.setItem('arrolamentoCompleted', 'false')
 										setLoadedArrolamentoData({ id: newId, survey_id: newSurveyId, created_by: newCreatedBy, visit_count: 1, completed: false })
 											serverMainMetadataRef.current = newMainMetadata || null
-										console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
-									} else {
-										console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
-									}
+											console.log('[Arrolamento][Create] Contexto salvo para PATCH imediato', { newId, newSurveyId, newCreatedBy })
+											const idToDisplay = newSurveyId || newId
+											if (idToDisplay) {
+												form.setValue('questionario', idToDisplay)
+											}
+										} else {
+											console.warn('[Arrolamento][Create] Não foi possível determinar o id do novo arrolamento a partir da resposta.')
+										}
 									} else {
  										// Atualizar (PATCH/PUT) main_metadata (quantidade_familias e números)
  										const token = localStorage.getItem('authToken') || ''

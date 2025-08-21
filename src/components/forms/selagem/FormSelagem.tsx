@@ -1078,6 +1078,10 @@ const FormSelagem = ({
 												if (json.selagem.visit_count !== undefined) {
 													form.setValue('visitNumber', String(json.selagem.visit_count))
 												}
+												const surveyId = json?.selagem?.survey_id || json?.survey_id || json?.selagem?.id || '';
+												if (surveyId) {
+													form.setValue('questionario', surveyId);
+												}
 											}
 											setIsMetadataModalOpen(false);
 											Swal.fire({

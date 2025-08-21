@@ -34,6 +34,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     const usoTerreno = form.watch(`families[${familyIndex}].uso_terreno`);
     const usoUnidade = form.watch(`families[${familyIndex}].usoUnidade`);
     const triggeredByBlurRef = useRef(false);
+    const previousSituacaoRef = useRef<string | undefined>(undefined);
 
     // Get form values for conditional logic
     const formValues = (() => {
@@ -194,6 +195,38 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
             }
         }
     }, [formValues.situacaoUsoUnidade, familyIndex, form, formValues]);
+
+    useEffect(() => {
+        // Quando a situação mudar, limpa o uso para o default (select)
+        const situacaoAtual = form.getValues(`families[${familyIndex}].situacaoUsoUnidade`);
+        if (previousSituacaoRef.current !== undefined && previousSituacaoRef.current !== situacaoAtual) {
+            const usoUnidadeAtual = form.getValues(`families[${familyIndex}].usoUnidade`);
+            if (usoUnidadeAtual !== "select") {
+                form.setValue(`families[${familyIndex}].usoUnidade`, "select");
+            }
+        }
+        previousSituacaoRef.current = situacaoAtual;
+    }, [formValues.situacaoUsoUnidade, form, familyIndex]);
+
+    useEffect(() => {
+        // Define "Uso não Identificado" quando situação indicar terreno/vazio
+        const situacoesQueIndicamUsoNaoIdentificado = new Set([
+            "TerrenoCercado",
+            "TerrenoSemCercamento",
+            "ConstrucaoVazio",
+            "ReformaVazio",
+            "UnidadeVazia",
+        ]);
+
+        const situacaoAtual = form.getValues(`families[${familyIndex}].situacaoUsoUnidade`);
+        const usoUnidadeAtual = form.getValues(`families[${familyIndex}].usoUnidade`);
+
+        const isDefaultUsoUnidade = !usoUnidadeAtual || usoUnidadeAtual === "select";
+
+        if (situacoesQueIndicamUsoNaoIdentificado.has(situacaoAtual) && isDefaultUsoUnidade) {
+            form.setValue(`families[${familyIndex}].usoUnidade`, "UsoNaoIdentificado");
+        }
+    }, [formValues.situacaoUsoUnidade, form, familyIndex]);
 
     useEffect(() => {
         // Define os usos que exigem "qualUso"
