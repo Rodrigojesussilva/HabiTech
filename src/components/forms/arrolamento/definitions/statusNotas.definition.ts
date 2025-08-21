@@ -49,7 +49,8 @@ export const statusNotasDefinition: FormConfig = {
                     name: "nomeSupervisor",
                     label: "Nome do Supervisor",
                     type: "text", 
-                    required: false
+                    required: false,
+                    readonly: true
                 },
                 {
                     name: "observacao",
