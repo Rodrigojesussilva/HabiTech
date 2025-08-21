@@ -285,6 +285,11 @@ export const loadSelagemData = async (params: LoadSelagemDataParams): Promise<vo
       const selagemData = response.selagens[0]
       setLoadedSelagemData(selagemData)
       
+      // Sync global pointers for section saves
+      localStorage.setItem('selagemId', selagemData.id)
+      localStorage.setItem('selagemCreated_by', selagemData.created_by || '')
+      try { const sei = selagemData?.survey?.main_metadata?.numero_sei ?? ''; localStorage.setItem('seiNumberS', String(sei ?? '')) } catch {}
+      
       // Mapear os dados para o formato do formulário (TODOS os 8 schemas)
       const mappedData = mapSelagemToFormData(selagemData, interviewerNameFromStorage)
       console.log("🗂️ Dados mapeados para o formulário (8/8 schemas):", mappedData)
@@ -313,6 +318,11 @@ export const loadSelagemData = async (params: LoadSelagemDataParams): Promise<vo
       if (mockResponse && mockResponse.selagens && mockResponse.selagens.length > 0) {
         const selagemData = mockResponse.selagens[0]
         setLoadedSelagemData(selagemData)
+        
+        // Sync global pointers for section saves (mock path)
+        localStorage.setItem('selagemId', selagemData.id)
+        localStorage.setItem('selagemCreated_by', selagemData.created_by || '')
+        try { const sei = selagemData?.survey?.main_metadata?.numero_sei ?? ''; localStorage.setItem('seiNumberS', String(sei ?? '')) } catch {}
         
         const mappedData = mapSelagemToFormData(selagemData, interviewerNameFromStorage)
         console.log("🗂️ Dados mockados mapeados (8/8 schemas):", mappedData)
