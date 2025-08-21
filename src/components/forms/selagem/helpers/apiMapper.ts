@@ -140,7 +140,7 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
   return {
     questionario: selagemData.survey_id || "SEHAB-123",
     seiNumber: mainMetadata.numero_sei || "",
-    naoAplica: mainMetadata.numero_sei_nao_aplicavel ? "true" : "",
+    naoAplica: Boolean(mainMetadata.numero_sei_nao_aplicavel),
     interviewerName: selagemData.created_by || interviewerNameFromStorage,
     interviewDate: selagemData.created_at ? new Date(selagemData.created_at).toISOString().split('T')[0] : "",
     startTime: "",

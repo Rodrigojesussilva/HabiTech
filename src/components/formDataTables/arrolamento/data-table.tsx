@@ -80,15 +80,39 @@ export function DataTable<TData, TValue>({
                   <Button className="cursor-pointer p-0.5 md:p-1" variant="ghost" onClick={() => onView?.(row.original)} title="Visualizar">
                     <EyeIcon className="w-4 h-4" />
                   </Button>
-                  <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onEdit?.(row.original)} title={ (row.original as any).completed ? 'Edição indisponível para visitas concluídas' : 'Editar' } disabled={(row.original as any).completed}>
-                    <PencilIcon className="w-4 h-4" />
-                  </Button>
+                  {(() => {
+                    const currentUserEmail = localStorage.getItem('userEmail') || ''
+                    const canEdit = (row.original as any).created_by === currentUserEmail
+                    return (
+                      <Button 
+                        className={`p-0.5 md:p-1 ${!canEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`} 
+                        variant="ghost" 
+                        onClick={() => onEdit?.(row.original)} 
+                        title={!canEdit ? 'Você não tem permissão para editar este arrolamento' : 'Editar'} 
+                        disabled={!canEdit}
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </Button>
+                    )
+                  })()}
                   <Button className="p-0.5 md:p-1" variant="ghost" onClick={() => onNewVisit?.(row.original)} title={(row.original as any).completed ? 'Criar nova visita' : 'Finalize a visita atual para liberar nova visita'} disabled={!((row.original as any).completed)}>
                     <PlusIcon className="w-4 h-4" />
                   </Button>
-                  <Button className="cursor-pointer p-0.5 md:p-1" variant="ghost" title="Deletar" onClick={() => onDelete?.(row.original)}>
-                    <TrashIcon className="w-4 h-4" />
-                  </Button>
+                  {(() => {
+                    const currentUserEmail = localStorage.getItem('userEmail') || ''
+                    const canDelete = (row.original as any).created_by === currentUserEmail
+                    return (
+                      <Button 
+                        className={`p-0.5 md:p-1 ${!canDelete ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`} 
+                        variant="ghost" 
+                        title={!canDelete ? 'Você não tem permissão para deletar este arrolamento' : 'Deletar'} 
+                        onClick={() => onDelete?.(row.original)}
+                        disabled={!canDelete}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </Button>
+                    )
+                  })()}
                 </TableCell>
               </TableRow>
             ))

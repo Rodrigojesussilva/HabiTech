@@ -32,7 +32,7 @@ export function CardItem({ item, onView, onEdit, onNewVisit, onDelete }: CardIte
             {item.survey_id}
           </h3>
           <p className="text-xs text-gray-600 truncate">
-            SEI: {item.survey.main_metadata.numero_sei}
+            SEI: {item.survey.main_metadata.numero_sei_nao_aplicavel ? 'N/A' : item.survey.main_metadata.numero_sei}
           </p>
         </div>
         <StatusBadge completed={item.completed} />

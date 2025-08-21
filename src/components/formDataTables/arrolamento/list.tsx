@@ -37,10 +37,14 @@ export default function ArrolamentoList() {
 
   const handleEdit = (row: any) => {
     if (!row?.id) return
-    if (row.completed) {
-      alert(`❌ Este arrolamento já foi concluído e não pode ser editado!\n\nArrolamento: ${row.survey_id}\nCriado por: ${row.created_by}\nNúmero SEI: ${row.survey?.main_metadata?.numero_sei ?? ''}`)
+    
+    // Verificar se o usuário pode editar (apenas o criador)
+    const currentUserEmail = localStorage.getItem('userEmail') || ''
+    if (row.created_by !== currentUserEmail) {
+      alert(`❌ Você não tem permissão para editar este arrolamento!\n\nArrolamento: ${row.survey_id}\nCriado por: ${row.created_by}\nNúmero SEI: ${row.survey?.main_metadata?.numero_sei ?? ''}`)
       return
     }
+    
     navigate(`/edit-arrolamento/${row.id}`)
   }
 
@@ -124,6 +128,14 @@ export default function ArrolamentoList() {
 
   const handleDelete = async (row: any) => {
     if (!row?.id) return
+    
+    // Verificar se o usuário pode deletar (apenas o criador)
+    const currentUserEmail = localStorage.getItem('userEmail') || ''
+    if (row.created_by !== currentUserEmail) {
+      alert(`❌ Você não tem permissão para deletar este arrolamento!\n\nArrolamento: ${row.survey_id}\nCriado por: ${row.created_by}\nNúmero SEI: ${row.survey?.main_metadata?.numero_sei ?? ''}`)
+      return
+    }
+    
     if (!confirm(`Deseja remover o arrolamento ${row.survey_id}?`)) return
     try {
       setLoading(true)

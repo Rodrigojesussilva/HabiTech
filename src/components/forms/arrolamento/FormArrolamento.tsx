@@ -115,10 +115,18 @@ const FormArrolamento = ({
 }: FormArrolamentoProps) => {
  	const navigate = useNavigate();
  	const params = useParams();
- 		const isViewMode = useViewMode();
+ 		const baseViewMode = useViewMode();
 	const isEditMode = Boolean(params.id);
 	const [isLoadingData, setIsLoadingData] = useState(false);
 	const [loadedArrolamentoData, setLoadedArrolamentoData] = useState<any>(null);
+	const [isViewMode, setIsViewMode] = useState(baseViewMode);
+	
+	// Update view mode based on permissions
+	useEffect(() => {
+		const currentUserEmail = localStorage.getItem('userEmail') || '';
+		const canUserEditRecord = loadedArrolamentoData?.created_by === currentUserEmail;
+		setIsViewMode(baseViewMode || (isEditMode && !canUserEditRecord));
+	}, [baseViewMode, isEditMode, loadedArrolamentoData?.created_by]);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 	const [finalizing, setFinalizing] = useState(false);

@@ -13,6 +13,7 @@ export type Selagem = {
   survey: {
     main_metadata: {
       numero_sei: string
+      numero_sei_nao_aplicavel?: boolean
     }
   }
   status_text?: string
@@ -34,7 +35,7 @@ export const columns: ColumnDef<Selagem>[] = [
     meta: { headerClassName: "", cellClassName: "" }, // sempre visível
   },
   {
-    accessorFn: row => row.survey.main_metadata.numero_sei,
+    accessorFn: row => row.survey.main_metadata.numero_sei_nao_aplicavel ? 'N/A' : row.survey.main_metadata.numero_sei,
     id: "numero_sei",
     header: ({ column }) => (
       <Button

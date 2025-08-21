@@ -46,17 +46,23 @@ export function ActionButtons({
         {layout === 'grid' && <span className="text-xs leading-tight">Visualizar</span>}
       </Button>
       
-      <Button
-        size={buttonSize}
-        variant={layout === 'grid' ? 'outline' : 'ghost'}
-        className={`${baseButtonClass} ${padding}`}
-        onClick={() => onEdit?.(item)}
-        disabled={item.completed}
-        title={item.completed ? 'Edição indisponível para visitas concluídas' : 'Editar'}
-      >
-        <PencilIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs leading-tight">Editar</span>}
-      </Button>
+      {(() => {
+        const currentUserEmail = localStorage.getItem('userEmail') || '';
+        const canEdit = item.created_by === currentUserEmail;
+        return (
+          <Button
+            size={buttonSize}
+            variant={layout === 'grid' ? 'outline' : 'ghost'}
+            className={`${baseButtonClass} ${padding} ${!canEdit ? 'cursor-not-allowed opacity-50' : ''}`}
+            onClick={() => onEdit?.(item)}
+            disabled={!canEdit}
+            title={!canEdit ? 'Você não tem permissão para editar este arrolamento' : 'Editar'}
+          >
+            <PencilIcon className={iconSize} />
+            {layout === 'grid' && <span className="text-xs leading-tight">Editar</span>}
+          </Button>
+        );
+      })()}
       
       <Button
         size={buttonSize}
@@ -70,16 +76,23 @@ export function ActionButtons({
         {layout === 'grid' && <span className="text-xs leading-tight">Nova Visita</span>}
       </Button>
       
-      <Button
-        size={buttonSize}
-        variant={layout === 'grid' ? 'outline' : 'ghost'}
-        className={`${baseButtonClass} ${padding} ${layout === 'grid' ? 'text-red-600 hover:text-red-700' : ''}`}
-        onClick={() => onDelete?.(item)}
-        title="Deletar"
-      >
-        <TrashIcon className={iconSize} />
-        {layout === 'grid' && <span className="text-xs leading-tight">Deletar</span>}
-      </Button>
+      {(() => {
+        const currentUserEmail = localStorage.getItem('userEmail') || '';
+        const canDelete = item.created_by === currentUserEmail;
+        return (
+          <Button
+            size={buttonSize}
+            variant={layout === 'grid' ? 'outline' : 'ghost'}
+            className={`${baseButtonClass} ${padding} ${layout === 'grid' ? 'text-red-600 hover:text-red-700' : ''} ${!canDelete ? 'cursor-not-allowed opacity-50' : ''}`}
+            onClick={() => onDelete?.(item)}
+            disabled={!canDelete}
+            title={!canDelete ? 'Você não tem permissão para deletar este arrolamento' : 'Deletar'}
+          >
+            <TrashIcon className={iconSize} />
+            {layout === 'grid' && <span className="text-xs leading-tight">Deletar</span>}
+          </Button>
+        );
+      })()}
     </div>
   );
 } 

@@ -93,15 +93,21 @@ export function DataTable<TData, TValue>({
 												>
 													<EyeIcon className="w-4 h-4" />
 												</Button>
-												<Button 
-													className={`p-0.5 md:p-1 ${isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-													variant="ghost"
-													onClick={() => onEdit?.(row.original)}
-													disabled={isCompleted}
-													title={isCompleted ? 'Esta selagem já foi concluída e não pode ser editada' : 'Editar selagem'}
-												>
-													<PencilIcon className="w-4 h-4" />
-												</Button>
+												{(() => {
+													const currentUserEmail = localStorage.getItem('userEmail') || ''
+													const canEdit = item.created_by === currentUserEmail
+													return (
+														<Button 
+															className={`p-0.5 md:p-1 ${!canEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+															variant="ghost"
+															onClick={() => onEdit?.(row.original)}
+															disabled={!canEdit}
+															title={!canEdit ? 'Você não tem permissão para editar esta selagem' : 'Editar selagem'}
+														>
+															<PencilIcon className="w-4 h-4" />
+														</Button>
+													)
+												})()}
 												<Button 
 													className={`p-0.5 md:p-1 ${!isCompleted ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
 													variant="ghost"
@@ -111,14 +117,21 @@ export function DataTable<TData, TValue>({
 												>
 													<PlusIcon className="w-4 h-4" />
 												</Button>
-												<Button 
-													className="cursor-pointer p-0.5 md:p-1" 
-													variant="ghost"
-													title="Deletar selagem"
-													onClick={() => onDelete?.(row.original)}
-												>
-													<TrashIcon className="w-4 h-4" />
-												</Button>
+												{(() => {
+													const currentUserEmail = localStorage.getItem('userEmail') || ''
+													const canDelete = item.created_by === currentUserEmail
+													return (
+														<Button 
+															className={`p-0.5 md:p-1 ${!canDelete ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+															variant="ghost"
+															title={!canDelete ? 'Você não tem permissão para deletar esta selagem' : 'Deletar selagem'}
+															onClick={() => onDelete?.(row.original)}
+															disabled={!canDelete}
+														>
+															<TrashIcon className="w-4 h-4" />
+														</Button>
+													)
+												})()}
 											</>
 										)
 									})()}

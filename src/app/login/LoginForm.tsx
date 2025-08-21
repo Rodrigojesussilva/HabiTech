@@ -49,7 +49,18 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
       //   email: data.email,
       //   password: data.password 
       // });
-      if (data.email !== "piloto@sehab.gov.br" || data.password !== "sehab2025") {
+      // Usuários válidos
+      const validUsers = [
+        { email: "urbhis@sehab.sp.gov.br", password: "sehab2025" },
+        { email: "diagonal@sehab.sp.gov.br", password: "sehab2025" },
+        { email: "cobrape@sehab.sp.gov.br", password: "sehab2025" }
+      ];
+      
+      const isValidUser = validUsers.some(user => 
+        user.email === data.email && user.password === data.password
+      );
+      
+      if (!isValidUser) {
         throw new Error("Email ou senha inválidos");
       }
 

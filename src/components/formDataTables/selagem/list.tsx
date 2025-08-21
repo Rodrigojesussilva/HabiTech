@@ -40,9 +40,10 @@ export default function SelagemList() {
   const handleEdit = (selagem: Selagem) => {
     console.log("🚀 Tentando editar selagem:", selagem)
     
-    // Verificar se a selagem está concluída
-    if (selagem.completed) {
-      alert(`❌ Esta selagem já foi concluída e não pode ser editada!\n\nSelagem: ${selagem.survey_id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}\nConcluída em: ${selagem.completed_at ? new Date(selagem.completed_at).toLocaleString('pt-BR') : 'Data não disponível'}`)
+    // Verificar se o usuário pode editar (apenas o criador)
+    const currentUserEmail = localStorage.getItem('userEmail') || ''
+    if (selagem.created_by !== currentUserEmail) {
+      alert(`❌ Você não tem permissão para editar esta selagem!\n\nSelagem: ${selagem.survey_id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}`)
       return
     }
     
@@ -51,6 +52,13 @@ export default function SelagemList() {
   }
 
   const handleDelete = async (selagem: Selagem) => {
+    // Verificar se o usuário pode deletar (apenas o criador)
+    const currentUserEmail = localStorage.getItem('userEmail') || ''
+    if (selagem.created_by !== currentUserEmail) {
+      alert(`❌ Você não tem permissão para deletar esta selagem!\n\nSelagem: ${selagem.survey_id}\nCriada por: ${selagem.created_by}\nNúmero SEI: ${selagem.survey.main_metadata.numero_sei}`)
+      return
+    }
+
     const confirm = window.confirm(`Tem certeza que deseja deletar a selagem ${selagem.id}?`)
     if (!confirm) return
 
@@ -308,6 +316,7 @@ export default function SelagemList() {
           survey: {
             main_metadata: {
               numero_sei: item.survey?.main_metadata?.numero_sei ?? "",
+              numero_sei_nao_aplicavel: Boolean(item.survey?.main_metadata?.numero_sei_nao_aplicavel),
             },
           },
         }))

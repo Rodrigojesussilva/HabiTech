@@ -64,7 +64,7 @@ const familySchema = z.object({
 const formSchema = z.object({
 	questionario: z.string(),
 	seiNumber: z.string().min(1, { message: "Nº SEI é obrigatório" }),
-	naoAplica: z.string(),
+	naoAplica: z.boolean().optional(),
 	interviewerName: z.string().min(1, { message: "Nome do entrevistador é obrigatório" }),
 	interviewDate: z.string(),
 	startTime: z.string(),
@@ -114,7 +114,9 @@ const FormSelagem = ({
 	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
 	const [saving, setSaving] = useState(false)
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
-	const isViewMode = viewMode || loadedSelagemData?.status === 'finalizado' || loadedSelagemData?.readonly === true
+	const currentUserEmail = localStorage.getItem('userEmail') || ''
+	const canUserEditRecord = loadedSelagemData?.created_by === currentUserEmail
+	const isViewMode = viewMode || loadedSelagemData?.readonly === true || (isEditMode && !canUserEditRecord)
 	console.log(isMobile);
 	const interviewerNameFromStorage = 'Piloto Instrumentos';
 
@@ -123,7 +125,7 @@ const FormSelagem = ({
 		defaultValues: defaultValues || {
 			questionario: "SEHAB-123",
 			seiNumber: "",
-			naoAplica: "",
+			naoAplica: false,
 			interviewerName: interviewerNameFromStorage,
 			interviewDate: "",
 			startTime: "",
@@ -1056,11 +1058,12 @@ const FormSelagem = ({
 										console.log("➕ MODO CRIAÇÃO - Criando novo registro");
 																			const dataToSend = {
 										created_by: (localStorage.getItem('userEmail') || questionario),
-										main_metadata: {
-												numero_sei: values.naoAplica ? "N/A" : seiNumber,
-												numero_selo: sealNumber,
-												quantidade_familias: numberFamilies,
-											},
+																main_metadata: {
+								numero_sei: values.naoAplica ? "N/A" : seiNumber,
+								numero_sei_nao_aplicavel: Boolean(values.naoAplica),
+								numero_selo: sealNumber,
+								quantidade_familias: numberFamilies,
+							},
 											// authorization_token: "seu_token_aqui",
 										};
 

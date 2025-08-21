@@ -19,7 +19,7 @@ export const desktopColumns: ColumnDef<Selagem>[] = [
     },
   },
   {
-    accessorFn: row => row.survey.main_metadata.numero_sei,
+    accessorFn: row => row.survey.main_metadata.numero_sei_nao_aplicavel ? 'N/A' : row.survey.main_metadata.numero_sei,
     id: "numero_sei",
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
