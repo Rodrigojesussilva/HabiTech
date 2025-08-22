@@ -59,6 +59,33 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalO
 		}
 	}, [location.pathname]);
 
+	// Limpa cache de IDs e dados não relacionados ao login ao entrar em qualquer formulário
+	useEffect(() => {
+		try {
+			const keysToKeep = new Set([
+				'isAuthenticated',
+				'userEmail',
+				'authToken',
+				'authorization_token',
+				'token',
+				'access_token',
+				'jwt',
+				'idToken',
+				'FORCE_PRODUCTION', // ambiente
+			]);
+			const allKeys: string[] = [];
+			for (let i = 0; i < localStorage.length; i++) {
+				const k = localStorage.key(i);
+				if (k) allKeys.push(k);
+			}
+			for (const k of allKeys) {
+				if (!keysToKeep.has(k)) {
+					localStorage.removeItem(k);
+				}
+			}
+		} catch {}
+	}, []);
+
 	return (
 		<>
 			<div className="flex flex-wrap lg:flex-nowrap md:flex-nowrap gap-0">

@@ -524,7 +524,7 @@ const FormArrolamento = ({
             if (result.isConfirmed) {
                 console.log('[Arrolamento][Meta] User confirmed exit; redirecting and suppressing next close')
                 ignoreNextCloseRef.current = true;
-                window.location.href = '/';
+                window.location.href = '/home';
             } else {
                 console.log('[Arrolamento][Meta] User canceled exit; re-opening modal')
                 setIsMetadataModalOpen(true);
