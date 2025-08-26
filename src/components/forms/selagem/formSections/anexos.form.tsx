@@ -143,22 +143,29 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         throw new Error('Empty signed_url response; falling back to metadata_only')
       }
       const grouped: Record<string, AttachmentItem[]> = {}
+      const parseMetadata = (m: unknown) => {
+        if (!m) return {};
+        if (typeof m === 'string') {
+          try { return JSON.parse(m); } catch { return {}; }
+        }
+        return m as Record<string, any>;
+      };
       for (const f of list) {
         console.log('[Selagem][Anexos][Load] map item raw:', f);
-        const meta = f.metadata || f.metadado || {}
+        const meta = parseMetadata(f.metadata.metadata || f.metadado || {})
         const fieldKey = meta.field || 'outros'
         const filename = meta.filename || f.name || 'arquivo'
         const mime = f.mime_type || f.mime
         const size = f.size
         console.log('[Selagem][Anexos][Load] map item:', { id: f.id, filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
-        if (meta.section !== SECTION_KEY) continue
+        //if (meta.section !== SECTION_KEY) continue
         if (!grouped[fieldKey]) grouped[fieldKey] = []
         grouped[fieldKey].push({
           id: f.id,
           filename,
           mime,
           size,
-          url: f.url,
+          url: f.metadata.download_link,
           metadado: meta,
         })
       }
@@ -215,8 +222,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         }
       } catch (e2) {
         console.error('[Selagem][Anexos][Load] metadata/local fallback failed:', e2)
-        const { currentSelagemId } = ensureIds()
-        loadFromLocal(currentSelagemId)
+       // const { currentSelagemId } = ensureIds()
+        //loadFromLocal(currentSelagemId)
       }
     } finally {
       setLoading(false)
@@ -246,13 +253,13 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         return
       }
       console.log('[Selagem][Anexos][Upload] file:', { name: file.name, size: file.size, type: file.type })
+      // FileReader opcional: gerar dataUrl apenas para preview/offline
       const reader = new FileReader()
-      const base64: string = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve((reader.result as string).split(',')[1] || '')
+      const previewDataUrl: string = await new Promise((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string)
         reader.onerror = reject
         reader.readAsDataURL(file)
       })
-      console.log('[Selagem][Anexos][Upload] base64 length:', base64.length)
 
       const metadado = {
         survey_id: currentSelagemId,
@@ -267,12 +274,12 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       }
       console.log('[Selagem][Anexos][Upload] metadado:', metadado)
 
-      const uploaded = await survey_resource.SendFileToUpload(
+      // Envia via multipart (v2), sem Authorization
+      const uploaded = await survey_resource.SendFileToUploadV2Multipart(
         SURVEY_RESOURCE_URL,
         currentSelagemId,
-        base64,
+        file,
         metadado as any,
-        token
       )
       console.log('[Selagem][Anexos][Upload] response:', uploaded)
 
@@ -280,8 +287,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       try {
         const id = uploaded?.file?.id || uploaded?.id || `temp_${Date.now()}`
         const url = uploaded?.file?.url || uploaded?.url
-        const dataUrl = `data:${file.type};base64,${base64}`
-        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, dataUrl, metadado }
+        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, dataUrl: previewDataUrl, metadado }
         setAttachmentsByField(prev => {
           const next = { ...prev }
           if (!next[fieldName]) next[fieldName] = []
@@ -290,7 +296,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         })
         console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
         // Persistir localmente para carregamento futuro sem token
-        saveLocalAttachment(currentSelagemId, fieldName, newItem)
+        //saveLocalAttachment(currentSelagemId, fieldName, newItem)
       } catch (e) {
         console.warn('[Selagem][Anexos][Upload] could not reflect response in UI:', e)
       }

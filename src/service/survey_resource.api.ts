@@ -2391,6 +2391,38 @@ namespace survey_resource {
         }
     };
 
+    // Upload via multipart/form-data (v2), sem Authorization
+    export const SendFileToUploadV2Multipart = async (
+        baseUrl: string,
+        entityId: string,
+        file: File,
+        metadata?: Record<string, any>
+    ): Promise<any> => {
+        try {
+            const path = `/file-input/v2/files/upload`
+            const form = new FormData()
+            form.append('file', file, file.name)
+            form.append('usage', 'SURVEY')
+            form.append('entity_id', entityId)
+            if (metadata) form.append('metadata', JSON.stringify(metadata))
+
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: 'POST',
+                body: form,
+            })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                throw new Error(`Erro na requisição: ${response.status} - ${errorText}`)
+            }
+
+            return await response.json()
+        } catch (error) {
+            console.error('Erro ao enviar arquivo (v2 multipart):', error)
+            throw error
+        }
+    };
+
 }
 
 export default survey_resource
