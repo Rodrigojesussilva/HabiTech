@@ -123,15 +123,16 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Arrolamento][Anexos][Load] id missing; skipping')
       return
     }
-    if (!token) {
-      console.warn('[Arrolamento][Anexos][Load] token missing; using local fallback')
-      loadFromLocal(currentId)
-      return
-    }
+    /* if (!token) {
+       console.warn('[Arrolamento][Anexos][Load] token missing; using local fallback')
+       loadFromLocal(currentId)
+       return
+     }
+     */
     try {
       // signed_url primeiro
       const response = await survey_resource.GetArrolamentoAttachments({ id: currentId, authorization_token: token, download_mode: 'signed_url' as any }, async (req: any) => {
-        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+        const url = `${SURVEY_RESOURCE_URL}${req.path}`
         const headers: Record<string, string> = { 'Content-Type': 'application/json' }
         const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
         if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
@@ -151,13 +152,31 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.log('[Arrolamento][Anexos][Load] signed_url attachments raw length:', list.length)
       if (!Array.isArray(list) || list.length === 0) throw new Error('Empty signed_url response; fallback metadata_only')
       const grouped: Record<string, AttachmentItem[]> = {}
+      const parseMetadata = (m: unknown) => {
+        if (!m) return {};
+        if (typeof m === 'string') {
+          try { return JSON.parse(m); } catch { return {}; }
+        }
+        return m as Record<string, any>;
+      };
       for (const f of list) {
-        const meta = f.metadado || {}
+        console.log('[Arrolamento][Anexos][Load] map item raw:', f);
+        const meta = parseMetadata(f.metadata.metadata || f.metadado || {})
         const fieldKey = meta.field || 'outros'
-        console.log('[Arrolamento][Anexos][Load] map item:', { id: f.id, filename: f.filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
-        if (meta.section !== SECTION_KEY) continue
+        const filename = meta.filename || f.name || 'arquivo'
+        const mime = f.mime_type || f.mime
+        const size = f.size
+        console.log('[Arrolamento][Anexos][Load] map item:', { id: f.id, filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
+        //if (meta.section !== SECTION_KEY) continue
         if (!grouped[fieldKey]) grouped[fieldKey] = []
-        grouped[fieldKey].push({ id: f.id, filename: f.filename || f.name || 'arquivo', mime: f.mime, size: f.size, url: f.url, metadado: meta })
+        grouped[fieldKey].push({
+          id: f.id,
+          filename,
+          mime,
+          size,
+          url: f.metadata.download_link,
+          metadado: meta,
+        })
       }
       console.log('[Arrolamento][Anexos][Load] grouped keys:', Object.keys(grouped))
       setAttachmentsByField(grouped)
@@ -226,12 +245,11 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       }
       console.log('[Arrolamento][Anexos][Upload] file:', { name: file.name, size: file.size, type: file.type })
       const reader = new FileReader()
-      const base64: string = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve((reader.result as string).split(',')[1] || '')
+      const previewDataUrl: string = await new Promise((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string)
         reader.onerror = reject
         reader.readAsDataURL(file)
       })
-      console.log('[Arrolamento][Anexos][Upload] base64 length:', base64.length)
 
       const metadado = {
         survey_id: currentId,
@@ -246,33 +264,32 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       }
       console.log('[Arrolamento][Anexos][Upload] metadado:', metadado)
 
-       const uploaded = await survey_resource.SendFileToUploadV2Multipart(
-              SURVEY_RESOURCE_URL,
-              currentId,
-              file,
-              metadado as any,
-            )
+      const uploaded = await survey_resource.SendFileToUploadV2Multipart(
+        SURVEY_RESOURCE_URL,
+        currentId,
+        file,
+        metadado as any,
+      )
       console.log('[Arrolamento][Anexos][Upload] response:', uploaded)
 
       try {
         const id = uploaded?.file?.id || uploaded?.id || `temp_${Date.now()}`
         const url = uploaded?.file?.url || uploaded?.url
-        const dataUrl = `data:${file.type};base64,${base64}`
-        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, dataUrl, metadado }
+        const newItem: AttachmentItem = { id, filename: file.name, mime: file.type, size: file.size, url, dataUrl: previewDataUrl, metadado }
         setAttachmentsByField(prev => {
           const next = { ...prev }
           if (!next[fieldName]) next[fieldName] = []
           next[fieldName] = [...(next[fieldName] || []), newItem]
           return next
         })
-        console.log('[Arrolamento][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
-        saveLocalAttachment(currentId, fieldName, newItem)
+        console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
+        // Persistir localmente para carregamento futuro sem token
+        //saveLocalAttachment(currentSelagemId, fieldName, newItem)
       } catch (e) {
         console.warn('[Arrolamento][Anexos][Upload] could not reflect response in UI:', e)
       }
 
-      if (token) await loadAttachments()
-      else console.warn('[Arrolamento][Anexos][Upload] upload OK but token missing; could not reload list.')
+      await loadAttachments()     
       Swal.fire({ icon: 'success', title: 'Anexo enviado!', timer: 1200, showConfirmButton: false })
     } catch (e) {
       console.error('[Arrolamento][Anexos][Upload] error:', e)
@@ -286,9 +303,9 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const { currentId, token } = ensureIds()
       console.log('[Arrolamento][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'arrolamentoId:', currentId, 'tokenPresent:', Boolean(token))
       if (!currentId) return
-      if (token) {
+      //if (token) {
         await survey_resource.RemoveArrolamentoAttachment({ id: currentId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
-          const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+          const url = `${SURVEY_RESOURCE_URL}${req.path}`
           const headers: Record<string, string> = { 'Content-Type': 'application/json' }
           const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
           if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
@@ -302,14 +319,14 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           }
           return res.json()
         })
-      }
+      //}
       setAttachmentsByField(prev => {
         const next = { ...prev }
         next[fieldName] = (next[fieldName] || []).filter(a => a.id !== attachmentId)
         return next
       })
-      removeLocalAttachment(currentId, fieldName, attachmentId)
-      console.log('[Arrolamento][Anexos][Remove] removed locally:', attachmentId)
+      //removeLocalAttachment(currentId, fieldName, attachmentId)
+      //console.log('[Arrolamento][Anexos][Remove] removed locally:', attachmentId)
     } catch (e) {
       console.error('[Arrolamento][Anexos][Remove] error:', e)
     }

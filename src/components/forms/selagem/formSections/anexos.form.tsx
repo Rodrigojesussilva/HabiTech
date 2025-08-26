@@ -9,9 +9,9 @@ import survey_resource from "@/service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constants"
 
 interface AnexosFormProps {
-    id?: string;
-    sectionIndex?: number;
-    familyIndex: number;
+  id?: string;
+  sectionIndex?: number;
+  familyIndex: number;
 }
 
 type AttachmentItem = {
@@ -28,9 +28,9 @@ const SECTION_KEY = 'anexos'
 
 const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProps) => {
   const [open, setOpen] = useState(false)
-    const form = useFormContext();
-    const formValues = form.watch(`families[${familyIndex}]`) || {};
-    const formSections = getMergedFormSections(formValues);
+  const form = useFormContext();
+  const formValues = form.watch(`families[${familyIndex}]`) || {};
+  const formSections = getMergedFormSections(formValues);
 
   const [attachmentsByField, setAttachmentsByField] = useState<Record<string, AttachmentItem[]>>({})
   const [loading, setLoading] = useState(false)
@@ -77,6 +77,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Selagem][Anexos][Local][Save] failed:', e)
     }
   }
+
   const removeLocalAttachment = (sid: string, field: string, id: string) => {
     try {
       const key = localKey(sid)
@@ -90,6 +91,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Selagem][Anexos][Local][Remove] failed:', e)
     }
   }
+
   const loadFromLocal = (sid: string) => {
     try {
       const key = localKey(sid)
@@ -222,7 +224,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         }
       } catch (e2) {
         console.error('[Selagem][Anexos][Load] metadata/local fallback failed:', e2)
-       // const { currentSelagemId } = ensureIds()
+        // const { currentSelagemId } = ensureIds()
         //loadFromLocal(currentSelagemId)
       }
     } finally {
@@ -231,7 +233,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     console.log('[Selagem][Anexos][Effect] routeSelagemId changed:', routeSelagemId)
     loadAttachments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -291,7 +293,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         setAttachmentsByField(prev => {
           const next = { ...prev }
           if (!next[fieldName]) next[fieldName] = []
-          next[fieldName] = [ ...(next[fieldName] || []), newItem ]
+          next[fieldName] = [...(next[fieldName] || []), newItem]
           return next
         })
         console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
@@ -319,21 +321,21 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.log('[Selagem][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'selagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
       if (!currentSelagemId) return
       //if (token) {
-        await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
-          const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
-          const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-          const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
-          if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
-          console.log('[Selagem][Anexos][Remove][HTTP] POST url:', url, 'headersAuth:', Boolean(headers['Authorization']))
-          const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
-          console.log('[Selagem][Anexos][Remove][HTTP] status:', res.status)
-          if (!res.ok) {
-            const txt = await res.text()
-            console.warn('[Selagem][Anexos][Remove][HTTP] error:', res.status, txt)
-            throw new Error(txt)
-          }
-          return res.json()
-        })
+      await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
+        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        const tokenHeader = (req.headers && (req.headers as any)['authorization_token']) as string | undefined
+        if (tokenHeader) headers['Authorization'] = `Bearer ${tokenHeader}`
+        console.log('[Selagem][Anexos][Remove][HTTP] POST url:', url, 'headersAuth:', Boolean(headers['Authorization']))
+        const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
+        console.log('[Selagem][Anexos][Remove][HTTP] status:', res.status)
+        if (!res.ok) {
+          const txt = await res.text()
+          console.warn('[Selagem][Anexos][Remove][HTTP] error:', res.status, txt)
+          throw new Error(txt)
+        }
+        return res.json()
+      })
       //}
       // Remoção local e atualização de estado
       setAttachmentsByField(prev => {
@@ -438,26 +440,26 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
-    return (
-        <div className="text-left">
+  return (
+    <div className="text-left">
       <Collapsible open={open} onOpenChange={setOpen}>
-                <CollapsibleTrigger asChild>
-                    <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
-                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>
-                    </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                    {formSections.map((section, sectionIndex) => (
+        <CollapsibleTrigger asChild>
+          <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
+            <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {formSections.map((section, sectionIndex) => (
             <div key={section.id} className="mb-2">
-                        <FormSectionRenderer
-                            section={section}
-                            formControl={form.control}
-                            getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
-                            sectionIndex={sectionIndex}
-                            formValues={formValues}
-                            showSectionLabel={false}
-                            familyIndex={familyIndex}
-                        />
+              <FormSectionRenderer
+                section={section}
+                formControl={form.control}
+                getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
+                sectionIndex={sectionIndex}
+                formValues={formValues}
+                showSectionLabel={false}
+                familyIndex={familyIndex}
+              />
               {/* listas por campo */}
               <div className="grid grid-cols-1 gap-2">
                 <div>
@@ -480,15 +482,15 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
               <div className="mt-3">
                 <button type="button" onClick={handleSendAll} className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
-                            Enviar Anexos
-                        </button>
-                    </div>
+                  Enviar Anexos
+                </button>
+              </div>
             </div>
           ))}
-                </CollapsibleContent>
-            </Collapsible>
-        </div>
-    );
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
 }
 
 export default AnexosForm; 
