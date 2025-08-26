@@ -502,7 +502,7 @@ const FormSelagem = ({
 			if (result.isConfirmed) {
 				console.log('[Selagem][Meta] User confirmed exit; redirecting and suppressing next close')
 				ignoreNextCloseRef.current = true;
-				window.location.href = "/";
+				window.location.href = "/home";
 			} else {
 				console.log('[Selagem][Meta] User canceled exit; re-opening modal')
 				setIsMetadataModalOpen(true);
