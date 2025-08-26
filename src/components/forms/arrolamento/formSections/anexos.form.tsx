@@ -76,32 +76,9 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
   const localKey = (sid: string) => `arrolamento_attachments_${sid}`
 
-  const saveLocalAttachment = (sid: string, field: string, item: AttachmentItem) => {
-    try {
-      const key = localKey(sid)
-      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
-      if (!current[field]) current[field] = []
-      current[field].push(item)
-      localStorage.setItem(key, JSON.stringify(current))
-      console.log('[Arrolamento][Anexos][Local][Save] key:', key, 'field:', field, 'item:', item)
-    } catch (e) {
-      console.warn('[Arrolamento][Anexos][Local][Save] failed:', e)
-    }
-  }
 
-  const removeLocalAttachment = (sid: string, field: string, id: string) => {
-    try {
-      const key = localKey(sid)
-      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
-      if (current[field]) {
-        current[field] = (current[field] || []).filter(a => a.id !== id)
-        localStorage.setItem(key, JSON.stringify(current))
-        console.log('[Arrolamento][Anexos][Local][Remove] key:', key, 'field:', field, 'id:', id)
-      }
-    } catch (e) {
-      console.warn('[Arrolamento][Anexos][Local][Remove] failed:', e)
-    }
-  }
+
+ 
 
   const loadFromLocal = (sid: string) => {
     try {

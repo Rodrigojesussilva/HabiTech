@@ -7,6 +7,7 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import Swal from 'sweetalert2';
 import survey_resource from "@/service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constants"
+import useViewMode from '@/hooks/useViewMode'
 
 interface AnexosFormProps {
   id?: string;
@@ -28,6 +29,7 @@ const SECTION_KEY = 'anexos'
 
 const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProps) => {
   const [open, setOpen] = useState(false)
+  const isViewMode = useViewMode();
   const form = useFormContext();
   const formValues = form.watch(`families[${familyIndex}]`) || {};
   const formSections = getMergedFormSections(formValues);
@@ -65,18 +67,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const localKey = (sid: string) => `selagem_attachments_${sid}`
-  const saveLocalAttachment = (sid: string, field: string, item: AttachmentItem) => {
-    try {
-      const key = localKey(sid)
-      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
-      if (!current[field]) current[field] = []
-      current[field].push(item)
-      localStorage.setItem(key, JSON.stringify(current))
-      console.log('[Selagem][Anexos][Local][Save] key:', key, 'field:', field, 'item:', item)
-    } catch (e) {
-      console.warn('[Selagem][Anexos][Local][Save] failed:', e)
-    }
-  }
+ 
 
   const removeLocalAttachment = (sid: string, field: string, id: string) => {
     try {
@@ -316,6 +307,10 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const handleRemove = async (attachmentId: string, fieldName: string) => {
+    if (isViewMode) {
+      console.log('[Selagem][Anexos][Remove] blocked: view mode')
+      return
+    }
     try {
       const { currentSelagemId, token } = ensureIds()
       console.log('[Selagem][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'selagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
@@ -397,7 +392,9 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           <li key={a.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
             <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
             <span className="flex items-center gap-2">
-              <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+              {!isViewMode && (
+                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+              )}
             </span>
           </li>
         ))}

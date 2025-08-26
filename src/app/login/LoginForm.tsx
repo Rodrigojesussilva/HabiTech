@@ -51,6 +51,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
       // });
       // Usuários válidos
       const validUsers = [
+        { email: "piloto@sehab.sp.gov.br", password: "sehab2025" },
         { email: "urbhis@sehab.sp.gov.br", password: "sehab2025" },
         { email: "diagonal@sehab.sp.gov.br", password: "sehab2025" },
         { email: "cobrape@sehab.sp.gov.br", password: "sehab2025" }
