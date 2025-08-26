@@ -246,13 +246,12 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       }
       console.log('[Arrolamento][Anexos][Upload] metadado:', metadado)
 
-      const uploaded = await survey_resource.SendFileToUpload(
-        SURVEY_RESOURCE_URL,
-        currentId,
-        base64,
-        metadado as any,
-        token
-      )
+       const uploaded = await survey_resource.SendFileToUploadV2Multipart(
+              SURVEY_RESOURCE_URL,
+              currentId,
+              file,
+              metadado as any,
+            )
       console.log('[Arrolamento][Anexos][Upload] response:', uploaded)
 
       try {
@@ -406,8 +405,6 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       Swal.fire({ icon: 'error', title: 'Erro no envio dos anexos' })
     }
   }
-
-
 
   return (
     <div className="text-left">
