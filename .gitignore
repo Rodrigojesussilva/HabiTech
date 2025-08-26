@@ -2,4 +2,4 @@ node_modules
 dist
 tsconfig.app.tsbuildinfo
 protobuf-workspace
-backend-services
+backend-services*

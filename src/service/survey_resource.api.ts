@@ -2365,7 +2365,7 @@ namespace survey_resource {
                 entity_id: entityId,
                 file: cleanedFileContent,
                 usage: "SURVEY",
-                metadado: metadado || {},
+                metadata: metadado || {},
             };
 
             console.log("Enviando corpo do request:", body);

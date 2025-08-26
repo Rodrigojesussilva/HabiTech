@@ -110,11 +110,11 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Selagem][Anexos][Load] selagemId missing; skipping')
       return
     }
-    if (!token) {
+    /*if (!token) {
       console.warn('[Selagem][Anexos][Load] token missing; using local fallback')
       loadFromLocal(currentSelagemId)
       return
-    }
+    }*/
     try {
       setLoading(true)
       // Primeira tentativa: pedir URLs assinadas
@@ -132,6 +132,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           throw new Error(txt)
         }
         const json = await res.json()
+        console.log('[Selagem][Anexos][Load][HTTP] GET signed_url ok, json:', json)
         console.log('[Selagem][Anexos][Load][HTTP] GET signed_url ok, attachments count:', Array.isArray((json as any)?.attachments) ? (json as any).attachments.length : 'n/a')
         return json
       })
@@ -143,17 +144,21 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       }
       const grouped: Record<string, AttachmentItem[]> = {}
       for (const f of list) {
-        const meta = f.metadado || {}
+        console.log('[Selagem][Anexos][Load] map item raw:', f);
+        const meta = f.metadata || f.metadado || {}
         const fieldKey = meta.field || 'outros'
-        console.log('[Selagem][Anexos][Load] map item:', { id: f.id, filename: f.filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
+        const filename = meta.filename || f.name || 'arquivo'
+        const mime = f.mime_type || f.mime
+        const size = f.size
+        console.log('[Selagem][Anexos][Load] map item:', { id: f.id, filename, section: meta.section, field: fieldKey, hasUrl: Boolean(f.url) })
         if (meta.section !== SECTION_KEY) continue
         if (!grouped[fieldKey]) grouped[fieldKey] = []
         grouped[fieldKey].push({
           id: f.id,
-          filename: f.filename || f.name || 'arquivo',
-          mime: f.mime,
-          size: f.size,
-          url: f.url, // deve vir com URL assinada
+          filename,
+          mime,
+          size,
+          url: f.url,
           metadado: meta,
         })
       }
@@ -188,16 +193,19 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           console.log('[Selagem][Anexos][Load] metadata_only attachments raw length:', list2.length)
           const grouped2: Record<string, AttachmentItem[]> = {}
           for (const f of list2) {
-            const meta = f.metadado || {}
+            const meta = f.metadata || f.metadado || {}
             const fieldKey = meta.field || 'outros'
-            console.log('[Selagem][Anexos][Load] map item (metadata_only):', { id: f.id, filename: f.filename, section: meta.section, field: fieldKey })
+            const filename = f.name || f.filename || 'arquivo'
+            const mime = f.mime_type || f.mime
+            const size = f.size
+            console.log('[Selagem][Anexos][Load] map item (metadata_only):', { id: f.id, filename, section: meta.section, field: fieldKey })
             if (meta.section !== SECTION_KEY) continue
             if (!grouped2[fieldKey]) grouped2[fieldKey] = []
             grouped2[fieldKey].push({
               id: f.id,
-              filename: f.filename || f.name || 'arquivo',
-              mime: f.mime,
-              size: f.size,
+              filename,
+              mime,
+              size,
               url: undefined,
               metadado: meta,
             })
@@ -304,7 +312,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const { currentSelagemId, token } = ensureIds()
       console.log('[Selagem][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'selagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
       if (!currentSelagemId) return
-      if (token) {
+      //if (token) {
         await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
           const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
           const headers: Record<string, string> = { 'Content-Type': 'application/json' }
@@ -320,7 +328,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           }
           return res.json()
         })
-      }
+      //}
       // Remoção local e atualização de estado
       setAttachmentsByField(prev => {
         const next = { ...prev }
@@ -340,8 +348,10 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     console.log('[Selagem][Anexos][Open] field:', fieldName, 'id:', id, 'found:', Boolean(a))
     if (!a) return
     const filename = a.metadado?.filename || a.filename || 'anexo'
+    console.log('[Selagem][Anexos][Open] filename:', filename)
     try {
       let blob: Blob | null = null
+      console.log('[Selagem][Anexos][Open] a:', a)
       if (a.url) {
         console.log('[Selagem][Anexos][Open] fetching signed URL')
         const res = await fetch(a.url)
