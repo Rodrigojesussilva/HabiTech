@@ -34,6 +34,10 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
   // Logs para depuração
   console.log('Valor do back doc.responsavel:', responsavelBack);
   console.log('Valor no campo responsavelCampo:', responsavelCampo);
+
+  const perFamilyOutrasInfo = formEntry?.outras_informacoes || rootOutrasInfo || {}
+  const perFamilyStatusNotas = formEntry?.status_notas || rootStatusNotas || {}
+
   return {
 
     // Identificação do responsável
@@ -152,7 +156,7 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
     viveComCompanheiro: nup.vive_com_companheiro ? 'sim' : '',
 
     //Outras informações relevantes (do nível raiz do survey)
-    texto: rootOutrasInfo?.texto || '',
+    texto: perFamilyOutrasInfo?.texto || '',
 
     // Pessoa com deficiência
     tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
@@ -215,10 +219,10 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
     responsavelOutraTecAssistiva: !!pessoaDef.responsavel_outra_tec_assistiva,
 
     // Status e Notas (do nível raiz do survey)
-    status: rootStatusNotas?.status || '',
-    justificativa: rootStatusNotas?.justificativa || '',
-    nomeSupervisor: rootStatusNotas?.nome_supervisor || '',
-    observacao: rootStatusNotas?.observacao || '',
+    status: perFamilyStatusNotas?.status || '',
+    justificativa: perFamilyStatusNotas?.justificativa || '',
+    nomeSupervisor: perFamilyStatusNotas?.nome_supervisor || '',
+    observacao: perFamilyStatusNotas?.observacao || '',
   }
 }
 

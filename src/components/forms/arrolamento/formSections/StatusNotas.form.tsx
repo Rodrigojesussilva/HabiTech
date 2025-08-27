@@ -159,19 +159,19 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
                 created_by: criadoPor,
                 form: {
                     family_index: (typeof familyIndex === 'number' ? familyIndex + 1 : 1),
-                },
-                status_notas: {
-                    justificativa: justificativa || "",
-                    nome_supervisor: nomeSupervisor || "",
-                    observacao: observacao || "",
-                    status: status || "",
+                    status_notas: {
+                        justificativa: justificativa || "",
+                        nome_supervisor: nomeSupervisor || "",
+                        observacao: observacao || "",
+                        status: status || "",
+                    },
                 },
             };
 
             try {
                 console.log("Payload Status Notas:", JSON.stringify(payload, null, 2));
                 const token = localStorage.getItem('authToken') || ''
-                await survey_resource.SendFormToArrolamentoStatusNotas(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
+                await survey_resource.SendFormToArrolamentoStatusNotas(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
             } catch (error) {
                 console.error("Erro ao enviar status_notas:", error);
                 showErrorMessage("Erro ao enviar status_notas da família");

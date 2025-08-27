@@ -156,16 +156,16 @@ const OutrasInfosForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
                 created_by: criadoPor,
                 form: {
                     family_index: (typeof familyIndex === 'number' ? familyIndex + 1 : 1),
-                },
-                outras_informacoes: {
-                    texto: outrasInformacoesTexto,
+                    outras_informacoes: {
+                        texto: outrasInformacoesTexto,
+                    },
                 },
             };
 
             try {
                 console.log('[Arrolamento][OutrasInf] PATCH prepared (final):', payload);
                 const token = localStorage.getItem('authToken') || ''
-                await survey_resource.SendFormToArrolamentoOutrasInf(SURVEY_RESOURCE_URL, arrolamentoId, payload, token);
+                await survey_resource.SendFormToArrolamentoOutrasInf(SURVEY_RESOURCE_URL, arrolamentoId, payload as any, token);
             } catch (error) {
                 console.error("Erro ao enviar outras informações:", error);
                 if (!isViewMode && !isCompletedNow()) showErrorMessage("Erro ao enviar outras informações da família");
