@@ -397,6 +397,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     value={formField.value}
                     onChange={formField.onChange}
                     placeholder={field.placeholder || "Selecione uma opção"}
+                    disabled={formField.disabled}
                 />
             );
 
@@ -407,6 +408,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     value={formField.value || []}
                     onChange={formField.onChange}
                     placeholder={field.placeholder || "Selecione uma ou mais opções"}
+                    disabled={formField.disabled}
                 />
             );
 
