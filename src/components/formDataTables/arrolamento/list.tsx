@@ -76,11 +76,17 @@ export default function ArrolamentoList() {
           alert(`Já existe uma visita mais recente (visita ${latest.visit_count}). Selecione a última visita para criar uma nova.`)
           return
         }
+        if (latest && (Number(latest.visit_count) ?? 0) >= 3) {
+          alert('Limite de visitas atingido.')
+          return
+        }
         if (latest && !latest.completed) {
           alert('A visita mais recente ainda não está concluída. Conclua-a antes de criar uma nova visita.')
           return
         }
       }
+      const confirmCreate = window.confirm(`Criar nova visita para o arrolamento ${row.survey_id || row.id}?\n\nA nova visita será criada com base nos dados da última visita.`)
+      if (!confirmCreate) return
       const token2 = localStorage.getItem('authToken') || ''
       const respCreate = await survey_resource.CreateFromArrolamento({ id: row.id, created_by: localStorage.getItem('userEmail') || row.created_by, authorization_token: token2 }, async (req: any) => {
         const url = `${SURVEY_RESOURCE_URL}${req.path}`

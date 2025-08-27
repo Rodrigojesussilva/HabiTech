@@ -159,6 +159,11 @@ export default function SelagemList() {
             setLoading(false)
             return
           }
+          if (latest && (Number(latest.visit_count) ?? 0) >= 3) {
+            alert('Limite de visitas atingido.')
+            setLoading(false)
+            return
+          }
         }
       }
     } catch (e) {
@@ -168,7 +173,7 @@ export default function SelagemList() {
       return
     }
 
-    const confirm = window.confirm(`Criar nova visita para a selagem ${selagem.id}?\n\nA nova visita será criada com base nos dados da última visita.`)
+    const confirm = window.confirm(`Criar nova visita para a selagem ${selagem.survey_id}?\n\nA nova visita será criada com base nos dados da última visita.`)
     if (!confirm) { setLoading(false); return }
 
     try {

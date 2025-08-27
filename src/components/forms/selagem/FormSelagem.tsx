@@ -779,7 +779,7 @@ const FormSelagem = ({
 					<DialogHeader>
 						<DialogTitle>Finalizar visita?</DialogTitle>
 						<DialogDescription>
-							Tem certeza que deseja finalizar esta visita? Após finalizar, os campos ficarão bloqueados.
+							Tem certeza que deseja finalizar esta visita?
 						</DialogDescription>
 					</DialogHeader>
 					<div className="flex justify-end gap-2">
