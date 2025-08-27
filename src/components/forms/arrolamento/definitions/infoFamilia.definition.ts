@@ -196,7 +196,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
         required: false,
         placeholder: "Países",
         options: [
-            { label: "Brasil", value: "Brazil" },
             { label: "Andorra", value: "Andorra" },
             { label: "United Arab Emirates", value: "United Arab Emirates" },
             { label: "Afghanistan", value: "Afghanistan" },
