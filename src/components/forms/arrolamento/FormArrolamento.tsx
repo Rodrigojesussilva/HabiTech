@@ -226,10 +226,15 @@ const FormArrolamento = ({
 	}, [form.getValues('sealNumber'), form]);
 
 	useEffect(() => {
-		// Limpa o SEI quando marcar "Não se aplica"
+		// Ajusta o SEI conforme 'Não se aplica'
 		const naoAplica = form.getValues('naoAplica');
+		const current = form.getValues('seiNumber');
 		if (naoAplica) {
-			if (form.getValues('seiNumber')) {
+			if (current !== '999999') {
+				form.setValue('seiNumber', '999999');
+			}
+		} else {
+			if (current === '999999') {
 				form.setValue('seiNumber', '');
 			}
 		}
@@ -889,12 +894,12 @@ return (
 
 								const dataToSend = {
 									created_by: (localStorage.getItem('userEmail') || questionario),
-																					main_metadata: {
-													numero_sei: values.naoAplica ? "N/A" : seiNumber,
-													numero_sei_nao_aplicavel: values.naoAplica,
-																												numero_selo: String(sealNumber || ""),
-													quantidade_familias: numberFamilies,
-												},
+																															main_metadata: {
+												numero_sei: values.naoAplica ? "999999" : seiNumber,
+												numero_sei_nao_aplicavel: values.naoAplica,
+																	numero_selo: String(sealNumber || ""),
+																	quantidade_familias: numberFamilies,
+																},
 									authorization_token: localStorage.getItem('authToken') || ''
 								};
 

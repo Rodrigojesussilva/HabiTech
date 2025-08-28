@@ -27,6 +27,11 @@ export const desktopColumns: ColumnDef<Arrolamento>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => {
+      const value = row.getValue("numero_sei") as string
+      const display = value === "999999" ? "N/A" : value
+      return <span className="font-mono text-xs">{display}</span>
+    },
     meta: { 
       headerClassName: "w-28", 
       cellClassName: "w-28 font-mono text-xs" 

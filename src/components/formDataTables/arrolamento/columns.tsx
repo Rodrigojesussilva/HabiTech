@@ -38,6 +38,11 @@ export const columns: ColumnDef<Arrolamento>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => {
+      const value = row.getValue("numero_sei") as string
+      const display = value === "999999" ? "N/A" : value
+      return <span>{display}</span>
+    },
     meta: { headerClassName: "", cellClassName: "" },
   },
   {

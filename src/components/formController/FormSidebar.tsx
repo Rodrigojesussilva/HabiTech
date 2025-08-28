@@ -113,7 +113,7 @@ export default function FormSidebar({ formRef, handleFamilyIndexChange, activeFa
 							>
 								<div className="flex flex-col">
 									<span className="font-medium text-sm">{field.sidebarlabel || field.label || field.name}</span>
-									<span className="text-xs text-gray-600">{form.getValues(field.name) || '-'}</span>
+									<span className="text-xs text-gray-600">{(field.name === 'seiNumber' && form.getValues(field.name) === '999999') ? 'N/A' : (form.getValues(field.name) || '-')}</span>
 								</div>
 
 							</div>

@@ -255,7 +255,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     {...formField}
                     placeholder={field.placeholder}
                     disabled={formField.disabled}
-                    value={formField.value ?? ""}
+                    value={(field.name === 'seiNumber' && (formValues['naoAplica'] || formField.value === '999999' || formField.value === 'N/A')) ? 'N/A' : (formField.value ?? '')}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formField.onChange(e.target.value);
                     }}

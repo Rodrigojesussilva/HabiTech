@@ -254,8 +254,10 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
 
   return {
     questionario: api?.survey_id || 'SEHAB-123',
-    seiNumber: survey?.main_metadata?.numero_sei || '',
-    naoAplica: Boolean(survey?.main_metadata?.numero_sei_nao_aplicavel),
+    seiNumber: (survey?.main_metadata?.numero_sei === '999999' || survey?.main_metadata?.numero_sei_nao_aplicavel)
+      ? '999999'
+      : (survey?.main_metadata?.numero_sei || ''),
+    naoAplica: Boolean(survey?.main_metadata?.numero_sei_nao_aplicavel) || survey?.main_metadata?.numero_sei === '999999',
     sealNumber: survey?.main_metadata?.numero_selo || '',
     numberFamilies: Number(survey?.main_metadata?.quantidade_familias ?? families.length ?? 1),
     visitNumber: api?.visit_count != null ? String(api.visit_count) : '',
