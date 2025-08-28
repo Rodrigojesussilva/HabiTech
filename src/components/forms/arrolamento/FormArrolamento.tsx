@@ -355,8 +355,6 @@ const FormArrolamento = ({
  					setLoadedArrolamentoData(item)
  					localStorage.setItem('arrolamentoId', item.id)
  					localStorage.setItem('arrolamentoCreated_by', item.created_by || '')
- 					const isCompleted = !!(item.completed || (item.status_notas && item.status_notas.status === 'Concluida'))
- 					localStorage.setItem('arrolamentoCompleted', String(isCompleted))
  					form.setValue('visitNumber', item.visit_count != null ? String(item.visit_count) : '')
  					Swal.fire({ icon: 'success', title: 'Dados carregados', text: `Arrolamento: ${item.survey_id}`, timer: 1400, showConfirmButton: false })
  				}

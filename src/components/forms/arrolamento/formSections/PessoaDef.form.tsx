@@ -242,9 +242,7 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
         const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
         if (!target) return;
         if (!arrolamento) console.log('[Arrolamento][PessoaDef] PATCH: usando contexto localStorage id=', fallbackId)
-        const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
-        if (completedResp) { console.log('[Arrolamento][PessoaDef] Registro concluído. Abortando PATCH.'); return; }
-
+      
         const arrolamentoId = (target as any).id;
         const criadoPor = (target as any).created_by || localStorage.getItem('arrolamentoCreated_by') || localStorage.getItem('userEmail') || '';
 
