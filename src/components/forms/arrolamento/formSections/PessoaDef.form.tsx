@@ -416,8 +416,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
                 [`pessoa_deficiente.responsavel_libras`]: responsavelLibras,
                 [`pessoa_deficiente.responsavel_lupa_lente_fonte_ampliada`]: responsavelLupaLenteFonteAmpliada,
                 [`pessoa_deficiente.responsavel_muleta_bengala4pontas_andador`]: responsavelMuletaBengala4PontasAndador,
-                [`pessoa_deficiente."responsavel_prancha"`]: responsavelPranchaComAlt,
-                [`pessoa_deficiente.responsa`]: responsavelOrteseProtese,
+                [`pessoa_deficiente.responsavel_prancha`]: responsavelPranchaComAlt,
+                [`pessoa_deficiente.responsavel_ortese_protese`]: responsavelOrteseProtese,
                 [`pessoa_deficiente.responsavel_outra_tec_assistiva`]: responsavelOutraTecAssistiva,
             };
 
@@ -527,8 +527,8 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = tr
     useEffect(() => {
 
         const currentValueFisica = form.getValues(`families[${familyIndex}].quantFisica`);
-        const currentValueVisual = form.getValues(`familVisualies[${familyIndex}].quantVisual`);
-        const currentValueAuditiva = form.getValues(`familVisualies[${familyIndex}].quantAuditiva`);
+        const currentValueVisual = form.getValues(`families[${familyIndex}].quantVisual`);
+        const currentValueAuditiva = form.getValues(`families[${familyIndex}].quantAuditiva`);
         const currentValueIntelectual = form.getValues(`families[${familyIndex}].quantIntelectual`);
         const currentValueMultiplas = form.getValues(`families[${familyIndex}].quantMultiplas`);
         const currentValueMobilidade = form.getValues(`families[${familyIndex}].quantMobilidade`);

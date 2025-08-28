@@ -70,6 +70,7 @@ const formSchema = z.object({
 	startTime: z.string(),
 	endTime: z.string(),
 	timeElapsed: z.string(),
+	visitDurationHours: z.string(),
 	sealNumber: z.string().max(9, { message: "Máximo de 9 caracteres" }).optional(),
 	numberFamilies: z.number().min(0),
 	firstVisitStart: z.string(),
@@ -131,6 +132,7 @@ const FormSelagem = ({
 			startTime: "",
 			endTime: "",
 			timeElapsed: "",
+			visitDurationHours: "",
 			sealNumber: "",
 			numberFamilies: 1,
 			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
@@ -295,6 +297,64 @@ const FormSelagem = ({
 			minute: '2-digit'
 		}).replace(',', ' -');
 	};
+
+	// Parser para datas no formato "dd/mm/aaaa - HH:MM"
+	const parsePtBrDateTime = (value: string): Date | null => {
+		if (!value || typeof value !== 'string') return null;
+		const parts = value.split(' -');
+		if (parts.length !== 2) return null;
+		const [datePart, timePart] = parts.map((s) => s.trim());
+		const datePieces = datePart.split('/').map((s) => Number(s));
+		if (datePieces.length !== 3) return null;
+		const [day, month, year] = datePieces; // month 1-12
+		const timePieces = timePart.split(':').map((s) => Number(s));
+		if (timePieces.length < 2) return null;
+		const [hour, minute] = timePieces;
+		const d = new Date(year, (month || 1) - 1, day || 1, hour || 0, minute || 0, 0, 0);
+		return isNaN(d.getTime()) ? null : d;
+	};
+
+	// Calcula e atualiza o campo visitDurationHours conforme regras (aberta/fechada)
+	useEffect(() => {
+		const computeAndSetDuration = () => {
+			try {
+				const startStr = form.getValues('firstVisitStart');
+				const endStr = form.getValues('firstVisitEnd');
+				const start = parsePtBrDateTime(startStr);
+				if (!start) {
+					form.setValue('visitDurationHours', '');
+					return;
+				}
+				const end = endStr ? parsePtBrDateTime(endStr) : new Date();
+				if (!end) {
+					form.setValue('visitDurationHours', '');
+					return;
+				}
+				let diffMs = end.getTime() - start.getTime();
+				if (diffMs < 0) diffMs = 0;
+				const totalMinutes = Math.floor(diffMs / (1000 * 60));
+				const hh = Math.floor(totalMinutes / 60);
+				const mm = totalMinutes % 60;
+				const formatted = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+				form.setValue('visitDurationHours', formatted, { shouldDirty: false, shouldValidate: false });
+			} catch {}
+		};
+
+		// Recalcular ao abrir, ao mudar início/fim e a cada minuto (para visitas em aberto)
+		const subscription: any = (form as any).watch((_: any, info: any) => {
+			if (!info || !info.name) return;
+			if (info.name === 'firstVisitStart' || info.name === 'firstVisitEnd') {
+				computeAndSetDuration();
+			}
+		});
+		computeAndSetDuration();
+		const intervalId = setInterval(computeAndSetDuration, 60000);
+		return () => {
+			if (typeof subscription === 'function') subscription();
+			else if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe();
+			clearInterval(intervalId);
+		};
+	}, [form]);
 
 	// Função para definir o valor de firstVisitEnd
 	const handleSetEndTime = () => {
@@ -543,19 +603,6 @@ const FormSelagem = ({
 			const payload = {
 				id: String(effectiveSelagemId),
 				created_by: createdBy,
-				main_metadata: {},
-				identificacao_espaco_habitado: {},
-				identificacao_unidade: {},
-				situacao_uso_unidade: {},
-				caracteristicas_unidade: {},
-				caracteristicas_infra_urbana: {},
-				outras_informacoes: {},
-				status_notas: {
-					status: statusFromForm || 'Concluida',
-					justificativa: '',
-					nome_supervisor: '',
-					observacao: ''
-				},
 				authorization_token: token,
 			}
 
@@ -658,6 +705,16 @@ const FormSelagem = ({
 					sidebarform: true,
 					showinmodal: false,
 					sidebarlabel: "Término"
+				} as FormFieldType,
+				{
+					name: "visitDurationHours",
+					label: "Tempo em horas",
+					type: "text",
+					readonly: true,
+					required: false,
+					sidebarform: true,
+					showinmodal: false,
+					sidebarlabel: "Duração (h)"
 				} as FormFieldType,
 				{
 					name: "seiNumber",

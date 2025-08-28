@@ -120,13 +120,21 @@ export const identUnidadeDefinition: FormConfig = {
                     type: "combobox" as const,
                     required: false,
                     options: subPrefeituraOptions,
+                    conditions: [
+                        { field: "uf", operator: "equals", value: "SP" },
+                        { field: "cidade", operator: "equals", value: "São Paulo" },
+                    ],
                 },
                 {
                     name: "distrito",
                     label: "Distrito",
                     type: "combobox" as const,
                     required: false,
-                    options: distritoOptions(selectedSub)
+                    options: distritoOptions(selectedSub),
+                    conditions: [
+                        { field: "uf", operator: "equals", value: "SP" },
+                        { field: "cidade", operator: "equals", value: "São Paulo" },
+                    ],
                 },
 
             ]

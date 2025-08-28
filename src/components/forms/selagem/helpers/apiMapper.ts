@@ -137,6 +137,22 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
   const statusNotas = survey.status_notas || {}
   const anexosData = selagemData.attachments || []
 
+  // Calcula duração em horas entre início e fim (ou agora, se fim ausente)
+  const computeVisitDurationHours = (createdAtIso?: string, completedAtIso?: string): string => {
+    try {
+      if (!createdAtIso) return "";
+      const start = new Date(createdAtIso);
+      const end = completedAtIso ? new Date(completedAtIso) : new Date();
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+      let diffMs = end.getTime() - start.getTime();
+      if (diffMs < 0) diffMs = 0;
+      const totalMinutes = Math.floor(diffMs / (1000 * 60));
+      const hh = Math.floor(totalMinutes / 60);
+      const mm = totalMinutes % 60;
+      return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    } catch { return ""; }
+  }
+
   return {
     questionario: selagemData.survey_id || "SEHAB-123",
     seiNumber: mainMetadata.numero_sei || "",
@@ -146,6 +162,7 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
     startTime: "",
     endTime: "",
     timeElapsed: "",
+    visitDurationHours: computeVisitDurationHours(selagemData.created_at, selagemData.completed_at),
     sealNumber: identEspaco.numero_selo || "",
     numberFamilies: 1,
     firstVisitStart: selagemData.created_at ? new Date(selagemData.created_at).toLocaleString('pt-BR', {
@@ -155,13 +172,22 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
       hour: '2-digit',
       minute: '2-digit'
     }).replace(',', ' -') : "",
-    firstVisitEnd: selagemData.completed_at ? new Date(selagemData.completed_at).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).replace(',', ' -') : "",
+    firstVisitEnd: (() => {
+      //const status = (selagemData.survey?.status_notas?.status) as string | undefined
+      const createdAt = selagemData.created_at
+      const completedAt = selagemData.completed_at
+      //if (!status) return ""
+      if (createdAt && completedAt && new Date(completedAt) < new Date(createdAt)) return ""
+      return completedAt
+        ? new Date(completedAt).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(',', ' -')
+        : ""
+    })(),
     secondVisit: "",
     thirdVisit: "",
     visitNumber: selagemData.visit_count != null ? String(selagemData.visit_count) : "",

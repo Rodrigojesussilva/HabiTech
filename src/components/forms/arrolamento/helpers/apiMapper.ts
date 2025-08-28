@@ -236,6 +236,22 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
     ? forms.map((f: any) => mapFamilyFormToFields(f, rootOutrasInfo, rootStatusNotas))
     : [mapFamilyFormToFields({}, rootOutrasInfo, rootStatusNotas)]
 
+  // Calcula duração em horas entre início e fim (ou agora, se fim ausente)
+  const computeVisitDurationHours = (createdAtIso?: string, completedAtIso?: string): string => {
+    try {
+      if (!createdAtIso) return "";
+      const start = new Date(createdAtIso);
+      const end = completedAtIso ? new Date(completedAtIso) : new Date();
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+      let diffMs = end.getTime() - start.getTime();
+      if (diffMs < 0) diffMs = 0;
+      const totalMinutes = Math.floor(diffMs / (1000 * 60));
+      const hh = Math.floor(totalMinutes / 60);
+      const mm = totalMinutes % 60;
+      return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    } catch { return ""; }
+  }
+
   return {
     questionario: api?.survey_id || 'SEHAB-123',
     seiNumber: survey?.main_metadata?.numero_sei || '',
@@ -252,18 +268,28 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
       hour: '2-digit',
       minute: '2-digit'
     }).replace(',', ' -') : "",
-    firstVisitEnd: api?.completed_at ? new Date(api.completed_at).toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric', 
-      hour: '2-digit',
-      minute: '2-digit'
-    }).replace(',', ' -') : "",
+    firstVisitEnd: (() => {
+      //const status = (survey?.status_notas?.status) as string | undefined
+      const createdAt = api?.created_at
+      const completedAt = api?.completed_at
+     //if (!status) return ""
+      if (createdAt && completedAt && new Date(completedAt) < new Date(createdAt)) return ""
+      return completedAt
+        ? new Date(completedAt).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric', 
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(',', ' -')
+        : ""
+    })(),
     secondVisit: '',
     thirdVisit: '',
     startTime: '',
     endTime: '',
     timeElapsed: '',
+    visitDurationHours: computeVisitDurationHours(api?.created_at, api?.completed_at),
     families,
   }
 } 
