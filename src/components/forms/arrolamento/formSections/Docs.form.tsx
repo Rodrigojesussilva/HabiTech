@@ -455,8 +455,6 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			console.log('[Arrolamento][Docs] handleResponse:target', { hasArrolamento: !!arrolamento, fallbackId, created_by: (target as any)?.created_by })
 			if (target) {
 				if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
-				const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
-				if (completedResp) { console.log('[Arrolamento][Docs] Registro concluído. Abortando PATCH.'); return; }
 				const arrolamentoId = (target as any).id;
 				const criadoPor = (target as any).created_by;
 

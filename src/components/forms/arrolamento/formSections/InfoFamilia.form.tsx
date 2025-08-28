@@ -160,8 +160,6 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
         const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
         if (target) {
             if (!arrolamento) console.log('[Arrolamento][InfoFamilia] PATCH: usando contexto localStorage id=', fallbackId)
-            const completedResp = !!(target?.completed || (target?.status_notas && (target as any).status_notas.status === 'Concluida'))
-            if (completedResp) { console.log('[Arrolamento][InfoFamilia] Registro concluído. Abortando PATCH.'); return; }
             const arrolamentoId = (target as any).id;
             const criadoPor = (target as any).created_by;
             const createdBy = localStorage.getItem('userEmail') || criadoPor || ''
