@@ -125,11 +125,21 @@ const CaracInfraUrbUnidForm = ({
     const seiFromStorage = seiFromStorageRaw;
 
     try {
-      const request = {
-        numero_sei: seiFromStorage,
+      const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+      const hasSelagemId = Boolean(selagemIdFromStorage);
+      const numeroSei = hasSelagemId ? undefined : (seiFromStorage || undefined);
+
+      const request: any = {
         initial_date: initialDate,
         end_date: endDate,
       };
+      if (hasSelagemId) {
+        request.id = selagemIdFromStorage;
+      } else if (numeroSei) {
+        request.numero_sei = numeroSei;
+      }
+
+      console.log('[CaracInfraUrbUnid] GET selagem request', request);
 
       const response = await fetchSelagem(request);
 

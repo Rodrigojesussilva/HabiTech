@@ -85,11 +85,19 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
         console.log("seiFromStorage (Number):", seiFromStorage);
 
         try {
-            const request = {
-                numero_sei: seiFromStorage,
+            const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+            const hasSelagemId = Boolean(selagemIdFromStorage);
+            const numeroSei = hasSelagemId ? undefined : (seiFromStorage || undefined);
+
+            const request: any = {
                 initial_date: initialDate,
                 end_date: endDate,
             };
+            if (hasSelagemId) {
+                request.id = selagemIdFromStorage;
+            } else if (numeroSei) {
+                request.numero_sei = numeroSei;
+            }
             console.log("Request para fetchSelagem:", request);
 
             const response = await fetchSelagem(request);
@@ -189,12 +197,18 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
             }
 
             if (shouldFetch) {
-                const seiNumber = localStorage.getItem("seiNumberS");
-                const request = {
-                    numero_sei: seiNumber,
+                const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+                const hasSelagemId = Boolean(selagemIdFromStorage);
+                const seiNumber = hasSelagemId ? undefined : localStorage.getItem("seiNumberS") || undefined;
+                const request: any = {
                     initial_date: initialDate,
                     end_date: endDate,
                 };
+                if (hasSelagemId) {
+                    request.id = selagemIdFromStorage;
+                } else if (seiNumber) {
+                    request.numero_sei = seiNumber;
+                }
                 console.log("Dados de selagem",request)
                 const hasData = await hasSelagem(request);
 

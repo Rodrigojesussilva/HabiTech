@@ -479,20 +479,28 @@ const FormSelagem = ({
 
 		try {
 			const seiFromStorageRaw = localStorage.getItem("seiNumberS"); // nota: uso de seiNumberS aqui
-			const numero_sei = Number(seiFromStorageRaw);
-
-			const request = {
-				numero_sei,
+			const effectiveSelagemId = selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId') || '';
+			const hasSelagemId = Boolean(effectiveSelagemId);
+			const numeroSei = hasSelagemId ? undefined : (seiFromStorageRaw || undefined);
+			
+			const request: any = {
 				initial_date: initialDate,
 				end_date: endDate,
 			};
+			if (hasSelagemId) {
+				request.id = effectiveSelagemId;
+			} else if (numeroSei) {
+				request.numero_sei = numeroSei;
+			}
 
 			console.log('[Selagem][Meta] Attempting to close; checking existing record via GET', { request })
 
 			console.log("🎯 [handleSelagemModalOpenChange] Request para buscar selagem:", request);
 			console.log("📊 [handleSelagemModalOpenChange] Detalhes do request:", {
-				numero_sei: numero_sei,
-				numero_sei_type: typeof numero_sei,
+				id: hasSelagemId ? effectiveSelagemId : undefined,
+				id_type: typeof (hasSelagemId ? effectiveSelagemId : undefined),
+				numero_sei: numeroSei,
+				numero_sei_type: typeof numeroSei,
 				initial_date: initialDate,
 				initial_date_type: typeof initialDate,
 				end_date: endDate,
@@ -599,7 +607,7 @@ const FormSelagem = ({
 				const firstFamily: any = (form.getValues() as any)?.families?.[0] || {}
 				statusFromForm = firstFamily?.status || firstFamily?.statusNotas?.status
 			} catch {}
-
+			console.log("🔍 [handleFinalizeVisit] Status atual:", statusFromForm);
 			const payload = {
 				id: String(effectiveSelagemId),
 				created_by: createdBy,

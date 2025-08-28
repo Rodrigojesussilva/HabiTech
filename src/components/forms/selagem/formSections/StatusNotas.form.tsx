@@ -91,11 +91,19 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
         const seiFromStorage = seiFromStorageRaw;
 
         try {
-            const request = {
-                numero_sei: seiFromStorage,
+            const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+            const hasSelagemId = Boolean(selagemIdFromStorage);
+            const numeroSei = hasSelagemId ? undefined : (seiFromStorage || undefined);
+
+            const request: any = {
                 initial_date: initialDate,
                 end_date: endDate,
             };
+            if (hasSelagemId) {
+                request.id = selagemIdFromStorage;
+            } else if (numeroSei) {
+                request.numero_sei = numeroSei;
+            }
 
             const response = await fetchSelagem(request);
 
@@ -188,12 +196,18 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
             }
 
             if (shouldFetch) {
-                const seiNumber = localStorage.getItem("seiNumberS");
-                const request = {
-                    numero_sei: seiNumber,
+                const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+                const hasSelagemId = Boolean(selagemIdFromStorage);
+                const seiNumber = hasSelagemId ? undefined : localStorage.getItem("seiNumberS") || undefined;
+                const request: any = {
                     initial_date: initialDate,
                     end_date: endDate,
                 };
+                if (hasSelagemId) {
+                    request.id = selagemIdFromStorage;
+                } else if (seiNumber) {
+                    request.numero_sei = seiNumber;
+                }
 
                 const hasData = await hasSelagem(request);
                 if (!hasData) {
