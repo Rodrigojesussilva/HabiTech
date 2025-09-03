@@ -6,11 +6,13 @@ import {
 } from "@/components/forms/selagem/definitions/identUnidade.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { buscarEnderecoPorCep } from '../api_cep'; // ajuste o path conforme seu projeto
-import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
+import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
 import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
+import { estados } from '@/components/cidades_estados/estados';
+import { cidadesLocais } from '@/components/cidades_estados/cidade'; // cidades.ts gerado
 
 interface InfoContatoFormProps {
     id?: string;
@@ -264,11 +266,13 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
         setSubPrefeituraOptions(options);
     }, []);
+
     // Carrega subprefeituras (pode ser fetch ou lista estática)
     useEffect(() => {
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
         setSubPrefeituraOptions(options);
     }, []);
+
     // Atualiza distritos ao mudar subPrefeitura
     useEffect(() => {
         if (!selectedSubPrefeitura) {
@@ -281,39 +285,62 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
 
         setDistritoOptionsState(options);
     }, [selectedSubPrefeitura]);
-    //carrega api de Cep
+
+    // Api cep
     useEffect(() => {
         const cepLimpo = (cep || '').replace(/\D/g, '');
 
-        // 🔁 Função auxiliar deve vir ANTES de ser usada
+        // Obtém os valores atuais do formulário
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouro`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairro`);
+        const ufAtual = form.getValues(`families[${familyIndex}].uf`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidade`);
+
         const limparCamposEndereco = () => {
-            setValue(`families[${familyIndex}].logradouro`, '');
-            setValue(`families[${familyIndex}].bairro`, '');
-            setValue(`families[${familyIndex}].complemento`, '');
-            setValue(`families[${familyIndex}].uf`, '');
-            setValue(`families[${familyIndex}].cidade`, '');
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouro`, '');
+                form.setValue(`families[${familyIndex}].bairro`, '');
+                form.setValue(`families[${familyIndex}].complemento`, '');
+                form.setValue(`families[${familyIndex}].uf`, '');
+                form.setValue(`families[${familyIndex}].cidade`, '');
+            }
         };
 
         if (cepLimpo.length === 8) {
             const buscarEndereco = async () => {
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
-                    console.log('Endereço retornado:', endereco);  // <-- aqui
-                    setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '');
-                    setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');                    
-                    setValue(`families[${familyIndex}].uf`, endereco.uf || '');
-                    setValue(`families[${familyIndex}].cidade`, endereco.cidade || '');
+                    console.log('Endereço retornado:', endereco);
+
+                    // ✅ Limpa erro anterior, se houver
+                    form.clearErrors(`families[${familyIndex}].cep`);
+
+                    form.setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complemento`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].uf`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidade`, endereco.cidade || '');
                 } catch (error) {
                     console.error('Erro ao buscar CEP:', error);
+
                     limparCamposEndereco();
+
+                    // ❌ Define erro no campo CEP
+                    form.setError(`families[${familyIndex}].cep`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
                 }
             };
 
             buscarEndereco();
-        } else {
-            limparCamposEndereco();
         }
-    }, [cep, familyIndex, setValue]);
+
+        // ⚠️ Não faz nada se CEP incompleto
+    }, [cep, familyIndex, form]);
+
+
+
     // Torna o SP padrão na UF
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
@@ -321,6 +348,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].uf`, "SP");
         }
     }, []);
+
     // Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
@@ -330,6 +358,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         }
     }, [form.getValues(`families[${familyIndex}].uf`)]);
     // Formata o campo Cep
+
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cep`);
 
@@ -344,56 +373,81 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             form.setValue(`families[${familyIndex}].cep`, cepMasked);
         }
     }, [form.watch(`families[${familyIndex}].cep`)]);
+
     // Limpa o campo Cep
     useEffect(() => {
         if (formValues.naoAplica) {
-            // Verifica se os valores já não estão vazios antes de setar
-            const nomeResponsavel = form.getValues(`families[${familyIndex}].cep`);
+            const cepAtual = form.getValues(`families[${familyIndex}].cep`);
 
-
-            if (nomeResponsavel) {
+            if (cepAtual && cepAtual !== '') {
                 form.setValue(`families[${familyIndex}].cep`, "");
-
             }
         }
     }, [formValues.naoAplica, form, familyIndex]);
+
+
     // Atualiza UF
     useEffect(() => {
         fetchEstados()
             .then(list => {
                 const options = list.map(e => ({ label: e.nome, value: e.sigla }));
 
-                // Encontra São Paulo e remove da lista
+                // Prioriza SP
                 const spIndex = options.findIndex(e => e.label === 'São Paulo');
                 if (spIndex > -1) {
-                    const [sp] = options.splice(spIndex, 1); // remove SP
-                    options.unshift(sp); // adiciona SP no começo
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
                 }
 
                 setEstadoOptions(options);
             })
-            .catch(console.error);
+            .catch(error => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+
+                // Fallback: usa arquivo local
+                const options = estados.map(e => ({ label: e.label, value: e.value }));
+
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptions(options);
+            });
     }, []);
-    // Atualiza cidades ao mudar UF
+
+    // Atualiza Cidade
     useEffect(() => {
         if (!ufSelecionada) {
             setCidadeOptions([]);
             return;
         }
+
         getCidadesOptions(ufSelecionada)
             .then(cidades => {
                 if (ufSelecionada === 'SP') {
-                    // Encontra São Paulo e coloca primeiro
                     const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
                     if (spIndex > -1) {
                         const [spCity] = cidades.splice(spIndex, 1);
                         cidades.unshift(spCity);
                     }
                 }
+
                 setCidadeOptions(cidades);
             })
-            .catch(console.error);
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionada}, usando dados locais:`, error);
+
+                if (ufSelecionada in cidadesLocais) {
+                    const cidadesLocaisDaUf = cidadesLocais[ufSelecionada as keyof typeof cidadesLocais];
+                    setCidadeOptions(cidadesLocaisDaUf);
+                } else {
+                    setCidadeOptions([]);
+                }
+            });
     }, [ufSelecionada]);
+
     // Mescla seções e preenche opções dinâmicas
     formSections = getMergedFormSections(formValues).map(section => ({
         ...section,

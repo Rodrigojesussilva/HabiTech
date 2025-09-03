@@ -1,12 +1,23 @@
 // estadosCidades.ts
+
+// Função auxiliar para aplicar timeout em fetch
+async function fetchWithTimeout(url: string, timeout = 2000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 /**
  * Retorna lista de países via API REST Countries.
- * @returns Promise de objetos { nome, sigla }
  */
 export async function paises(): Promise<{ nome: string; sigla: string }[]> {
-  const response = await fetch('https://restcountries.com/v3.1/all');
-  if (!response.ok) throw new Error('Erro ao buscar países na API REST Countries');
-
+  const response = await fetchWithTimeout('https://restcountries.com/v3.1/all');
   const data = await response.json();
 
   return data
@@ -16,16 +27,16 @@ export async function paises(): Promise<{ nome: string; sigla: string }[]> {
     }))
     .sort((a: any, b: any) => a.nome.localeCompare(b.nome));
 }
+
 /**
  * Retorna lista de estados via API IBGE.
- * @returns Promise de objetos { nome, sigla }
  */
 export async function estados(): Promise<{ nome: string; sigla: string }[]> {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     'https://servicodados.ibge.gov.br/api/v1/localidades/estados'
   );
-  if (!response.ok) throw new Error('Erro ao buscar estados na API IBGE');
   const data = await response.json();
+
   return data
     .sort((a: any, b: any) => a.nome.localeCompare(b.nome))
     .map((e: any) => ({ nome: e.nome, sigla: e.sigla }));
@@ -34,17 +45,17 @@ export async function estados(): Promise<{ nome: string; sigla: string }[]> {
 /**
  * Retorna opções de cidades para uma UF via API IBGE.
  * @param uf Sigla do estado (ex: 'SP')
- * @returns Promise de objetos { label, value }
  */
 export async function getCidadesOptions(
   uf: string
 ): Promise<{ label: string; value: string }[]> {
   if (!uf) return [];
-  const response = await fetch(
+
+  const response = await fetchWithTimeout(
     `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
   );
-  if (!response.ok) throw new Error('Erro ao buscar cidades na API IBGE');
   const data = await response.json();
+
   return data
     .sort((a: any, b: any) => a.nome.localeCompare(b.nome))
     .map((c: any) => ({ label: c.nome, value: c.nome }));

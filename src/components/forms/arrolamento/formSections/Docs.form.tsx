@@ -5,7 +5,7 @@ import {
 	getMergedFormSections
 } from "@/components/forms/arrolamento/definitions/docs.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-import { estados as fetchEstados, getCidadesOptions } from '../api_estadosCidades';
+import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
 import { validarData, DataValidade } from '../helpers/docs.helper';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { mask, unMask } from 'remask';
@@ -13,6 +13,8 @@ import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
 import useViewMode from '@/hooks/useViewMode'
+import { estados } from '@/components/cidades_estados/estados';
+import { cidadesLocais } from '@/components/cidades_estados/cidade'; // cidades.ts gerado
 interface DocsFormProps {
 	id?: string;
 	sectionIndex?: number;
@@ -227,7 +229,7 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 			form.clearErrors(`families[${familyIndex}].dataExpedicaoRg`);
 		}
 	}, [formValues.dataExpedicaoRg]);
-	
+
 
 	useEffect(() => {
 		const pathCin = `families[${familyIndex}].cin`;
@@ -446,28 +448,28 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		});
 	};
 
-			const handleDocumentacaoResponse = async (response: any) => {
-			if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
-			const arrolamento = response.arrolamentos?.[0] || null;
-			const fallbackId = localStorage.getItem('arrolamentoId') || ''
-			const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
-			const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
-			console.log('[Arrolamento][Docs] handleResponse:target', { hasArrolamento: !!arrolamento, fallbackId, created_by: (target as any)?.created_by })
-			if (target) {
-				if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
-				const arrolamentoId = (target as any).id;
-				const criadoPor = (target as any).created_by;
+	const handleDocumentacaoResponse = async (response: any) => {
+		if (isViewMode || isCompletedNow()) { console.log('[Arrolamento][Docs] View/Completed: PATCH bloqueado'); return; }
+		const arrolamento = response.arrolamentos?.[0] || null;
+		const fallbackId = localStorage.getItem('arrolamentoId') || ''
+		const fallbackCreatedBy = localStorage.getItem('arrolamentoCreated_by') || ''
+		const target = arrolamento || (fallbackId ? { id: fallbackId, created_by: fallbackCreatedBy } : null)
+		console.log('[Arrolamento][Docs] handleResponse:target', { hasArrolamento: !!arrolamento, fallbackId, created_by: (target as any)?.created_by })
+		if (target) {
+			if (!arrolamento) console.log('[Arrolamento][Docs] PATCH: usando contexto localStorage id=', fallbackId)
+			const arrolamentoId = (target as any).id;
+			const criadoPor = (target as any).created_by;
 
-				localStorage.setItem("arrolamentoId", arrolamentoId);
-				localStorage.setItem("arrolamentoCreated_by", criadoPor);
+			localStorage.setItem("arrolamentoId", arrolamentoId);
+			localStorage.setItem("arrolamentoCreated_by", criadoPor);
 
-				const formatarDataParaBR = (data: string): string => {
-					if (!data) return "";
-					const [ano, mes, dia] = data.split("-");
-					return `${dia}/${mes}/${ano}`;
-				};
+			const formatarDataParaBR = (data: string): string => {
+				if (!data) return "";
+				const [ano, mes, dia] = data.split("-");
+				return `${dia}/${mes}/${ano}`;
+			};
 
-				const documentacaoPayload = {
+			const documentacaoPayload = {
 				created_by: criadoPor,
 				form: {
 					family_index: familyIndex + 1,
@@ -630,36 +632,69 @@ const DocsForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = true }:
 		StatusCrnm,
 		Uf,
 	]);
-
+	
 	// Atualiza UF
 	useEffect(() => {
 		fetchEstados()
 			.then(list => {
 				const options = list.map(e => ({ label: e.nome, value: e.sigla }));
 
-				// Encontra São Paulo e remove da lista
+				// Prioriza SP
 				const spIndex = options.findIndex(e => e.label === 'São Paulo');
 				if (spIndex > -1) {
-					const [sp] = options.splice(spIndex, 1); // remove SP
-					options.unshift(sp); // adiciona SP no começo
+					const [sp] = options.splice(spIndex, 1);
+					options.unshift(sp);
 				}
 
 				setEstadoOptions(options);
 			})
-			.catch(console.error);
-	}, []);
+			.catch(error => {
+				console.error('Erro ao buscar estados da API, usando dados locais:', error);
 
+				// Fallback: usa arquivo local
+				const options = estados.map(e => ({ label: e.label, value: e.value }));
+
+				const spIndex = options.findIndex(e => e.label === 'São Paulo');
+				if (spIndex > -1) {
+					const [sp] = options.splice(spIndex, 1);
+					options.unshift(sp);
+				}
+
+				setEstadoOptions(options);
+			});
+	}, []);
+	
 	// Atualiza cidades ao mudar UF
 	useEffect(() => {
 		if (!ufSelecionada) {
 			setCidadeOptions([]);
 			return;
 		}
-		getCidadesOptions(ufSelecionada)
-			.then(setCidadeOptions)
-			.catch(console.error);
-	}, [ufSelecionada]);
 
+		getCidadesOptions(ufSelecionada)
+			.then(cidades => {
+				if (ufSelecionada === 'SP') {
+					const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+					if (spIndex > -1) {
+						const [spCity] = cidades.splice(spIndex, 1);
+						cidades.unshift(spCity);
+					}
+				}
+
+				setCidadeOptions(cidades);
+			})
+			.catch(error => {
+				console.error(`Erro ao buscar cidades da UF ${ufSelecionada}, usando dados locais:`, error);
+
+				if (ufSelecionada in cidadesLocais) {
+					const cidadesLocaisDaUf = cidadesLocais[ufSelecionada as keyof typeof cidadesLocais];
+
+					setCidadeOptions(cidadesLocaisDaUf);
+				} else {
+					setCidadeOptions([]);
+				}
+			});
+	}, [ufSelecionada]);
 
 	useEffect(() => {
 		const pathCpf = `families[${familyIndex}].cpf`;

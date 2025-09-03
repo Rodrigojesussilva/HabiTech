@@ -285,6 +285,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 name: "telefone_proprietario_cedida",
                 label: "Telefone do proprietário",
                 type: "text",
+                placeholder: "(00) 00000-0000",
                 required: false
             }
         );
