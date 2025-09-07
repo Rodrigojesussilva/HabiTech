@@ -1055,12 +1055,7 @@ return (
 						)}
 					</div>
 
-					<div className="text-right flex flex-row gap-2">
-						<h3>Preenchimento:</h3>
-						<p className="text-primary">
-							{isEditMode && loadedArrolamentoData ? "Dados carregados" : "0%"}
-						</p>
-					</div>
+					
 				</div>
 				<div className="w-full border-t border-gray-300 my-4"></div>
 				{/* Always render the IdentRespForm */}

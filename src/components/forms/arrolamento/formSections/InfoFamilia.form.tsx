@@ -96,11 +96,17 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
         const seiFromStorage = seiFromStorageRaw;
 
         try {
-            const request = {
-                numero_sei: seiFromStorage,
+            const arrolamentoIdFromStorage = localStorage.getItem('arrolamentoId') || '';
+            const hasArrolamentoId = Boolean(arrolamentoIdFromStorage);
+            const request: any = {
                 initial_date: initialDate,
                 end_date: endDate,
             };
+            if (hasArrolamentoId) {
+                request.id = arrolamentoIdFromStorage;
+            } else if (seiFromStorage) {
+                request.numero_sei = seiFromStorage;
+            }
 
             const response = await fetchArrolamento(request);
 
@@ -213,8 +219,8 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
-            const idLS = localStorage.getItem('arrolamentoId')
-            if (idLS) { console.log('[Arrolamento][InfoFamilia] hasArrolamento: usando contexto localStorage id=', idLS); return true }
+            //const idLS = localStorage.getItem('arrolamentoId')
+            //if (idLS) { console.log('[Arrolamento][InfoFamilia] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
 
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
@@ -274,12 +280,18 @@ const InfoFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
             }
 
             if (shouldFetch) {
-                const seiNumber = localStorage.getItem("seiNumber");
-                const request = {
-                    numero_sei: seiNumber,
+                const arrolamentoIdFromStorage = localStorage.getItem('arrolamentoId') || '';
+                const hasArrolamentoId = Boolean(arrolamentoIdFromStorage);
+                const seiNumber = hasArrolamentoId ? undefined : (localStorage.getItem("seiNumber") || undefined);
+                const request: any = {
                     initial_date: initialDate,
                     end_date: endDate,
                 };
+                if (hasArrolamentoId) {
+                    request.id = arrolamentoIdFromStorage;
+                } else if (seiNumber) {
+                    request.numero_sei = seiNumber;
+                }
 
                 const hasData = await hasArrolamento(request);
 

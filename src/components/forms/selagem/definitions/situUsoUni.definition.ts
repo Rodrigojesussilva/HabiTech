@@ -53,7 +53,6 @@ export const situUsoUniDefinition: FormConfig = {
                         { label: "Em reforma (habitado)", value: "ReformaHabitado" },
                         { label: "Terreno cercado", value: "TerrenoCercado" },
                         { label: "Terreno sem cercamento", value: "TerrenoSemCercamento" },
-                        { label: "Não indentificado", value: "NaoIdentificado" },
                         { label: "Unidade vazia", value: "UnidadeVazia" },
                     ]
                 },

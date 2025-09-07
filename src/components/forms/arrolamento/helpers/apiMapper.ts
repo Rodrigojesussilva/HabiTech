@@ -15,6 +15,10 @@ function toIsoDate(dateStr?: string): string {
 }
 
 
+// Helper to map boolean from API to radio value in form
+const boolToRadio = (value?: boolean | null): '' | 'sim' | 'nao' =>
+  value === true ? 'sim' : value === false ? 'nao' : '';
+
 function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusNotas?: any): Record<string, any> {
   const ident = formEntry?.identificacao_responsavel || {}
   const infoFamilia = formEntry?.informacao_familia || {}
@@ -38,6 +42,8 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
   const perFamilyOutrasInfo = formEntry?.outras_informacoes || rootOutrasInfo || {}
   const perFamilyStatusNotas = formEntry?.status_notas || rootStatusNotas || {}
 
+  console.log('pessoaDef.tem_deficiencia', pessoaDef.tem_deficiencia)
+  console.log('pessoaDef.tem_deficiencia bool', boolToRadio(pessoaDef.tem_deficiencia))
   return {
 
     // Identificação do responsável
@@ -159,11 +165,11 @@ function mapFamilyFormToFields(formEntry: any, rootOutrasInfo?: any, rootStatusN
     texto: perFamilyOutrasInfo?.texto || '',
 
     // Pessoa com deficiência
-    tecnologiaAssistiva: pessoaDef.utiliza_tecnologia_assistida ? 'sim' : '',
-    responsavelPossuiLaudo: pessoaDef.possui_laudo || '',
-    responsavelTemDeficiencia: pessoaDef.responsavel_tem_deficiencia ? 'sim' : '',
-    temPessoaDeficienciaFam: pessoaDef.tem_deficiencia ? 'sim' : '',
-
+    tecnologiaAssistiva: boolToRadio(pessoaDef.utiliza_tecnologia_assistida),
+    responsavelPossuiLaudo: boolToRadio(pessoaDef.possui_laudo),
+    responsavelTemDeficiencia: boolToRadio(pessoaDef.responsavel_tem_deficiencia),
+    temPessoaDeficienciaFam: boolToRadio(pessoaDef.tem_deficiencia),
+    
     aparelhoAuditivo: !!pessoaDef.aparelho_auditivo,
     bengalaBrancaOuVerdeVermelha: !!pessoaDef.bengala_branca_ou_verde_vermelha,
     brailleEquipSinteseVoz: !!pessoaDef.braille_equip_sintese_voz,

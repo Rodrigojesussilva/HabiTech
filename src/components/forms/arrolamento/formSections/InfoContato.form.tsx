@@ -235,8 +235,8 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
 
     const hasArrolamento = async (request: any): Promise<boolean> => {
         try {
-            const idLS = localStorage.getItem('arrolamentoId')
-            if (idLS) { console.log('[Arrolamento][Contato] hasArrolamento: usando contexto localStorage id=', idLS); return true }
+            //const idLS = localStorage.getItem('arrolamentoId')
+            //if (idLS) { console.log('[Arrolamento][Contato] hasArrolamento: usando contexto localStorage id=', idLS); return true }
             const response = await fetchArrolamento(request);
             const isEmpty = !response || (typeof response === "object" && Object.keys(response).length === 0);
             return !isEmpty;
@@ -301,13 +301,19 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = 
 
             if (!shouldFetch) return;
 
-            const seiNumber = localStorage.getItem("seiNumber");
+            const arrolamentoIdFromStorage = localStorage.getItem('arrolamentoId') || '';
+            const hasArrolamentoId = Boolean(arrolamentoIdFromStorage);
+            const seiNumber = hasArrolamentoId ? undefined : (localStorage.getItem("seiNumber") || undefined);
 
-            const request = {
-                numero_sei: seiNumber,
+            const request: any = {
                 initial_date: initialDate,
                 end_date: endDate,
             };
+            if (hasArrolamentoId) {
+                request.id = arrolamentoIdFromStorage;
+            } else if (seiNumber) {
+                request.numero_sei = seiNumber;
+            }
 
             const hasData = await hasArrolamento(request);
 
