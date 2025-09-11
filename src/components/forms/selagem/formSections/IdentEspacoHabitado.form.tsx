@@ -7,7 +7,7 @@ import {
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-import { formatarNumeroComTresDecimais, formatarNumeroComQuatroDecimais, formatarNumeroComDoisDecimais } from "@/components/forms/selagem/helpers/identEspacoHabitado.helper";
+import { formatarNumeroComTresDecimais, formatarNumeroComQuatroDecimais, formatarNumeroComDoisDecimais, formatarAlfaNumericoComDoisCaracteres } from "@/components/forms/selagem/helpers/identEspacoHabitado.helper";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
@@ -34,6 +34,7 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
     const seloLote = watch(`families[${familyIndex}].identificacaoSeloLote`);
     const seloUnidade = watch(`families[${familyIndex}].identificacaoSeloUnidade`);
     const seloComplemento = watch(`families[${familyIndex}].identificacaoSeloComplemento`);
+    const seloComplementoNaoAplica = watch(`families[${familyIndex}].seloComplementoNaoAplica`);
     const numeroSelo = watch(`families[${familyIndex}].numeroSelo`);
     const nomeEspacoHabitado = form.watch(`families[${familyIndex}].nomeEspacoHabitado`);
     const triggeredByBlurRef = useRef(false);
@@ -246,24 +247,35 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
             return;
         }
 
-        // Formatação dos números, removendo qualquer caractere não numérico
+        // Formatação das partes; setor/lote permanecem numéricos, unidade permite letras e números
         const setorNumeros = String(seloSetor || "").replace(/[^\d]/g, "").padStart(3, "0").slice(0, 3);
         const loteNumeros = String(seloLote || "").replace(/[^\d]/g, "").padStart(4, "0").slice(0, 4);
-        const unidadeNumeros = String(seloUnidade || "").replace(/[^\d]/g, "").padStart(2, "0").slice(0, 2);
+        const unidadeParte = String(seloUnidade || "").slice(0, 2);
 
         // A parte fixa do número do selo
-        let numeroSeloFormatado = `${setorNumeros}/${loteNumeros}${unidadeNumeros}-`;
-
-        // Se o complemento for fornecido, inclui no número do selo
-        const complemento = seloComplemento || "";
-        numeroSeloFormatado += complemento;
+        const complementoAtivo = !seloComplementoNaoAplica && (seloComplemento || "");
+        const partesNumero = [setorNumeros, loteNumeros, unidadeParte];
+        if (complementoAtivo) {
+            partesNumero.push(String(complementoAtivo));
+        }
+        const numeroSeloFormatado = partesNumero.join('/');
 
         // Atualiza o valor do número do selo, se ele tiver mudado
         if (numeroSelo !== numeroSeloFormatado) {
             setValue(`families[${familyIndex}].numeroSelo`, numeroSeloFormatado, { shouldDirty: true });
         }
 
-    }, [seloSetor, seloLote, seloUnidade, seloComplemento, numeroSelo, familyIndex, setValue]);
+    }, [seloSetor, seloLote, seloUnidade, seloComplemento, seloComplementoNaoAplica, numeroSelo, familyIndex, setValue]);
+
+    // Quando marcar "Não se aplica", limpar o complemento e garantir composição sem hífen
+    useEffect(() => {
+        if (seloComplementoNaoAplica) {
+            const current = form.getValues(`families[${familyIndex}].identificacaoSeloComplemento`);
+            if (current) {
+                setValue(`families[${familyIndex}].identificacaoSeloComplemento`, "", { shouldDirty: true });
+            }
+        }
+    }, [seloComplementoNaoAplica, familyIndex, form, setValue]);
 
     useEffect(() => {
         if (seloSetor === undefined || seloSetor === null) return;
@@ -290,7 +302,7 @@ const IdentEspacoHabitadoForm = ({ sectionIndex: sectionNumber, familyIndex }: I
     useEffect(() => {
         if (seloUnidade === undefined || seloUnidade === null) return;
 
-        const formatado = formatarNumeroComDoisDecimais(seloUnidade);
+        const formatado = formatarAlfaNumericoComDoisCaracteres(seloUnidade);
 
         // Só atualiza se for diferente para evitar loop
         if (seloUnidade !== formatado) {

@@ -245,6 +245,11 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                         value={formField.value ?? ""}
                         disabled={formField.disabled}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            if (field.mask === "alpha") {
+                                const onlyLetters = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+                                formField.onChange(onlyLetters);
+                                return;
+                            }
                             formField.onChange(e.target.value);
                         }}
                     />

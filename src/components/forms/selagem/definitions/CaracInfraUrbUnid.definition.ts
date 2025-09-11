@@ -51,11 +51,11 @@ export const defaultValues: Partial<FormValues> = {
 
 // Base form structure
 export const caracInfraUrbUnidDefinition: FormConfig = {
-    title: "Caracterização da Infraestrutura Urbana e da Unidade",
+    title: "Caracterização da Infraestrutura e da Unidade",
     sections: [
         {
             id: "CaracterizaçãoInfraestruturaUrbanaUnidade",
-            title: "Caracterização da Infraestrutura Urbana e da Unidade",
+            title: "Caracterização da Infraestrutura e da Unidade",
             fields: [
                 {
                     name: "materialPredominante",
@@ -121,9 +121,9 @@ export const caracInfraUrbUnidDefinition: FormConfig = {
                     type: "select" as const,
                     required: false,
                     options: [
-                        { label: "Relógio próprio/modidor individual", value: "RologioProprioMedidorIndividual" },
-                        { label: "Instalação de energia Elétrica não oficial", value: "InstalacaoEnergiaNaoOficial" },
-                        { label: "Relógio comunitário/medidor coletivo", value: "RelogioComunitario" },
+                        { label: "Relógio próprio/ medidor individual (oficial)", value: "RologioProprioMedidorIndividual" },
+                        { label: "Relógio comunitário/ medidor coletivo (oficial)", value: "RelogioComunitario" },
+                        { label: "Instalação de energia elétrica não oficial", value: "InstalacaoEnergiaNaoOficial" },
                         { label: "Não identificado", value: "NaoIdentificado" },
                         { label: "Outros", value: "Outros" },
                     ]
@@ -147,7 +147,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             label: "Especifique o material",
             type: "text" as const,
             required: false,
-            insertAfterField: "materialPredominante"
+            insertAfterField: "materialPredominante",
+            mask: "alpha"
         });
     }
     
@@ -177,7 +178,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             label: "Especifique a ligação elétrica",
             type: "text" as const,
             required: false,
-            insertAfterField: "ligacaoEletrica"
+            insertAfterField: "ligacaoEletrica",
+            mask: "alpha"
         });
     }
     

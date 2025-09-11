@@ -98,7 +98,7 @@ export const identUnidadeDefinition: FormConfig = {
                 },
                 {
                     name: "uf",
-                    label: "Uf",
+                    label: "UF",
                     type: "combobox" as const,
                     required: true,
                     options: [

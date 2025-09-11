@@ -87,7 +87,7 @@ export const situUsoUniDefinition: FormConfig = {
     sections: [
         {
             id: "situacaoUsoUnidade",
-            title: "Situação e Uso da Unidade",
+            title: "Situação da Unidade",
             fields: [
                 {
                     name: "regime_ocupacao",

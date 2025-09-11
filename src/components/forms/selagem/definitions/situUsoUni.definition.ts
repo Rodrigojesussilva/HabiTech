@@ -42,7 +42,7 @@ export const situUsoUniDefinition: FormConfig = {
             fields: [
                 {
                     name: "situacaoUsoUnidade",
-                    label: "Situação e Uso da Unidade",
+                    label: "Situação da Unidade",
                     type: "select" as const,
                     required: true,
                     options: [
@@ -71,6 +71,10 @@ export const situUsoUniDefinition: FormConfig = {
                         { label: "Industrial", value: "Industrial" },
                         { label: "Uso não Identificado", value: "UsoNaoIdentificado" },
                         { label: "Outros", value: "Outros" }
+                    ],
+                    conditions: [
+                        { field: "situacaoUsoUnidade", operator: "notEquals", value: "TerrenoCercado" },
+                        { field: "situacaoUsoUnidade", operator: "notEquals", value: "TerrenoSemCercamento" }
                     ]
                 },
             ]
@@ -96,14 +100,13 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
     if (
         formValues.usoUnidade === "Comercial" ||
-        formValues.usoUnidade === "UsoMisto" ||
         formValues.usoUnidade === "Servico" ||
         formValues.usoUnidade === "Institucional" ||
         formValues.usoUnidade === "Industrial"
     ) {
         usoUnidadeConditionals.push({
             name: "qualUso",
-            label: "Qual o uso?",
+            label: "Quais tipos?",
             type: "text",
             required: false,
             placeholder: "Digite qual o uso aqui"
@@ -124,9 +127,14 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         usoUnidadeConditionals.push({
             name: "quaisTipos",
             label: "Quais tipos?",
-            type: "text",
+            type: "select",
             required: true,
-            placeholder: "Digite quais os usos aqui"
+            options: [
+                { label: "Residencial + comércio", value: "ResidencialComercio" },
+                { label: "Residencial + serviço", value: "ResidencialServico" },
+                { label: "Residencial + institucional", value: "ResidencialInstitucional" },
+                { label: "Residencial + industrial", value: "ResidencialIndustrial" },
+            ]
         });
     }
 
@@ -134,6 +142,31 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         formValues.situacaoUsoUnidade === "TerrenoCercado" ||
         formValues.situacaoUsoUnidade === "TerrenoSemCercamento"
     ) {
+        // 1) Primeiro, inserir o seletor de uso do terreno
+        situacaoUsoUnidadeConditionals.push({
+            name: "uso_terreno",
+            label: "Uso do terreno",
+            type: "select",
+            required: false,
+            options: [
+                { label: "Selecione uma opção", value: "select" },
+                { label: "Uso não Identificado", value: "UsoNaoIdentificado" },
+                { label: "Outros", value: "Outros" }
+            ]
+        });
+
+        // 2) Se "Outros", inserir imediatamente a descrição do uso do terreno
+        if (formValues.uso_terreno === "Outros") {
+            situacaoUsoUnidadeConditionals.push({
+                name: "uso",
+                label: "Descreva o uso do terreno:",
+                type: "text",
+                required: true,
+                placeholder: "Digite qual o uso do terreno aqui",
+            });
+        }
+
+        // 3) Depois, os campos do responsável
         situacaoUsoUnidadeConditionals.push(
             {
                 name: "nome_responsavel",
@@ -158,13 +191,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 conditions: [
                     { field: "responsavel_nao_identificado", operator: "equals", value: false }
                 ]
-            },
-            
-            {
-                name: "uso_terreno",
-                label: "Uso do terreno",
-                type: "text",
-                required: false
             }
         );
     }

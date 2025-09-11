@@ -240,7 +240,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         // Define os usos que exigem "qualUso"
         const usoQueExigemQualUso = [
             "Comercial",
-            "UsoMisto",
             "Servico",
             "Institucional",
             "Industrial",
@@ -254,7 +253,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
         }
 
         // Limpa "uso" se usoUnidade não for "Outros"
-        if (formValues.usoUnidade !== "Outros") {
+        if (formValues.usoUnidade !== "Outros" && formValues.uso_terreno !== "Outros") {
             if (formValues.uso !== "") {
                 form.setValue(`families[${familyIndex}].uso`, "");
             }
@@ -266,7 +265,7 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
                 form.setValue(`families[${familyIndex}].quaisTipos`, "");
             }
         }
-    }, [formValues.usoUnidade, familyIndex, form, formValues.qualUso, formValues.uso, formValues.quaisTipos]);
+    }, [formValues.usoUnidade, familyIndex, form, formValues.qualUso, formValues.uso, formValues.quaisTipos, formValues.uso_terreno]);
 
 
     useEffect(() => {

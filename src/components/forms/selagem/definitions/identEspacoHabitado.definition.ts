@@ -9,6 +9,7 @@ export const identEspacoHabitadoSchema = z.object({
     identificacaoSeloLote: z.string().optional(),
     identificacaoSeloUnidade: z.string().optional(),
     identificacaoSeloComplemento: z.string().optional(),
+    seloComplementoNaoAplica: z.string().optional(),
     numeroSelo: z.string().optional(),
     idLocal: z.string().optional(),
     arrolamento_id: z.string().optional(),
@@ -22,7 +23,8 @@ export const defaultValues: Partial<FormValues> = {
     identificacaoSeloSetor:"", 
     identificacaoSeloLote: "",
     identificacaoSeloUnidade: "",
-    identificacaoSeloComplemento:"",
+    identificacaoSeloComplemento: "",
+    seloComplementoNaoAplica: "",
     numeroSelo:"",
     idLocal: "not",
 };
@@ -69,6 +71,14 @@ export const identEspacoHabitadoDefinition: FormConfig = {
                     label: "Identificação do Selo - Complemento",
                     type: "text" as const,
                     required: false
+                },
+                {
+                    name: "seloComplementoNaoAplica",
+                    label: "Não se aplica",
+                    type: "checkbox" as const,
+                    required: false,
+                    disableField: "identificacaoSeloComplemento",
+                    dependent: true
                 },
                 {
                     name: "numeroSelo",
