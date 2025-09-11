@@ -4,12 +4,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections, situUsoUniDefinition
 } from "@/components/forms/arrolamento/definitions/situUsoUni.definition";
-import { ensureValidSelectValue, formatCurrency} from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
+import { ensureValidSelectValue, formatCurrency } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
 // Import FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../../service/constants"
+import { formatarTelefoneAuto } from "@/components/forms/arrolamento/helpers/situUsoUni.helper";
+
 import useViewMode from '@/hooks/useViewMode'
 interface SituUsoUniFormProps {
     id?: string;
@@ -240,64 +242,13 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
     };
 
     /**
-     useEffect(() => {
-            const nsiValor = formValues.nsi_valor_locacao;
-            const valorLocacao = formValues?.valor_locacao;
-            const campoPath = `families[${familyIndex}].valor_locacao`;
-            const current = form.getValues(campoPath);
+       
+
     
-            if (nsiValor) {
-                if (current) {
-                    form.setValue(campoPath, "");
-                }
-            } else if (valorLocacao !== undefined && valorLocacao !== null) {
-                const formatted = formatCurrency(valorLocacao);
-                if (formatted !== current) {
-                    form.setValue(campoPath, formatted, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                    });
-                }
-            }
-        }, [formValues.nsi_valor_locacao, formValues?.valor_locacao, familyIndex, form]);
-      
-
-
-
-         useEffect(() => {
-        form.setValue(`families[${familyIndex}].valor_locacao`, "");
-        form.setValue(`families[${familyIndex}].nsi_valor_locacao`, false);
-        form.setValue(`families[${familyIndex}].contrato_locacao`, "");
-        form.setValue(`families[${familyIndex}].nome_proprietario`, "");
-        form.setValue(`families[${familyIndex}].contato_proprietario`, "");
-        form.setValue(`families[${familyIndex}].nsi_contato_proprietario`, false);
-        form.setValue(`families[${familyIndex}].documentoComprovacao`, "");
-        form.setValue(`families[${familyIndex}].descricaoDocumento`, "");
-        form.setValue(`families[${familyIndex}].separaResiduos`, "");
-
-
-    }, [regimeOcupacao, familyIndex]);
-
-
-
-
-     useEffect(() => {
-        // Limpa os campos quando "separaResiduos" mudar
-        form.setValue(`families[${familyIndex}].destinoReciclavel`, "");
-        form.setValue(`families[${familyIndex}].outroDestinoReciclavel`, "");
-        form.setValue(`families[${familyIndex}].destinoOrganico`, "");
-        form.setValue(`families[${familyIndex}].outroDestinoOrganico`, "");
-        form.setValue(`families[${familyIndex}].destinoDomestico`, "");
-        form.setValue(`families[${familyIndex}].outroDestinoDomestico`, "");
-    }, [separaResiduos, familyIndex]);
-
-
-
-
-
-
-
-     useEffect(() => {
+   
+     */
+    
+    useEffect(() => {
         const prev = prevValuesRef.current;
 
         // Exemplo: Se regime_ocupacao mudou, limpa vários campos
@@ -361,41 +312,16 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
         familyIndex,
         form,
     ]);
-    // Formatar telefone se contato_proprietario ou telefone_proprietario_cedida mudarem
     useEffect(() => {
-        const prev = prevValuesRef.current;
-
-        if (formValues.contato_proprietario && prev.contato_proprietario !== formValues.contato_proprietario) {
-            const formatted = formatarTelefone(formValues.contato_proprietario);
-            if (formatted !== formValues.contato_proprietario) {
-                form.setValue(`families[${familyIndex}].contato_proprietario`, formatted);
-            }
-        }
-
-        if (formValues.telefone_proprietario_cedida && prev.telefone_proprietario_cedida !== formValues.telefone_proprietario_cedida) {
-            const formatted = formatarTelefone(formValues.telefone_proprietario_cedida);
-            if (formatted !== formValues.telefone_proprietario_cedida) {
-                form.setValue(`families[${familyIndex}].telefone_proprietario_cedida`, formatted);
-            }
-        }
-
-        // Atualiza valores anteriores para esses campos também
-        prevValuesRef.current.contato_proprietario = formValues.contato_proprietario;
-        prevValuesRef.current.telefone_proprietario_cedida = formValues.telefone_proprietario_cedida;
-    }, [
-        formValues.contato_proprietario,
-        formValues.telefone_proprietario_cedida,
-        familyIndex,
-        form,
-    ]);
-
-    useEffect(() => {
-        const campos = ["contato_proprietario", "telefone_proprietario_cedida"];
+        const campos = [
+            'contato_proprietario',
+            'telefone_proprietario_cedida',
+        ];
 
         campos.forEach((campo) => {
-            const valor = formValues[campo as keyof typeof formValues];
+            const valor = formValues[campo];
             if (valor) {
-                const formatted = formatarTelefone(valor);
+                const formatted = formatarTelefoneAuto(valor);
                 if (formatted !== valor) {
                     form.setValue(`families[${familyIndex}].${campo}`, formatted);
                 }
@@ -407,7 +333,8 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
         familyIndex,
         form
     ]);
-     */
+
+
 
     useEffect(() => {
         const nsiValor = formValues.nsi_valor_locacao;
@@ -455,9 +382,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex, isActive = t
             }
         }
     }, [formValues.tempoMoradiaNaoSabe1, form, familyIndex]);
-
-
-
 
     useEffect(() => {
         if (!isActive || isViewMode || isCompletedNow()) return; // não registrar listeners em visualização ou família inativa
