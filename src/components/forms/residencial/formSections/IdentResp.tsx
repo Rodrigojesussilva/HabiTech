@@ -4,13 +4,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
     getMergedFormSections, identRespDefinition
 } from "@/components/forms/residencial/definitions/IdentResp.definition";
-import { formatCurrency, ensureValidSelectValue, formatarTelefone } from "@/components/forms/selagem/helpers/situUsoUni.helper";
 // Import FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
-
+import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 interface SituUsoUniFormProps {
     id?: string;
     sectionIndex?: number;
@@ -21,7 +20,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniF
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
-
+    const [estadoOptions,] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptions,] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptions, setSubPrefeituraOptions] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsState, setDistritoOptionsState] = useState<{ label: string; value: string }[]>([]);
     const form = useFormContext();
     // Observe os campos relevantes para montar o payload
     const nomeResponsavel = form.watch(`families[${familyIndex}].nome_responsavel`);
@@ -34,7 +36,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniF
     const usoTerreno = form.watch(`families[${familyIndex}].uso_terreno`);
     const usoUnidade = form.watch(`families[${familyIndex}].usoUnidade`);
     const triggeredByBlurRef = useRef(false);
-    const previousSituacaoRef = useRef<string | undefined>(undefined);
+    const selectedSubPrefeitura = form.watch(`families[${familyIndex}].subPrefeitura`);
 
     // Get form values for conditional logic
     const formValues = (() => {
@@ -184,91 +186,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniF
     };
 
     useEffect(() => {
-        if (
-            formValues.situacaoUsoUnidade !== "TerrenoCercado" &&
-            formValues.situacaoUsoUnidade !== "TerrenoSemCercamento"
-        ) {
-            // Só limpa se o valor não estiver vazio ou padrão
-            if (formValues.nome_responsavel !== "") {
-                form.setValue(`families[${familyIndex}].nome_responsavel`, "");
-            }
-            if (formValues.telefone_responsavel !== "") {
-                form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
-            }
-            if (formValues.responsavel_nao_identificado !== false) {
-                form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
-            }
-            if (formValues.uso_terreno !== "") {
-                form.setValue(`families[${familyIndex}].uso_terreno`, "");
-            }
-        }
-    }, [formValues.situacaoUsoUnidade, familyIndex, form, formValues]);
-
-    useEffect(() => {
-        // Quando a situação mudar, limpa o uso para o default (select)
-        const situacaoAtual = form.getValues(`families[${familyIndex}].situacaoUsoUnidade`);
-        if (previousSituacaoRef.current !== undefined && previousSituacaoRef.current !== situacaoAtual) {
-            const usoUnidadeAtual = form.getValues(`families[${familyIndex}].usoUnidade`);
-            if (usoUnidadeAtual !== "select") {
-                form.setValue(`families[${familyIndex}].usoUnidade`, "select");
-            }
-        }
-        previousSituacaoRef.current = situacaoAtual;
-    }, [formValues.situacaoUsoUnidade, form, familyIndex]);
-
-    useEffect(() => {
-        // Define "Uso não Identificado" quando situação indicar terreno/vazio
-        const situacoesQueIndicamUsoNaoIdentificado = new Set([
-            "TerrenoCercado",
-            "TerrenoSemCercamento",
-            "ConstrucaoVazio",
-            "ReformaVazio",
-            "UnidadeVazia",
-        ]);
-
-        const situacaoAtual = form.getValues(`families[${familyIndex}].situacaoUsoUnidade`);
-        const usoUnidadeAtual = form.getValues(`families[${familyIndex}].usoUnidade`);
-
-        const isDefaultUsoUnidade = !usoUnidadeAtual || usoUnidadeAtual === "select";
-
-        if (situacoesQueIndicamUsoNaoIdentificado.has(situacaoAtual) && isDefaultUsoUnidade) {
-            form.setValue(`families[${familyIndex}].usoUnidade`, "UsoNaoIdentificado");
-        }
-    }, [formValues.situacaoUsoUnidade, form, familyIndex]);
-
-    useEffect(() => {
-        // Define os usos que exigem "qualUso"
-        const usoQueExigemQualUso = [
-            "Comercial",
-            "Servico",
-            "Institucional",
-            "Industrial",
-        ];
-
-        // Limpa "qualUso" se usoUnidade não estiver nesses valores
-        if (!usoQueExigemQualUso.includes(formValues.usoUnidade ?? "")) {
-            if (formValues.qualUso !== "") {
-                form.setValue(`families[${familyIndex}].qualUso`, "");
-            }
-        }
-
-        // Limpa "uso" se usoUnidade não for "Outros"
-        if (formValues.usoUnidade !== "Outros" && formValues.uso_terreno !== "Outros") {
-            if (formValues.uso !== "") {
-                form.setValue(`families[${familyIndex}].uso`, "");
-            }
-        }
-
-        // Limpa "quaisTipos" se usoUnidade não for "UsoMisto"
-        if (formValues.usoUnidade !== "UsoMisto") {
-            if (formValues.quaisTipos !== "") {
-                form.setValue(`families[${familyIndex}].quaisTipos`, "");
-            }
-        }
-    }, [formValues.usoUnidade, familyIndex, form, formValues.qualUso, formValues.uso, formValues.quaisTipos, formValues.uso_terreno]);
-
-
-    useEffect(() => {
         const handleBlur = async () => {
             console.log("Acessando User efect")
             const activeFieldName = document.activeElement?.getAttribute("name");
@@ -338,93 +255,86 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniF
         usoTerreno,
         usoUnidade,
     ]);
+    // Carrega subprefeituras (pode ser fetch ou lista estática)
+    useEffect(() => {
+        const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+        setSubPrefeituraOptions(options);
+    }, []);
+
+    // Carrega subprefeituras (pode ser fetch ou lista estática)
+    useEffect(() => {
+        const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+        setSubPrefeituraOptions(options);
+    }, []);
 
     useEffect(() => {
-        const path = `families[${familyIndex}].nome_responsavel`;
+        const sub = formValues.subPrefeitura_t || formValues.subPrefeitura;
 
-        const rawValue = form.getValues(path); // sempre pega o valor atualizado
-
-        if (typeof rawValue === "string") {
-            const sanitizedValue = rawValue.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, ""); // mantém letras com acento e espaços
-
-            if (rawValue !== sanitizedValue) {
-                form.setValue(path, sanitizedValue);
-            }
-        }
-    }, [form.getValues(`families[${familyIndex}].nome_responsavel`), form, familyIndex]);
-
-    // Formata apenas o campo telefone_responsavel com helper
-    useEffect(() => {
-        if (formValues.telefone_responsavel) {
-            const formatted = formatarTelefone(formValues.telefone_responsavel);
-            if (formatted !== formValues.telefone_responsavel) {
-                form.setValue(`families[${familyIndex}].telefone_responsavel`, formatted);
-            }
-        }
-    }, [formValues.telefone_responsavel]);
-
-    useEffect(() => {
-        // Garante valor inicial do checkbox 'responsavel_nao_identificado'
-        if (formValues.responsavel_nao_identificado === undefined) {
-            form.setValue(`families[${familyIndex}].responsavel_nao_identificado`, false);
+        if (!sub) {
+            setDistritoOptionsState([]);
+            return;
         }
 
-    }, [
-        formValues.responsavel_nao_identificado,
-        form,
-        familyIndex
-    ]);
+        const distritos = distritosPorSubprefeitura[sub] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
 
-    useEffect(() => {
-        if (formValues.responsavel_nao_identificado) {
-            // Verifica se os valores já não estão vazios antes de setar
-            const nomeResponsavel = form.getValues(`families[${familyIndex}].nome_responsavel`);
-            const telefoneResponsavel = form.getValues(`families[${familyIndex}].telefone_responsavel`);
-
-            if (nomeResponsavel || telefoneResponsavel) {
-                form.setValue(`families[${familyIndex}].nome_responsavel`, "");
-                form.setValue(`families[${familyIndex}].telefone_responsavel`, "");
-            }
-        }
-    }, [formValues.responsavel_nao_identificado, form, familyIndex]);
-
-    // Format values when they change
-    useEffect(() => {
-        // Format currency field (only if it exists and needs formatting)
-        try {
-            if (formValues.valor_locacao && typeof formValues.valor_locacao === 'string' && !formValues.valor_locacao.startsWith('R$')) {
-                const formatted = formatCurrency(formValues.valor_locacao);
-                form.setValue(`families[${familyIndex}].valor_locacao`, formatted);
-            }
-        } catch (error) {
-            console.error("Error formatting currency:", error);
-        }
-    }, [formValues.valor_locacao, form, familyIndex]);
+        setDistritoOptionsState(options);
+    }, [formValues.subPrefeitura, formValues.subPrefeitura_t]);
 
     // Get merged form sections with conditional fields included
     const formSections = (() => {
         try {
-            // Certifique-se de que os valores passados para getMergedFormSections são válidos
+            // Clona os valores do formulário de forma segura
             const safeFormValues = { ...formValues };
 
-            // Garantir que todos os campos select tenham valores válidos
-            const selectFields = ['regime_ocupacao', 'separaResiduos', 'cozinhaCompartilhada',
-                'banheiroCompartilhado', 'contrato_locacao', 'documentoComprovacao',
-                'destinoReciclavel', 'destinoOrganico', 'destinoDomestico'];
+            // Obtém as seções do formulário
+            const sections = getMergedFormSections(safeFormValues).map(section => ({
+                ...section,
+                fields: section.fields.map(field => {
+                    switch (field.name) {
+                        case 'uf':
+                            return {
+                                ...field,
+                                options: estadoOptions,
+                            };
+                        case 'cidade':
+                            return {
+                                ...field,
+                                options: cidadeOptions,
+                            };
+                        case 'subPrefeitura':
+                            return {
+                                ...field,
+                                options: subPrefeituraOptions,
+                            };
+                        case 'distrito':
+                            return {
+                                ...field,
+                                options: distritoOptionsState,
+                            };
+                        case 'subPrefeitura_t':
+                            return {
+                                ...field,
+                                options: subPrefeituraOptions,
+                            };
+                        case 'distrito_t':
+                            return {
+                                ...field,
+                                options: distritoOptionsState,
+                            };
+                        default:
+                            return field;
+                    }
+                })
+            }));
 
-            selectFields.forEach(field => {
-                if (field in safeFormValues) {
-                    safeFormValues[field] = ensureValidSelectValue(safeFormValues[field]);
-                }
-            });
-
-            const sections = getMergedFormSections(safeFormValues);
             return sections;
         } catch (err) {
             console.error("Erro ao obter as seções do formulário:", err);
             return [identRespDefinition.sections[0]]; // Fallback para seção básica
         }
     })();
+
 
     return (
         <div className="text-left">

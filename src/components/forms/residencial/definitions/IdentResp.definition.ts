@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 import { subprefeituras, distritosPorSubprefeitura } from "../subprefeiturasDistritos";
-
 function slugify(pais: string) {
     return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
 }
@@ -39,6 +38,16 @@ export const situUsoUniSchema = z.object({
     cidade: z.string().optional(),
     subPrefeitura: z.string().optional(),
     distrito: z.string().optional(),
+    cep_t: z.string().optional(),
+    naoAplicaCep_t: z.string().optional(),
+    logradouro_t: z.string().optional(),
+    numero_t: z.string().optional(),
+    bairro_t: z.string().optional(),
+    complemento_t: z.string().optional(),
+    uf_t: z.string().optional(),
+    cidade_t: z.string().optional(),
+    subPrefeitura_t: z.string().optional(),
+    distrito_t: z.string().optional(),
     localizacaoInstituicaoEnsino: z.string().optional(),
     pontoPartida: z.string().optional(),
     diasSemana: z.string().optional(),
@@ -98,6 +107,16 @@ export const defaultValues: Partial<FormValues> = {
     atividadeRemunerada: "",
     modalidadeTrabalho: "",
     localizacaoTrabalho: "",
+    cep_t: "",
+    naoAplicaCep_t: "",
+    logradouro_t: "",
+    numero_t: "",
+    bairro_t: "",
+    complemento_t: "",
+    uf_t: "",
+    cidade_t: "",
+    subPrefeitura_t: "",
+    distrito_t: "",
     idLocal: "not",
 };
 const selectedSub = "Butantã"; // <-- apenas valor fixo
@@ -109,6 +128,97 @@ const distritoOptions = (sub: string) => {
     const distritos = distritosPorSubprefeitura[sub] || [];
     return distritos.map((d) => ({ label: d, value: d }));
 };
+
+/**
+ * Capitaliza a primeira letra de uma string
+ */
+function capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Configurações padrão dos campos
+ */
+const fieldConfigs: Record<string, Partial<FormField>> = {
+    cep: {
+        type: "text",
+        mask: "9999-999",
+        placeholder: "0000-000",
+    },
+    logradouro: {
+        type: "text",
+    },
+    bairro: {
+        type: "text",
+    },
+    numero: {
+        type: "numberSpinner",
+        step: 1,
+    },
+    complemento: {
+        type: "text",
+    },
+    naoAplicaCep: {
+        type: "checkbox",
+        disableField: "cep",
+    },
+    uf: {
+        type: "combobox",
+        options: [],
+        required: true,
+    },
+    cidade: {
+        type: "combobox",
+        options: [],
+        required: true,
+    },
+    subPrefeitura: {
+        type: "combobox",
+        options: [], // ← será passado via override
+        conditions: [
+            { field: "uf", operator: "equals", value: "SP" },
+            { field: "cidade", operator: "equals", value: "São Paulo" },
+        ],
+    },
+    distrito: {
+        type: "combobox",
+        options: [], // ← será passado via override
+        conditions: [
+            { field: "uf", operator: "equals", value: "SP" },
+            { field: "cidade", operator: "equals", value: "São Paulo" },
+        ],
+    },
+};
+
+/**
+ * Gera os campos com o campo "endereco" fixo no início e marcado como dependente
+ */
+export function generateFields(
+    names: string[],
+    overrides?: Record<string, Partial<FormField>>,
+    options?: { suffix?: string }
+): FormField[] {
+    const { suffix = "" } = options || {};
+
+    return names.map((baseName) => {
+        const name = `${baseName}${suffix}`;
+        const config = fieldConfigs[baseName] || {};
+        const override = overrides?.[name] || {};
+
+        return {
+            name,
+            label: capitalize(baseName.replace(/_/g, " ")),
+            type: "text",
+            required: false,          
+            ...config,
+            ...override,
+        } as FormField;
+    });
+}
+
+
+
+
 export const identRespDefinition: FormConfig = {
     title: "Identificação do Responsável pela Unidade",
     sections: [
@@ -289,8 +399,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
             ]
         });
 
-
-
         // 3) Se for interditada, inserir campos adicionais
         if (formValues.pessoaInterditada === "sim") {
             deficienciaConditionals.push(
@@ -394,137 +502,50 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     }
     if ((formValues.modalidadeEnsino === "Presencial" || formValues.modalidadeEnsino === "Hibrido" || formValues.modalidadeEnsino === "Outros") && formValues.frequetaEscola === "sim") {
         educacaoConditionals.push(
-
-            {
-                name: "endereco",
-                label: "Endereco",
-                type: "label" as const,
-                required: false,
-
-            },
-            {
-                name: "cep",
-                label: "Cep",
-                type: "text" as const,
-                required: false,
-                mask: "9999-999",
-                placeholder: "0000-000",
-                dependent: true
-            },
-            {
-                name: "naoAplicaCep",
-                label: "Não se aplica",
-                type: "checkbox" as const,
-                required: false,
-                disableField: "cep",
-                dependent: true
-            },
-            {
-                name: "logradouro",
-                label: "Logradouro",
-                type: "text" as const,
-                required: false,
-                dependent: true
-            },
-            {
-                name: "numero",
-                label: "Número",
-                type: "numberSpinner" as const,
-                required: false,
-                step: 1,
-                dependent: true
-
-            },
-            {
-                name: "bairro",
-                label: "Bairro",
-                type: "text" as const,
-                required: false,
-                dependent: true
-            },
-            {
-                name: "complemento",
-                label: "Complemento",
-                type: "text" as const,
-                required: false,
-                dependent: true
-            },
-            {
-                name: "uf",
-                label: "UF",
-                type: "combobox" as const,
-                required: true,
-                dependent: true,
-                options: [
-
-                ]
-            },
-            {
-                name: "cidade",
-                label: "Cidade",
-                type: "combobox" as const,
-                required: true,
-                dependent: true,
-                options: [
-
-                ]
-            },
-            {
-                name: "subPrefeitura",
-                label: "Subprefeitura",
-                type: "combobox" as const,
-                required: false,
-                options: subPrefeituraOptions,
-                dependent: true,
-                conditions: [
-                    { field: "uf", operator: "equals", value: "SP" },
-                    { field: "cidade", operator: "equals", value: "São Paulo" },
+            ...generateFields(
+                [
+                    "cep",
+                    "naoAplicaCep",
+                    "logradouro",
+                    "numero",
+                    "bairro",
+                    "complemento",
+                    "uf",
+                    "cidade",
+                    "subPrefeitura",
+                    "distrito"
                 ],
-            },
-            {
-                name: "distrito",
-                label: "Distrito",
-                type: "combobox" as const,
-                required: false,
-                options: distritoOptions(selectedSub),
-                dependent: true,
-                conditions: [
-                    { field: "uf", operator: "equals", value: "SP" },
-                    { field: "cidade", operator: "equals", value: "São Paulo" },
-                ],
-            },
+                {
+                    distrito: {
+                        options: distritoOptions(selectedSub),
+                    },
+                    subPrefeitura: {
+                        options: subPrefeituraOptions,
+                    },
+                }
+            ),
             {
                 name: "localizacaoInstituicaoEnsino",
                 label: "Localização da Instituição de Ensino",
-                type: "radio" as const,
-                required: false,
-                dependent: true,
+                type: "radio",
+                required: false,                
                 options: [
-
                     { label: "Na área", value: "Na area" },
                     { label: "Em outro lugar", value: " Em outro lugar" },
-
-                ]
-
+                ],
             }
         );
+
     }
     else if (formValues.modalidadeEnsino === "EAD" && formValues.frequetaEscola === "sim") {
         educacaoConditionals.push(
 
             {
-                name: "endereco",
-                label: "Endereco",
-                type: "label" as const,
-                required: false,
-
-            },
-            {
                 name: "localizacaoInstituicaoEnsino",
                 label: "Localização da Instituição de Ensino",
                 type: "radio" as const,
                 required: false,
-                dependent: true,
+
                 options: [
 
                     { label: "Na área", value: "Na area" },
@@ -611,13 +632,26 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 label: "Tempo andando da condução até a instituição de ensino",
                 type: "time" as const,
                 required: false,
-
             },
-
 
         );
     }
     if (formValues.atividadeRemunerada === "sim") {
+
+        const baseFields = [
+
+            "cep",
+            "naoAplicaCep",
+            "logradouro",
+            "numero",
+            "bairro",
+            "complemento",
+            "uf",
+            "cidade",
+            "subPrefeitura",
+            "distrito",
+        ];
+
         atividadeRemuneradaConditionals.push(
             {
                 name: "modalidadeTrabalho",
@@ -634,11 +668,11 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 ]
 
             },
-             {
+            {
                 name: "localizacaoTrabalho",
                 label: "Localização da atividade remunerada principal ",
                 type: "radio" as const,
-                required: false,                
+                required: false,
                 options: [
 
                     { label: "Na área", value: "Na area" },
@@ -646,8 +680,75 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
                 ]
 
-            }
-           
+            },
+            {
+                name: "nomeAtividadeRemunerada",
+                label: "Nome da atividade remunerada",
+                type: "text" as const,
+                required: false,
+
+
+            },
+
+            ...generateFields(baseFields, undefined, {
+                suffix: "_t",
+            }),
+            {
+                name: "diasSemana",
+                label: "Quais dias da semana frequenta?",
+                type: "multicombobox" as const,
+                required: false,
+                options: [
+
+                    { label: "Domingo", value: "Domingo" },
+                    { label: "Segunda", value: "Segunda" },
+                    { label: "Terça", value: "Terça" },
+                    { label: "Quarta", value: "Quarta" },
+                    { label: "Quinta", value: "Quinta" },
+                    { label: "Sexta", value: "Sexta" },
+                    { label: "Sábado", value: "Sábado" },
+
+                ]
+
+            },
+            {
+                name: "quaisConducoes",
+                label: "Quais conduções você utiliza para chegar até a instituição de ensino?",
+                type: "multicombobox" as const,
+                required: false,
+                options: [
+
+                    { label: "Ônibus", value: "Onibus" },
+                    { label: "Metrô", value: "Metro" },
+                    { label: "Trem", value: "Trem" },
+                    { label: "Ônibus Escolar", value: "Onibus Escolar" },
+                    { label: "Carro particular", value: "Carro particular" },
+                    { label: "Outros", value: "Outros" }
+
+                ]
+
+            },
+            {
+                name: "quantHoras",
+                label: "Horário de saída da unidade",
+                type: "time" as const,
+                required: false,
+
+            },
+            {
+                name: "tempoTotal",
+                label: "Tempo total do percurso",
+                type: "text" as const,
+                required: false,
+
+            },
+            {
+                name: "tempoAndando",
+                label: "Tempo andando da condução até a instituição de ensino",
+                type: "time" as const,
+                required: false,
+            },
+
 
         );
     }
