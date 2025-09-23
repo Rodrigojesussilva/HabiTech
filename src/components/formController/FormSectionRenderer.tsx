@@ -36,7 +36,7 @@ export const FormSectionRenderer = ({
 }: FormSectionRendererProps) => {
     // Detecta automaticamente se estamos numa rota de visualização
     const isViewMode = useViewMode();
-    
+
     return (
         <div className="section mb-6">
             {showSectionLabel && section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
@@ -151,7 +151,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             return (
                 <button
                     type="button"
-                    onClick={field.onClick}                    
+                    onClick={field.onClick}
                     className="flex w-[200px] items-center justify-center rounded-md border border-input bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
                 >
                     {field.label || "Câmera"} {/* Usa label como texto do botão, ou "Câmera" por padrão */}
@@ -390,6 +390,20 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     value={formField.value ?? ""}
                     onChange={(iso: string) => {
                         formField.onChange(iso);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+        case "time":
+            return (
+                <input
+                    type="time"
+                    name={field.name}
+                    placeholder={field.placeholder || "HH:MM"}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(e) => {
+                        formField.onChange(e.target.value);
                     }}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
