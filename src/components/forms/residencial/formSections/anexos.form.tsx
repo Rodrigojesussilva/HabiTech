@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { getMergedFormSections } from "@/components/forms/selagem/definitions/anexos.definition";
+import { getMergedFormSections } from "@/components/forms/residencial/definitions/anexos.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "@/service/survey_resource.api"
@@ -67,7 +67,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const localKey = (sid: string) => `selagem_attachments_${sid}`
- 
+
 
   const removeLocalAttachment = (sid: string, field: string, id: string) => {
     try {
@@ -407,35 +407,74 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.log('[Anexos] Iniciando envio em lote...')
       const { currentSelagemId, token } = ensureIds()
       console.log('[Anexos] IDs:', { currentSelagemId, tokenPresent: Boolean(token) })
+
       if (!currentSelagemId) {
-        Swal.fire({ icon: 'error', title: 'Selagem não identificada', text: 'ID da selagem ausente. Salve metadados primeiro.' })
+        Swal.fire({
+          icon: 'error',
+          title: 'Selagem não identificada',
+          text: 'ID da selagem ausente. Salve metadados primeiro.'
+        })
         return
       }
 
-      const fields = ['anexoSelo', 'anexoFachada', 'anexoMorador', 'anexoOutros']
+      const fields = ['upLoadArquivo']
       let sent = 0
+
       for (const fname of fields) {
         const value: any = form.getValues(`families[${familyIndex}].${fname}`)
         console.log(`[Anexos] Campo ${fname} valor:`, value)
+
         if (value && value instanceof File) {
-          console.log(`[Anexos] Enviando arquivo de ${fname}:`, { name: value.name, size: value.size, type: value.type })
+          console.log(`[Anexos] Enviando arquivo de ${fname}:`, {
+            name: value.name,
+            size: value.size,
+            type: value.type
+          })
+
           await handleUpload(value, fname)
           sent++
+
+          // limpar input de arquivo no DOM
+          // Tenta localizar pelo type="file"
+          const input = document.querySelector(`input[type="file"]`) as HTMLInputElement | null
+          if (input) {
+            input.value = ''
+            const evt = new Event('change', { bubbles: true })
+            input.dispatchEvent(evt)
+          }
+
+          // limpar campo de descrição no formulário
+          form.setValue(`families[${familyIndex}].descricaoArquivo`, '')
         }
       }
 
       if (sent === 0) {
-        Swal.fire({ icon: 'info', title: 'Nenhum arquivo selecionado', timer: 1200, showConfirmButton: false })
+        Swal.fire({
+          icon: 'info',
+          title: 'Nenhum arquivo selecionado',
+          timer: 1200,
+          showConfirmButton: false
+        })
         return
       }
 
       if (token) await loadAttachments()
-      Swal.fire({ icon: 'success', title: `Enviado(s) ${sent} arquivo(s)!`, timer: 1500, showConfirmButton: false })
+
+      Swal.fire({
+        icon: 'success',
+        title: `Enviado(s) ${sent} arquivo(s)!`,
+        timer: 1500,
+        showConfirmButton: false
+      })
     } catch (e) {
       console.error('[Anexos] Falha no envio em lote:', e)
-      Swal.fire({ icon: 'error', title: 'Erro no envio dos anexos' })
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no envio dos anexos'
+      })
     }
   }
+
 
   return (
     <div className="text-left">
@@ -457,31 +496,20 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
                 showSectionLabel={false}
                 familyIndex={familyIndex}
               />
+              <div className="mt-3">
+                <button type="button" onClick={handleSendAll} className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
+                  Enviar Anexo
+                </button>
+              </div>
               {/* listas por campo */}
               <div className="grid grid-cols-1 gap-2">
                 <div>
-                  <div className="text-xs font-medium text-gray-600">Anexos-Selo</div>
-                  {renderAttachmentList('anexoSelo')}
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-gray-600">Anexos-Fachada</div>
-                  {renderAttachmentList('anexoFachada')}
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-gray-600">Anexos-Morador</div>
-                  {renderAttachmentList('anexoMorador')}
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-gray-600">Anexos-Outros</div>
-                  {renderAttachmentList('anexoOutros')}
+                  <div className="text-xs font-medium text-gray-600">Arquivos Enviados</div>
+                  {renderAttachmentList('upLoadArquivo')}
                 </div>
               </div>
 
-              <div className="mt-3">
-                <button type="button" onClick={handleSendAll} className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition">
-                  Enviar Anexos
-                </button>
-              </div>
+
             </div>
           ))}
         </CollapsibleContent>

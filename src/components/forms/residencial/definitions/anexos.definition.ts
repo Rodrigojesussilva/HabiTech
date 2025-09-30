@@ -4,10 +4,9 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
 export const anexosSchema = z.object({
-    anexoSelo: z.string().optional(), 
-    anexoFachada: z.string().optional(),
-    anexoMorador: z.string().optional(),  
-    anexoOutros: z.string().optional(),
+    upLoadArquivo: z.string().optional(),
+    descricaoArquivo: z.string().optional(), 
+
     idLocal: z.string().optional(),
     selamento_id: z.string().optional(),
 });
@@ -17,10 +16,8 @@ export type FormValues = z.infer<typeof anexosSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
-    anexoSelo: "",
-    anexoFachada: "",
-    anexoMorador: "",
-    anexoOutros: "",   
+    upLoadArquivo: "",
+
     idLocal: "not",
 };
 
@@ -29,40 +26,26 @@ export const anexosDefinition: FormConfig = {
     title: "Anexos",
     sections: [
         {
-            id: "anexoSelo",
+            id: "upLoadArquivo",
             title: "Anexos",
             fields: [
-               
                 {
-                    name: "anexoSelo",
-                    label: "Anexos-Selo",
+                    name: "upLoadArquivo",   // Corrigir aqui
+                    label: "Uploads de arquivos",
                     type: "file" as const,
                     required: false,
                 },
-                {
-                    name: "anexoFachada",
-                    label: "Anexos-Fachada",
-                    type: "file" as const,
+                 {
+                    name: "descricaoArquivo",   // Corrigir aqui
+                    label: "Descrição do arquivo",
+                    type: "text" as const,
                     required: false,
-                },
-                {
-                    name: "anexoMorador",
-                    label: "Anexos-Morador",
-                    type: "file" as const,
-                    required: false,
-                },
-                {
-                    name: "anexoOutros",
-                    label: "Anexos-Outros",
-                    type: "file" as const,
-                    required: false,
-                },
-                
-
-                
+                }
             ]
         },
-       
+        
+        
+
     ]
 };
 
@@ -72,7 +55,7 @@ export const anexosDefinition: FormConfig = {
  * by a custom field component that can render the autocomplete and dynamic fields
  */
 export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
-    const conditionalFields: FormField[] = []; 
+    const conditionalFields: FormField[] = [];
     console.log(formValues);
     return conditionalFields;
 }

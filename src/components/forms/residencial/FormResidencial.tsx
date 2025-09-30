@@ -28,6 +28,8 @@ import FormSectionRenderer from "@/components/formController/FormSectionRenderer
 import AnimalEstimacaoForm from "./formSections/AnimalEstimacao.form"
 import RendaResponsaveisForm from "./formSections/RendaResponsaveis.form"
 import IntegraçãoUrbanaSocialForm from "./formSections/IntegraçãoUrbanaSocial.form"
+import StatusNotasForm from "./formSections/StatusNotas.form"
+
 
 import AnexosForm from "./formSections/anexos.form"
 
@@ -40,6 +42,8 @@ import { integrantesFamiliaSchema } from "@/components/forms/residencial/definit
 import { animalEstimacaoSchema } from "@/components/forms/residencial/definitions/animalEstimacao.definition";
 import { rendaResponsaveisSchema } from "@/components/forms/residencial/definitions/rendaResponsaveis.definition";
 import { integraçãoUrbanaSocialSchema } from "@/components/forms/residencial/definitions/integraçãoUrbanaSocial.definition";
+import { statusNotasSchema } from "@/components/forms/residencial/definitions/statusNotas.definition";
+
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
 import { SURVEY_RESOURCE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
@@ -254,6 +258,7 @@ const FormResidencial = ({
 		...getDefaultValuesFromSchema(animalEstimacaoSchema),
 		...getDefaultValuesFromSchema(rendaResponsaveisSchema),
 		...getDefaultValuesFromSchema(integraçãoUrbanaSocialSchema),
+		...getDefaultValuesFromSchema(statusNotasSchema),
 		...getDefaultValuesFromSchema(anexosSchema),
 
 	} as const;
@@ -1222,6 +1227,7 @@ const FormResidencial = ({
 							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />
 							<RendaResponsaveisForm sectionIndex={5} familyIndex={index} />
 							<IntegraçãoUrbanaSocialForm sectionIndex={6} familyIndex={index} />
+							<StatusNotasForm sectionIndex={6} familyIndex={index} />
 							<AnexosForm sectionIndex={8} familyIndex={index} />
 						</div>
 					))}
