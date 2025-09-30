@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/selagem/definitions/statusNotas.definition";
+} from "@/components/forms/residencial/definitions/rendaResponsaveis.definition";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -11,13 +11,13 @@ import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
-interface PessoaDefFormProps {
+interface RendaResponsaveisFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
 }
 
-const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFormProps) => {
+const RendaResponsaveisForm = ({ sectionIndex: sectionNumber, familyIndex }: RendaResponsaveisFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -272,4 +272,4 @@ const PessoaDefForm = ({ sectionIndex: sectionNumber, familyIndex }: PessoaDefFo
     );
 };
 
-export default PessoaDefForm; 
+export default RendaResponsaveisForm; 

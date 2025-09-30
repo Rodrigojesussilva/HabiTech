@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
     getMergedFormSections
-} from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
+} from "@/components/forms/residencial/definitions/animalEstimacao.definition";
 
 // Import form section renderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -11,13 +11,13 @@ import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 
-interface outrasInfoRelevantesFormProps {
+interface AnimalEstimacaoFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
 }
 
-const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: outrasInfoRelevantesFormProps) => {
+const AnimalEstimacaoForm = ({ sectionIndex: sectionNumber, familyIndex }: AnimalEstimacaoFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -28,12 +28,20 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
 
     // Get merged form sections with conditional fields included
     const formSections = getMergedFormSections(formValues);
-    const outrasInformacoes = form.watch(`families[${familyIndex}].outrasInformacoes`);
+
+    const status = form.watch(`families[${familyIndex}].status`);
+    const justificativa = form.watch(`families[${familyIndex}].justificativa`);
+    const nomeSupervisor = form.watch(`families[${familyIndex}].nomeSupervisor`);
+    const observacao = form.watch(`families[${familyIndex}].observacao`);
+
     const triggeredByBlurRef = useRef(false);
 
-    // Inicializa prevValuesRef apenas com o campo relevante
-    const prevValuesRef = useRef<Record<string, any>>({
-        outrasInformacoes,
+    // Inicializa prevValuesRef só com os campos relevantes
+    const prevValuesRef = useRef<Record<string, string>>({
+        justificativa: justificativa,
+        nome_supervisor: nomeSupervisor,
+        observacao: observacao,
+        status: status,
     });
 
     function isGetSelagemResponse(response: any): response is { selagens: any[] } {
@@ -124,19 +132,24 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
             if (value == null || value === "") return "string";
             return String(value);
         };
+        void sanitizeField;
 
         const payload = {
             created_by: criadoPor,
-            outras_informacoes: {
-                texto: sanitizeField(outrasInformacoes),
+            status_notas: {
+                justificativa: justificativa,
+                nome_supervisor: nomeSupervisor,
+                observacao: observacao,
+                status: status,
             },
         };
 
         try {
-            await survey_resource.SendFormToSelagemOutrasInformacoes(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
+            console.log("Payload Selagem:", JSON.stringify(payload, null, 2));
+            await survey_resource.SendFormToSelagemStatusNotas(SURVEY_RESOURCE_BASE_URL, selagemId, payload);
         } catch (error) {
-            console.error("Erro ao enviar outras informações:", error);
-            showErrorMessage("Erro ao enviar o campo 'outrasInformacoes'");
+            console.error("Erro ao enviar status_notas:", error);
+            showErrorMessage("Erro ao enviar os dados de status_notas");
         }
     };
 
@@ -154,15 +167,38 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
     useEffect(() => {
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
-            const currentValue = form.watch(`families[${familyIndex}].outrasInformacoes`) || "";
-            const prevValue = prevValuesRef.current["outrasInformacoes"];
 
-            if (currentValue !== prevValue && activeFieldName !== `families[${familyIndex}].outrasInformacoes`) {
-                prevValuesRef.current["outrasInformacoes"] = currentValue;
+            const sanitizeField = (value: any) => {
+                if (value == null || value === "") return "string"; // valor padrão aceito pela API
+                return String(value);
+            };
 
-                const seiNumber = localStorage.getItem("seiNumberS");
+            const fields = {
+                justificativa: sanitizeField(justificativa),
+                nome_supervisor: sanitizeField(nomeSupervisor),
+                observacao: sanitizeField(observacao),
+                status: sanitizeField(status),
+            };
+
+            let shouldFetch = false;
+
+            for (const [fieldKey, currentValue] of Object.entries(fields)) {
+                const prevValue = prevValuesRef.current[fieldKey];
+
+                // Só dispara se o campo mudou e não é o campo atualmente ativo
+                if (
+                    currentValue !== prevValue &&
+                    activeFieldName !== `families[${familyIndex}].statusNotas.${fieldKey}`
+                ) {
+                    shouldFetch = true;
+                    prevValuesRef.current[fieldKey] = currentValue;
+                }
+            }
+
+            if (shouldFetch) {
                 const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
                 const hasSelagemId = Boolean(selagemIdFromStorage);
+                const seiNumber = hasSelagemId ? undefined : localStorage.getItem("seiNumberS") || undefined;
                 const request: any = {
                     initial_date: initialDate,
                     end_date: endDate,
@@ -188,10 +224,12 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
         return () => {
             window.removeEventListener("blur", handleBlur, true);
         };
-    }, [outrasInformacoes]);
-
-
-
+    }, [
+        justificativa,
+        nomeSupervisor,
+        observacao,
+        status,
+    ]);
 
     return (
         <div className="text-left">
@@ -234,4 +272,4 @@ const outrasInfoRelevantesForm = ({ sectionIndex: sectionNumber, familyIndex }: 
     );
 };
 
-export default outrasInfoRelevantesForm; 
+export default AnimalEstimacaoForm; 

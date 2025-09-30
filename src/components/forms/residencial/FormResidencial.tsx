@@ -21,41 +21,40 @@ import {
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
-import IdentUnidadeForm from "./formSections/IdentUnidadeForm.form"
+import IdentUnidadeForm from "./formSections/IdentUnidade.form"
 import IdentResp from "./formSections/IdentResp"
-import CaractUnidadeForm from "./formSections/CaractUnidade.form"
-import CaracInfraUrbUnidForm from "./formSections/CaracInfraUrbUnid.form"
-import OutrasInfoRelevantesForm from "./formSections/OutrasInfoRelevantes.form"
+import IntegranteFamiliaForm from "./formSections/IntegrantesFamilia.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
-import StatusNotasForm from "./formSections/StatusNotas.form"
+import AnimalEstimacaoForm from "./formSections/AnimalEstimacao.form"
+import RendaResponsaveisForm from "./formSections/RendaResponsaveis.form"
+import IntegraçãoUrbanaSocialForm from "./formSections/IntegraçãoUrbanaSocial.form"
+
 import AnexosForm from "./formSections/anexos.form"
 
 // Import the types from formUtils with a clear alias
 import { FormField as FormFieldType, FormSection } from "@/utils/formUtils";
-import { identEspacoHabitadoSchema } from "@/components/forms/selagem/definitions/identEspacoHabitado.definition";
-import { identUnidadeSchema } from "@/components/forms/selagem/definitions/identUnidade.definition";
-import { situUsoUniSchema } from "@/components/forms/selagem/definitions/situUsoUni.definition";
-import { caractUnidadeSchema } from "@/components/forms/selagem/definitions/caractUnidade.definition";
-import { caracInfraUrbUnidSchema } from "@/components/forms/selagem/definitions/CaracInfraUrbUnid.definition";
-import { outrasInfoRelevantesSchema } from "@/components/forms/selagem/definitions/outrasInfoRelevantes.definition";
-import { statusNotasSchema } from "@/components/forms/selagem/definitions/statusNotas.definition";
+
+import { identUnidadeSchema } from "@/components/forms/residencial/definitions/identUnidade.definition";
+import { infContatoSchema } from "@/components/forms/residencial/definitions/infContato.definition";
+import { integrantesFamiliaSchema } from "@/components/forms/residencial/definitions/integrantesFamilia.definition";
+import { animalEstimacaoSchema } from "@/components/forms/residencial/definitions/animalEstimacao.definition";
+import { rendaResponsaveisSchema } from "@/components/forms/residencial/definitions/rendaResponsaveis.definition";
+import { integraçãoUrbanaSocialSchema } from "@/components/forms/residencial/definitions/integraçãoUrbanaSocial.definition";
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
 import { SURVEY_RESOURCE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
 import { loadSelagemData  } from './helpers/apiMapper';
+import InfContatoForm from "./formSections/InfContato.form";
 
 
 
 // Define the schema for a single family, integrating IdentResp schema
-const familySchema = z.object({
-	...identEspacoHabitadoSchema.shape,
-	...identUnidadeSchema.shape,
-	...situUsoUniSchema.shape,
-	...caractUnidadeSchema.shape,
-	...caracInfraUrbUnidSchema.shape,
-	...outrasInfoRelevantesSchema.shape,
-	...statusNotasSchema.shape,
+const familySchema = z.object({	
+	...identUnidadeSchema.shape,	
+	...infContatoSchema.shape,	
+	...integrantesFamiliaSchema.shape,
+	...animalEstimacaoSchema.shape,
 	...anexosSchema.shape,
 
 });
@@ -246,20 +245,15 @@ const FormResidencial = ({
 		control: form.control,
 		name: "naoAplica",
 	});
-	// Watch the entire families array to drive conditional section visibility
-	const familiesWatch = useWatch({
-		control: form.control,
-		name: "families",
-	});
+	
 	// Merge all schemas to create a complete default family entry
-	const defaultFamilyEntry = {
-		...getDefaultValuesFromSchema(identEspacoHabitadoSchema),
-		...getDefaultValuesFromSchema(caractUnidadeSchema),
-		...getDefaultValuesFromSchema(identUnidadeSchema),
-		...getDefaultValuesFromSchema(situUsoUniSchema),
-		...getDefaultValuesFromSchema(caracInfraUrbUnidSchema),
-		...getDefaultValuesFromSchema(outrasInfoRelevantesSchema),
-		...getDefaultValuesFromSchema(statusNotasSchema),
+	const defaultFamilyEntry = {		
+		...getDefaultValuesFromSchema(infContatoSchema),
+		...getDefaultValuesFromSchema(identUnidadeSchema),		
+		...getDefaultValuesFromSchema(integrantesFamiliaSchema),
+		...getDefaultValuesFromSchema(animalEstimacaoSchema),
+		...getDefaultValuesFromSchema(rendaResponsaveisSchema),
+		...getDefaultValuesFromSchema(integraçãoUrbanaSocialSchema),
 		...getDefaultValuesFromSchema(anexosSchema),
 
 	} as const;
@@ -1223,20 +1217,12 @@ const FormResidencial = ({
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
 							<IdentUnidadeForm sectionIndex={0} familyIndex={index} />							
 							<IdentResp sectionIndex={1} familyIndex={index} />
-							{/* Hide sections 4 and 5 when the situation indicates terrain */}
-							{(() => {
-								const situacaoAtual = familiesWatch?.[index]?.situacaoUsoUnidade;
-								const ocultarSecoes4e5 = situacaoAtual === 'TerrenoCercado' || situacaoAtual === 'TerrenoSemCercamento';
-								return !ocultarSecoes4e5 ? (
-									<>
-										<CaractUnidadeForm sectionIndex={3} familyIndex={index} />
-										<CaracInfraUrbUnidForm sectionIndex={4} familyIndex={index} />
-									</>
-								) : null;
-							})()}
-							<OutrasInfoRelevantesForm sectionIndex={5} familyIndex={index} />
-							<StatusNotasForm sectionIndex={6} familyIndex={index} />
-							<AnexosForm sectionIndex={7} familyIndex={index} />
+							<InfContatoForm sectionIndex={2} familyIndex={index} />							
+							<IntegranteFamiliaForm sectionIndex={3} familyIndex={index} />
+							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />
+							<RendaResponsaveisForm sectionIndex={5} familyIndex={index} />
+							<IntegraçãoUrbanaSocialForm sectionIndex={6} familyIndex={index} />
+							<AnexosForm sectionIndex={8} familyIndex={index} />
 						</div>
 					))}
 

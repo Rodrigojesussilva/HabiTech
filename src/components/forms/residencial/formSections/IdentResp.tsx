@@ -10,13 +10,13 @@ import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
 import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
-interface SituUsoUniFormProps {
+interface IdentRespFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
 }
 
-const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniFormProps) => {
+const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
     const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
     const [initialDate] = useState("")
     const [endDate] = useState("")
@@ -35,8 +35,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUniF
     const uso = form.watch(`families[${familyIndex}].uso`);
     const usoTerreno = form.watch(`families[${familyIndex}].uso_terreno`);
     const usoUnidade = form.watch(`families[${familyIndex}].usoUnidade`);
-    const triggeredByBlurRef = useRef(false);
-    const selectedSubPrefeitura = form.watch(`families[${familyIndex}].subPrefeitura`);
+    const triggeredByBlurRef = useRef(false);    
 
     // Get form values for conditional logic
     const formValues = (() => {

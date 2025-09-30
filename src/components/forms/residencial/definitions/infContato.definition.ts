@@ -2,63 +2,66 @@ import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
-export const caractUnidadeSchema = z.object({
-    numeroComodos: z.string().optional(),
-    numeroPavimentos: z.string().optional(),
-    numeroSanitarios: z.string().optional(),
-
+export const infContatoSchema = z.object({
+    telefoneCelular: z.string().optional(),
+    telefoneAdicional: z.string().optional(),
+    email: z.string().optional(),
+    outroContato: z.string().optional(),
     selagem_id: z.string().optional(),
     idLocal: z.string().optional(),
-  
+
 });
 
-export type FormValues = z.infer<typeof caractUnidadeSchema>;
+export type FormValues = z.infer<typeof infContatoSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
-    numeroComodos: "",
-    numeroPavimentos:"",
-    numeroSanitarios: "",
-
+    telefoneCelular: "",
+    telefoneAdicional: "",
+    email: "",
+    outroContato: "",
     idLocal: "not",
-    
+
 };
 
 // Base form structure (without conditional fields)
-export const caractUnidadeDefinition: FormConfig = {
-    title: "Caracteristicas Unidade",
+export const infContatoDefinition: FormConfig = {
+    title: "Informações de contato",
     sections: [
         {
-            id: "caractUnidade",
-            title: "Características da Unidade",
+            id: "infContato",
+            title: "Informações de contato",
             fields: [
                 {
-                    name: "numeroComodos",
-                    label: "Quantidade de Cômodos(exceto banheiro)",
-                    type: "numberSpinner", 
+                    name: "telefoneCelular",
+                    label: "Telefone Celular para Contato",
+                    type: "text",
+                    required: true,
+
+                },
+                {
+                    name: "telefoneAdicional",
+                    label: "Telefone adicional/recado",
+                    type: "text",
+                    required: true,
+
+                },
+                {
+                    name: "email",
+                    label: "E‑mail ",
+                    type: "email",
                     required: true,
                     min: 1,
                     max: 100,
                     step: 1,
                 },
                 {
-                    name: "numeroPavimentos",
-                    label: "Quantidade de Pavimentos na Unidade",
-                    type: "numberSpinner", 
+                    name: "outroContato",
+                    label: "Outro meio de contato",
+                    type: "textarea",
                     required: true,
-                    min: 1,
-                    max: 100,
-                    step: 1,
+
                 },
-                {
-                    name: "numeroSanitarios",
-                    label: "Quantidade de Sanitários na Unidade",
-                    type: "numberSpinner", 
-                    required: true,
-                    min: 1,
-                    max: 100,
-                    step: 1,
-                }
             ]
         }
     ]
@@ -85,14 +88,14 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     // Get conditional fields based on current form values
     const conditionalFields = getConditionalFields(formValues);
-	console.log("Conditional Fields", conditionalFields);
+    console.log("Conditional Fields", conditionalFields);
 
     // Create and return a merged form structure with base fields and conditional fields
     return [
         {
-            ...caractUnidadeDefinition.sections[0],
+            ...infContatoDefinition.sections[0],
             fields: [
-                ...caractUnidadeDefinition.sections[0].fields,
+                ...infContatoDefinition.sections[0].fields,
                 ...conditionalFields
             ]
         }

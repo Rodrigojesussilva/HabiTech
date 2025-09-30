@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-
+import { formatarTelefoneAuto } from "@/components/forms/residencial/helpers/infContato.helper"
 import { useFormContext } from "react-hook-form";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { getMergedFormSections } from "@/components/forms/selagem/definitions/caractUnidade.definition";
+import { getMergedFormSections } from "@/components/forms/residencial/definitions/infContato.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
@@ -17,7 +17,7 @@ interface CaractUnidadeFormProps {
   familyIndex: number;
 }
 
-const CaractUnidadeForm = ({
+const InfContatoForm = ({
   sectionIndex: sectionNumber,
   familyIndex,
 }: CaractUnidadeFormProps) => {
@@ -57,7 +57,7 @@ const CaractUnidadeForm = ({
         }
       }
 
-                  const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       const res = await fetch(url, {
         method: req.method,
         headers: {
@@ -118,7 +118,7 @@ const CaractUnidadeForm = ({
       localStorage.setItem("selagemCreated_by", criadoPor);
 
       //console.log('Valores antes do envio:', { numeroComodos, numeroPavimentos, numeroSanitarios });
-      
+
       const sanitizeField = (value: any) => {
         if (value === undefined || value === null) {
           return "";
@@ -167,6 +167,27 @@ const CaractUnidadeForm = ({
   };
 
   useEffect(() => {
+    const camposTelefone = ['telefoneCelular', 'telefoneAdicional'];
+
+    camposTelefone.forEach((campo) => {
+      const valor = form.watch(`families[${familyIndex}].${campo}`);
+
+      if (valor) {
+        const formatted = formatarTelefoneAuto(valor);
+        if (formatted !== valor) {
+          form.setValue(`families[${familyIndex}].${campo}`, formatted);
+        }
+      }
+    });
+  }, [
+    form.watch(`families[${familyIndex}].telefoneCelular`),
+    form.watch(`families[${familyIndex}].telefoneAdicional`),
+    familyIndex,
+    form,
+  ]);
+
+
+  useEffect(() => {
     const handleBlur = async () => {
       const activeFieldName = document.activeElement?.getAttribute("name");
       const sanitizeField = (value: any) => {
@@ -192,24 +213,24 @@ const CaractUnidadeForm = ({
       }
 
       if (shouldFetch) {
-			const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
-			const hasSelagemId = Boolean(selagemIdFromStorage);
-			const seiNumber = hasSelagemId ? undefined : localStorage.getItem("seiNumberS") || undefined;
-			const request: any = {
-				initial_date: initialDate,
-				end_date: endDate,
-			};
-			if (hasSelagemId) {
-				request.id = selagemIdFromStorage;
-			} else if (seiNumber) {
-				request.numero_sei = seiNumber;
-			}
- 
-			const hasData = await hasSelagem(request);
-			if (!hasData) {
-				console.log("Nenhuma Selagem Cadastrada");
-				return;
-			}
+        const selagemIdFromStorage = localStorage.getItem('selagemId') || '';
+        const hasSelagemId = Boolean(selagemIdFromStorage);
+        const seiNumber = hasSelagemId ? undefined : localStorage.getItem("seiNumberS") || undefined;
+        const request: any = {
+          initial_date: initialDate,
+          end_date: endDate,
+        };
+        if (hasSelagemId) {
+          request.id = selagemIdFromStorage;
+        } else if (seiNumber) {
+          request.numero_sei = seiNumber;
+        }
+
+        const hasData = await hasSelagem(request);
+        if (!hasData) {
+          console.log("Nenhuma Selagem Cadastrada");
+          return;
+        }
 
         triggeredByBlurRef.current = true;
         fetchSelagemData();
@@ -238,7 +259,7 @@ const CaractUnidadeForm = ({
               className="text-xl font-semibold mb-4"
               data-secao={formSections[0].title}
             >
-              {`Seção ${sectionNumber ? sectionNumber + 1 : 3} - ${formSections[0].title
+              {`Seção ${sectionNumber ? sectionNumber + 1 : 2} - ${formSections[0].title
                 }${ok ? " ✅" : ""}`}
             </h4>
           </div>
@@ -250,7 +271,7 @@ const CaractUnidadeForm = ({
               section={section}
               formControl={form.control}
               getFieldNumber={(_, fieldIndex) =>
-                `${sectionNumber ? sectionNumber + 1 : 3}.${fieldIndex + 1}`
+                `${sectionNumber ? sectionNumber + 1 : 2}.${fieldIndex + 1}`
               }
               sectionIndex={sectionIndex}
               formValues={formValues}
@@ -278,4 +299,4 @@ const CaractUnidadeForm = ({
   );
 };
 
-export default CaractUnidadeForm;
+export default InfContatoForm;

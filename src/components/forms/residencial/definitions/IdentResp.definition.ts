@@ -58,6 +58,12 @@ export const situUsoUniSchema = z.object({
     atividadeRemunerada: z.string().optional(),
     modalidadeTrabalho: z.string().optional(),
     localizacaoTrabalho: z.string().optional(),
+    diasSemanaTrabalho: z.string().optional(),
+    quaisConducoesTrabalho: z.string().optional(),
+    quantHorasTrabalho: z.string().optional(),
+    tempoTotalTrabalho: z.string().optional(),
+    tempoAndandoConducao: z.string().optional(),
+    tempoConducaoDestino: z.string().optional(),
     idLocal: z.string().optional(),
     selagem_id: z.string().optional(),
 });
@@ -209,15 +215,12 @@ export function generateFields(
             name,
             label: capitalize(baseName.replace(/_/g, " ")),
             type: "text",
-            required: false,          
+            required: false,
             ...config,
             ...override,
         } as FormField;
     });
 }
-
-
-
 
 export const identRespDefinition: FormConfig = {
     title: "Identificação do Responsável pela Unidade",
@@ -345,7 +348,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     const educacaoConditionals: FormField[] = [];
     const atividadeRemuneradaConditionals: FormField[] = [];
 
-    const documentosSelecionados = formValues.documentosSelecionados || [];
+    const documentosSelecionados = Array.isArray(formValues.documentosSelecionados) ? formValues.documentosSelecionados : [];
 
     if (documentosSelecionados.includes("RG")) {
         documentosConditionals.push({
@@ -454,7 +457,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
             ],
         });
-        // Gera um campo para cada país selecionado
+        
         const filiacao = formValues.filiacao_ ?? [];
         for (const f of filiacao) {
             const key = slugify(f);
@@ -495,7 +498,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 label: "Nome da instituição de ensino",
                 type: "text",
                 required: true,
-                placeholder: "Digite o nome do curador ou tutor"
+                placeholder: "Digite o Nome da instituição de ensino"
             },
 
         );
@@ -528,7 +531,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 name: "localizacaoInstituicaoEnsino",
                 label: "Localização da Instituição de Ensino",
                 type: "radio",
-                required: false,                
+                required: false,
                 options: [
                     { label: "Na área", value: "Na area" },
                     { label: "Em outro lugar", value: " Em outro lugar" },
@@ -694,7 +697,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 suffix: "_t",
             }),
             {
-                name: "diasSemana",
+                name: "diasSemanaTrabalho",
                 label: "Quais dias da semana frequenta?",
                 type: "multicombobox" as const,
                 required: false,
@@ -712,7 +715,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
             },
             {
-                name: "quaisConducoes",
+                name: "quaisConducoesTrabalho",
                 label: "Quais conduções você utiliza para chegar até a instituição de ensino?",
                 type: "multicombobox" as const,
                 required: false,
@@ -729,33 +732,36 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
 
             },
             {
-                name: "quantHoras",
+                name: "quantHorasTrabalho",
                 label: "Horário de saída da unidade",
                 type: "time" as const,
                 required: false,
 
             },
             {
-                name: "tempoTotal",
-                label: "Tempo total do percurso",
-                type: "text" as const,
-                required: false,
-
-            },
-            {
-                name: "tempoAndando",
-                label: "Tempo andando da condução até a instituição de ensino",
+                name: "tempoAndandoConducao",
+                label: "Tempo andando ate a condução",
                 type: "time" as const,
                 required: false,
             },
-
+            {
+                name: "tempoConducaoDestino",
+                label: "Tempo andando da condução até o destino",
+                type: "time" as const,
+                required: false,
+            },
+            {
+                name: "tempoTotalTrabalho",
+                label: "Tempo total do percurso",
+                type: "text" as const,
+                required: false,
+            },
 
         );
     }
 
     return { usoUnidadeConditionals, identRespConditionals, documentosConditionals, deficienciaConditionals, educacaoConditionals, atividadeRemuneradaConditionals };
 }
-
 // Retorna todas as seções do formulário com campos condicionais na posição correta
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     try {
