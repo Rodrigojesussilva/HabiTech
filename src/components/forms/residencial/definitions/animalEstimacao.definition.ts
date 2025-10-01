@@ -105,9 +105,20 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     { label: "Boi", value: "boi" },
                     { label: "Vaca", value: "vaca" },
                     { label: "Cavalo", value: "cavalo" },
-                    { label: "Outros", value: "outros" } // campo condicional será tratado no código
+                    { label: "Outros", value: "outros" } // campo condicional
                 ]
             },
+            // ✅ Inserir aqui, logo depois do tipoAnimal
+            ...(formValues.tipoAnimal?.[key] === "outros"
+                ? [{
+                    name: `especifiqueTipoAnimal.${key}`,
+                    label: `Especifique o tipo do ${integrante}`,
+                    type: "text" as const, // ✅ Correção aqui
+                    required: true,
+                    placeholder: "Digite o tipo de animal"
+                }]
+                : []),
+
             {
                 name: `sexoAnimal.${key}`,
                 label: `Sexo do ${integrante}`,
@@ -137,24 +148,10 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 options: [
                     { label: "Sim", value: "sim" },
                     { label: "Não", value: "nao" },
-                  
                 ]
             },
-
-
-
         );
-
-        if (formValues.tipoAnimal?.[key] === "outros") {
-            fields.push({
-                name: `especifiqueTipoAnimal.${key}`,
-                label: "Especifique o tipo de animal",
-                type: "text",
-                required: true,
-                placeholder: "Digite o tipo de animal"
-            });
-        }
-
+       
     });
 
     return fields;

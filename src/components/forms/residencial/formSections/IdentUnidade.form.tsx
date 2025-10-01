@@ -339,8 +339,6 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
         // ⚠️ Não faz nada se CEP incompleto
     }, [cep, familyIndex, form]);
 
-
-
     // Torna o SP padrão na UF
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);

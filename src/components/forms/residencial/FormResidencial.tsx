@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
 
 import IdentUnidadeForm from "./formSections/IdentUnidade.form"
-import IdentResp from "./formSections/IdentResp"
+import IdentResp from "./formSections/IdentResp.form"
 import IntegranteFamiliaForm from "./formSections/IntegrantesFamilia.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 import AnimalEstimacaoForm from "./formSections/AnimalEstimacao.form"
@@ -1227,7 +1227,7 @@ const FormResidencial = ({
 							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />
 							<RendaResponsaveisForm sectionIndex={5} familyIndex={index} />
 							<IntegraçãoUrbanaSocialForm sectionIndex={6} familyIndex={index} />
-							<StatusNotasForm sectionIndex={6} familyIndex={index} />
+							<StatusNotasForm sectionIndex={7} familyIndex={index} />
 							<AnexosForm sectionIndex={8} familyIndex={index} />
 						</div>
 					))}

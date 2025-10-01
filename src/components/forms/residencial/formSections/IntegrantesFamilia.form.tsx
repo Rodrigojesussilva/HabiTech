@@ -1,13 +1,9 @@
-import { useState} from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-    getMergedFormSections
-} from "@/components/forms/residencial/definitions/integrantesFamilia.definition";
-
-// Import form section renderer
+import { getMergedFormSections } from "@/components/forms/residencial/definitions/integrantesFamilia.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-
+import IntegranteDialog from "../IntegranteDialog"; // ajuste o caminho conforme sua estrutura
 
 interface integrantesFamiliaFormProps {
     id?: string;
@@ -17,55 +13,67 @@ interface integrantesFamiliaFormProps {
 
 const integrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: integrantesFamiliaFormProps) => {
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
-   
 
     const form = useFormContext();
-    // Get form values for conditional logic
     const formValues = form.watch(`families[${familyIndex}]`) || {};
+    const formSections = getMergedFormSections(formValues);
+    const section = formSections[0]; // Assume só 1 seção
 
-    // Get merged form sections with conditional fields included
-    const formSections = getMergedFormSections(formValues);  
-
+    // Lista dos integrantes selecionados
+    const integrantesSelecionados: string[] = formValues?.integrantesFamilia || [];
 
     return (
         <div className="text-left">
             <Collapsible open={mostrarIdentificacao} onOpenChange={setMostrarIdentificacao}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
-                        <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>{`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${formSections[0].title}`}</h4>
+                        <h4 className="text-xl font-semibold mb-4" data-secao={section.title}>
+                            {`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${section.title}`}
+                        </h4>
                     </div>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
-                    {formSections.map((section, sectionIndex) => (
-                        <FormSectionRenderer
-                            key={section.id}
-                            section={section}
-                            formControl={form.control}
-                            getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
-                            sectionIndex={sectionIndex}
-                            formValues={formValues}
-                            showSectionLabel={false}
-                            familyIndex={familyIndex}
-                        />
-                    ))}
-                    {/* 
-<div className="mt-4 w-full flex justify-start">
-  <button
-    type="button"
-    className="px-3 py-1.5 text-sm bg-black text-white rounded-md hover:bg-gray-800 transition"
-    onClick={() => {
-      console.log("Botão clicado!");
-    }}
-  >
-    Salvar
-  </button>
-</div> 
-*/}
+                <CollapsibleContent className="space-y-4">
+                    {/* Renderiza campos gerais */}
+                    <FormSectionRenderer
+                        section={{
+                            id: section.id,
+                            title: section.title,
+                            fields: section.fields.filter(f => f.name === "integrantesFamilia"),
+                        }}
+                        formControl={form.control}
+                        getFieldNumber={(_, fieldIndex) => `${sectionNumber ? sectionNumber + 1 : 1}.${fieldIndex + 1}`}
+                        sectionIndex={0}
+                        formValues={formValues}
+                        showSectionLabel={false}
+                        familyIndex={familyIndex}
+                    />
 
+                    {/* Lista dos integrantes com botão para abrir o dialog */}
+                    {integrantesSelecionados.length > 0 && (
+                        <div className="border border-gray-300 rounded-xl p-4 bg-white shadow-sm space-y-3">
+                            <h5 className="text-md font-semibold mb-2">👨‍👩‍👧‍👦 Integrantes da Família</h5>
+                            <div className="grid gap-2">
+                                {integrantesSelecionados.map((integrante) => (
+                                    <div
+                                        key={integrante}
+                                        className="flex items-center justify-between border rounded-md px-4 py-2 bg-gray-50"
+                                    >
+                                        <span className="font-medium">{integrante}</span>
+                                        <IntegranteDialog
+                                            integranteName={integrante}
+                                            familyIndex={familyIndex}
+                                            sectionIndex={sectionNumber ?? 0}
+                                            allFields={section.fields}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </CollapsibleContent>
             </Collapsible>
         </div>
     );
 };
 
-export default integrantesFamiliaForm; 
+export default integrantesFamiliaForm;
