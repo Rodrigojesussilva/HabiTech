@@ -50,15 +50,22 @@ const integrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: in
 
                     {/* Lista dos integrantes com botão para abrir o dialog */}
                     {integrantesSelecionados.length > 0 && (
-                        <div className="border border-gray-300 rounded-xl p-4 bg-white shadow-sm space-y-3">
-                            <h5 className="text-md font-semibold mb-2">👨‍👩‍👧‍👦 Integrantes da Família</h5>
-                            <div className="grid gap-2">
+                        <div className="border border-muted rounded-xl p-6 bg-background shadow-sm space-y-4">
+                            <h5 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                                👨‍👩‍👧‍👦 Lista de Integrantes da Família
+                                <span className="text-muted-foreground text-sm font-normal">
+                                    ({integrantesSelecionados.length})
+                                </span>
+                            </h5>
+
+                            <div className="grid gap-3">
                                 {integrantesSelecionados.map((integrante) => (
                                     <div
                                         key={integrante}
-                                        className="flex items-center justify-between border rounded-md px-4 py-2 bg-gray-50"
+                                        className="flex items-center justify-between rounded-lg border bg-muted/50 hover:bg-muted transition-colors px-4 py-3 group"
                                     >
-                                        <span className="font-medium">{integrante}</span>
+                                        <span className="font-medium text-foreground">{integrante}</span>
+
                                         <IntegranteDialog
                                             integranteName={integrante}
                                             familyIndex={familyIndex}
@@ -70,6 +77,7 @@ const integrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: in
                             </div>
                         </div>
                     )}
+
                 </CollapsibleContent>
             </Collapsible>
         </div>
