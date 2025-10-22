@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 import { subprefeituras, distritosPorSubprefeitura } from "../subprefeiturasDistritos";
-import { cp } from "fs";
 
 // Função para transformar texto em chave (slug)
 function slugify(nome: string) {
@@ -224,6 +223,7 @@ const baseFields: FormField[] = [
         })),
     },
 ];
+
 const selectedSub = "Butantã"; // <-- apenas valor fixo
 const subPrefeituraOptions = subprefeituras.map((nome) => ({
     label: nome,
@@ -624,7 +624,9 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                                     label: `UF da instituição de ensino `,
                                     type: "select" as const,
                                     required: true,
-                                    options: [],
+                                    options: [
+                                        
+                                    ],
                                 },
                                 {
                                     name: `cidadeI.${key}`,
@@ -892,28 +894,28 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                     {
                         name: `ufTrabalho.${key}`,
                         label: `UF do local de trabalho`,
-                        type: "combobox" as const,
+                        type: "select" as const,
                         required: true,
                         options: [], // Preencher dinamicamente se necessário
                     },
                     {
                         name: `cidadeTrabalho.${key}`,
                         label: `Cidade do local de trabalho do`,
-                        type: "combobox" as const,
+                        type: "select" as const,
                         required: true,
                         options: [], // Preencher dinamicamente se necessário
                     },
                     {
                         name: `subPrefeituraTrabalho.${key}`,
                         label: `Subprefeitura do local de trabalho`,
-                        type: "combobox" as const,
+                        type: "select" as const,
                         required: false,
                         options: subPrefeituraOptions,
                     },
                     {
                         name: `distritoTrabalho.${key}`,
                         label: `Distrito do local de trabalho`,
-                        type: "combobox" as const,
+                        type: "select" as const,
                         required: false,
                         options: distritoOptions(selectedSub),
                     },
