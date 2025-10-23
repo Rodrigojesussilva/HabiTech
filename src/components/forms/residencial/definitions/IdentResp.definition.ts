@@ -751,7 +751,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
             },
             {
                 name: "quaisConducoesTrabalho",
-                label: "Quais conduções você utiliza para chegar até a instituição de ensino?",
+                label: "Quais conduções você utiliza para chegar até o trabalho?",
                 type: "multicombobox" as const,
                 required: false,
                 options: [

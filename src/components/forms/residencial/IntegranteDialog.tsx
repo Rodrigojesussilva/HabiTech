@@ -16,7 +16,7 @@ import { estados as estadosFallback } from "@/components/cidades_estados/estados
 import { cidadesLocais } from "@/components/cidades_estados/cidade";
 import { mask, unMask } from 'remask';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
-
+import { formatarTelefoneAuto } from "@/components/forms/residencial/helpers/infContato.helper"
 interface IntegranteDialogProps {
   integranteName: string;
   familyIndex: number;
@@ -57,9 +57,9 @@ const IntegranteDialog = ({
 
   const ufTrabalhoSelecionada = watch(`families[${familyIndex}].ufTrabalho.${key}`) as Uf | "";
   const cidadeTrabalhoSelecionada = watch(`families[${familyIndex}].cidadeTrabalho.${key}`) || "";
-  
-  
-   // Apenas letras para nome
+
+
+  // Apenas letras para nome
   useEffect(() => {
     const nome = watch(`families[${familyIndex}].nomeIntegrante.${key}`);
     if (nome) {
@@ -80,7 +80,7 @@ const IntegranteDialog = ({
       }
     }
   }, [watch(`families[${familyIndex}].nomeSocialIntegrante.${key}`)]);
-  
+
   // Máscaras e rg
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -331,6 +331,37 @@ const IntegranteDialog = ({
     buscar();
   }, [cepTrabalhoLimpo]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const valor = watch(`families[${familyIndex}].telefoneCelularIntegrante.${key}`);
+
+      if (valor && typeof valor === 'string' && valor.trim() !== '') {
+        try {
+          // Remove caracteres não numéricos e limita a 11 dígitos
+          const apenasNumeros = valor.replace(/\D/g, '');
+
+          // Só formata se tiver pelo menos 3 dígitos (DDD + 1 número)
+          if (apenasNumeros.length >= 3) {
+            // Limita a 11 dígitos antes de formatar
+            const numerosLimitados = apenasNumeros.slice(0, 11);
+            const formatted = formatarTelefoneAuto(numerosLimitados);
+
+            if (formatted !== valor) {
+              setValue(`families[${familyIndex}].telefoneCelularIntegrante.${key}`, formatted);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erro na formatação do telefone:', error);
+        }
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [
+    watch(`families[${familyIndex}].telefoneCelularIntegrante.${key}`),
+    familyIndex,
+    key
+  ]);
 
   const mostrarSubprefEdf = ufSelecionada === "SP" && cidadeSelecionada === "São Paulo";
   const mostrarSubprefEdfTrabalho = ufTrabalhoSelecionada === "SP" && cidadeTrabalhoSelecionada === "São Paulo";

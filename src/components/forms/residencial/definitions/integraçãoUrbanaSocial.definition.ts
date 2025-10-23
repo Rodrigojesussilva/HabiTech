@@ -80,11 +80,11 @@ export const defaultValues: Partial<FormValues> = {
 
 // Definição fixa dos campos
 export const integraçãoUrbanaSocialDefinition: FormConfig = {
-  title: "Serviços e Equipamentos Utilizados pela Família",
+  title: "Integração Urbana e Social",
   sections: [
     {
       id: "servicosEquipamentos",
-      title: "Serviços e Equipamentos Utilizados pela Família",
+      title: "Integração Urbana e Social",
       fields: [
         {
           name: "servicosSelecionados",
