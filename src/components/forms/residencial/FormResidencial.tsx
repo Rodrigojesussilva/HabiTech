@@ -26,7 +26,7 @@ import IdentResp from "./formSections/IdentResp.form"
 import IntegranteFamiliaForm from "./formSections/IntegrantesFamilia.form"
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer"
 import AnimalEstimacaoForm from "./formSections/AnimalEstimacao.form"
-import RendaResponsaveisForm from "./formSections/RendaResponsaveis.form"
+
 import IntegraçãoUrbanaSocialForm from "./formSections/IntegraçãoUrbanaSocial.form"
 import StatusNotasForm from "./formSections/StatusNotas.form"
 
@@ -40,7 +40,6 @@ import { identUnidadeSchema } from "@/components/forms/residencial/definitions/i
 import { infContatoSchema } from "@/components/forms/residencial/definitions/infContato.definition";
 import { integrantesFamiliaSchema } from "@/components/forms/residencial/definitions/integrantesFamilia.definition";
 import { animalEstimacaoSchema } from "@/components/forms/residencial/definitions/animalEstimacao.definition";
-import { rendaResponsaveisSchema } from "@/components/forms/residencial/definitions/rendaResponsaveis.definition";
 import { integraçãoUrbanaSocialSchema } from "@/components/forms/residencial/definitions/integraçãoUrbanaSocial.definition";
 import { statusNotasSchema } from "@/components/forms/residencial/definitions/statusNotas.definition";
 
@@ -48,15 +47,15 @@ import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.defi
 import { SURVEY_RESOURCE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
-import { loadSelagemData  } from './helpers/apiMapper';
+import { loadSelagemData } from './helpers/apiMapper';
 import InfContatoForm from "./formSections/InfContato.form";
 
 
 
 // Define the schema for a single family, integrating IdentResp schema
-const familySchema = z.object({	
-	...identUnidadeSchema.shape,	
-	...infContatoSchema.shape,	
+const familySchema = z.object({
+	...identUnidadeSchema.shape,
+	...infContatoSchema.shape,
 	...integrantesFamiliaSchema.shape,
 	...animalEstimacaoSchema.shape,
 	...anexosSchema.shape,
@@ -167,7 +166,7 @@ const FormResidencial = ({
 					form.setValue("sealNumber", "", { shouldDirty: true, shouldValidate: false });
 					form.setValue("sealNumber", composed, { shouldDirty: true, shouldValidate: false });
 				}
-			} catch {}
+			} catch { }
 		});
 		return () => {
 			if (typeof subscription === 'function') subscription();
@@ -179,7 +178,7 @@ const FormResidencial = ({
 	void setValue;
 	const [initialDate] = useState("")
 	const [endDate] = useState("")
-	
+
 	// Log para debugar valores das datas
 	console.log("📅 [FormSelagem] Valores de data inicializados:", {
 		initialDate: initialDate,
@@ -224,7 +223,7 @@ const FormResidencial = ({
 	useEffect(() => {
 		if (isEditMode && selagemId && !loadedSelagemData) {
 			console.log("🔄 Modo edição detectado, carregando dados da selagem:", selagemId)
-			
+
 			loadSelagemData({
 				selagemId,
 				setIsLoadingData,
@@ -249,14 +248,13 @@ const FormResidencial = ({
 		control: form.control,
 		name: "naoAplica",
 	});
-	
+
 	// Merge all schemas to create a complete default family entry
-	const defaultFamilyEntry = {		
+	const defaultFamilyEntry = {
 		...getDefaultValuesFromSchema(infContatoSchema),
-		...getDefaultValuesFromSchema(identUnidadeSchema),		
+		...getDefaultValuesFromSchema(identUnidadeSchema),
 		...getDefaultValuesFromSchema(integrantesFamiliaSchema),
-		...getDefaultValuesFromSchema(animalEstimacaoSchema),
-		...getDefaultValuesFromSchema(rendaResponsaveisSchema),
+		...getDefaultValuesFromSchema(animalEstimacaoSchema),		
 		...getDefaultValuesFromSchema(integraçãoUrbanaSocialSchema),
 		...getDefaultValuesFromSchema(statusNotasSchema),
 		...getDefaultValuesFromSchema(anexosSchema),
@@ -335,7 +333,7 @@ const FormResidencial = ({
 				const mm = totalMinutes % 60;
 				const formatted = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 				form.setValue('visitDurationHours', formatted, { shouldDirty: false, shouldValidate: false });
-			} catch {}
+			} catch { }
 		};
 
 		// Recalcular ao abrir, ao mudar início/fim e a cada minuto (para visitas em aberto)
@@ -366,7 +364,7 @@ const FormResidencial = ({
 			onSubmit(data);
 		}
 		console.log(data);
-	};	
+	};
 
 	function isGetSelagemResponse(response: any): response is { selagens: any[] } {
 		return response && Array.isArray(response.selagens);
@@ -374,13 +372,13 @@ const FormResidencial = ({
 
 	const fetchSelagem = async (request: any) => {
 		console.log("🔍 [fetchSelagem] Iniciando busca com request:", request);
-		
+
 		return await survey_resource.GetSelagem(request, async (req: any) => {
 			const searchParams = new URLSearchParams();
-			
+
 			// Log dos parâmetros de query antes do processamento
 			console.log("📋 [fetchSelagem] Query parameters recebidos:", req.query_parameters);
-			
+
 			for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
 				if (value !== undefined && value !== "") {
 					searchParams.append(key, String(value));
@@ -391,7 +389,7 @@ const FormResidencial = ({
 			}
 
 			const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-			
+
 			// Log detalhado da requisição
 			console.log("🌐 [fetchSelagem] URL final:", url);
 			console.log("🔧 [fetchSelagem] Método:", req.method);
@@ -400,7 +398,7 @@ const FormResidencial = ({
 				...(req.headers || {}),
 			});
 			console.log("📊 [fetchSelagem] SURVEY_RESOURCE_BASE_URL:", SURVEY_RESOURCE_BASE_URL);
-			
+
 			try {
 				const res = await fetch(url, {
 					method: req.method,
@@ -428,7 +426,7 @@ const FormResidencial = ({
 
 				const jsonResponse = await res.json();
 				console.log("✅ [fetchSelagem] Resposta JSON:", jsonResponse);
-				
+
 				// Log específico sobre selagens encontradas
 				if (jsonResponse?.selagens) {
 					console.log(`📊 [fetchSelagem] Total de selagens encontradas: ${jsonResponse.selagens.length}`);
@@ -440,15 +438,15 @@ const FormResidencial = ({
 				} else {
 					console.warn("⚠️  [fetchSelagem] Resposta não contém array 'selagens'");
 				}
-				
-							return jsonResponse;
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-			console.error("💥 [fetchSelagem] Erro durante fetch:", {
-				error: errorMessage,
-				url: url,
-				request: req
-			});
+
+				return jsonResponse;
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+				console.error("💥 [fetchSelagem] Erro durante fetch:", {
+					error: errorMessage,
+					url: url,
+					request: req
+				});
 				throw error;
 			}
 		});
@@ -480,7 +478,7 @@ const FormResidencial = ({
 			const effectiveSelagemId = selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId') || '';
 			const hasSelagemId = Boolean(effectiveSelagemId);
 			const numeroSei = hasSelagemId ? undefined : (seiFromStorageRaw || undefined);
-			
+
 			const request: any = {
 				initial_date: initialDate,
 				end_date: endDate,
@@ -508,7 +506,7 @@ const FormResidencial = ({
 
 			const response = await fetchSelagem(request);
 			console.log("📨 [handleSelagemModalOpenChange] Response completa:", response);
-			
+
 			if (isGetSelagemResponse(response)) {
 				console.log("✅ [handleSelagemModalOpenChange] Response é válida (contém array selagens)");
 				const selagem = response.selagens?.[0];
@@ -604,7 +602,7 @@ const FormResidencial = ({
 			try {
 				const firstFamily: any = (form.getValues() as any)?.families?.[0] || {}
 				statusFromForm = firstFamily?.status || firstFamily?.statusNotas?.status
-			} catch {}
+			} catch { }
 			console.log("🔍 [handleFinalizeVisit] Status atual:", statusFromForm);
 			const payload = {
 				id: String(effectiveSelagemId),
@@ -885,15 +883,15 @@ const FormResidencial = ({
 						>
 
 							<DialogHeader>
-																				<DialogTitle>
-													{isViewMode ? `👁️ Visualizando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : 
-													 isEditMode ? `✏️ Editando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : "➕ Nova Residencial"}
-												</DialogTitle>
+								<DialogTitle>
+									{isViewMode ? `👁️ Visualizando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` :
+										isEditMode ? `✏️ Editando Selagem ${loadedSelagemData?.survey_id ?? form.getValues('seiNumber') ?? ''}` : "➕ Nova Residencial"}
+								</DialogTitle>
 								<DialogDescription>
 									{isViewMode ? "Visualização somente leitura" :
-									 isEditMode 
-										? `Modifique os dados da selagem existente${loadedSelagemData ? ' (dados carregados)' : ' (carregando...)'}`
-										: "Preencha os campos abaixo:"
+										isEditMode
+											? `Modifique os dados da selagem existente${loadedSelagemData ? ' (dados carregados)' : ' (carregando...)'}`
+											: "Preencha os campos abaixo:"
 									}
 								</DialogDescription>
 							</DialogHeader>
@@ -932,272 +930,12 @@ const FormResidencial = ({
 								// Modo NOVO/EDIÇÃO: Lógica completa de criação/patch
 								<Button
 									type="button"
-									onClick={async () => {
-																							console.log("🚀 Iniciando criação/edição de selagem...");
-
-													//setIsMetadataModalOpen(false);
-
-										const { questionario, seiNumber, sealNumber, numberFamilies } = form.getValues();
-										console.log("📋 Valores do formulário:", { questionario, seiNumber, sealNumber, numberFamilies });
-
-									const values = form.getValues(); // pegar os valores do formulário
-									let hasError = false;
-
-									// Validação individual com destaque dos campos
-									console.log("🔍 Iniciando validação dos campos...");
-
-									if (!values.questionario || values.questionario.trim() === '') {
-										console.warn("❌ Campo questionario vazio:", values.questionario);
-										form.setError("questionario", {
-											type: "manual",
-											message: "O campo Questionário é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										console.log("✅ Campo questionario OK:", values.questionario);
-										form.clearErrors("questionario");
-									}
-
-									// Só valida SEI se não estiver marcado como "não se aplica"
-									if (!values.naoAplica && (!values.seiNumber || values.seiNumber.trim() === '')) {
-										console.warn("❌ Campo seiNumber vazio (e não é N/A):", values.seiNumber);
-										form.setError("seiNumber", {
-											type: "manual",
-											message: "O campo Número SEI é obrigatório.",
-										});
-										hasError = true;
-									} else {
-										console.log("✅ Campo seiNumber OK (ou N/A):", values.seiNumber);
-										form.clearErrors("seiNumber");
-									}
-
-									// Removida validação obrigatória de sealNumber
-
-									if (!values.numberFamilies || values.numberFamilies <= 0) {
-										console.warn("❌ Campo numberFamilies inválido:", values.numberFamilies);
-										form.setError("numberFamilies", {
-											type: "manual",
-											message: "O campo Número de Famílias deve ser maior que 0.",
-										});
-										hasError = true;
-									} else {
-										console.log("✅ Campo numberFamilies OK:", values.numberFamilies);
-										form.clearErrors("numberFamilies");
-									}
-
-									// Exibe o alerta se algum erro foi encontrado
-									if (hasError) {
-										console.warn("❌ Validação falhou - campos obrigatórios não preenchidos");
-										Swal.fire({
-											position: "top-end",
-											icon: "warning",
-											html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Preencha todos os campos obrigatórios
-													</div>`,
-											showConfirmButton: false,
-											timer: 2000,
-											customClass: {
-												popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-											},
-										});
-
-										return;
-									}
-
-									console.log("✅ Validação passou - preparando dados para envio...");
-
-									localStorage.setItem("seiNumberS", String(seiNumber));
-									
-									// LÓGICA CONDICIONAL: POST vs PATCH baseada no ID efetivo (corrigido para evitar duplicatas)
-									const effectiveSelagemId = selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId') || ''
-									console.log("🔍 Verificando ID efetivo para decidir operação:", {
-										selagemId,
-										loadedSelagemDataId: loadedSelagemData?.id,
-										localStorageId: localStorage.getItem('selagemId'),
-										effectiveSelagemId
-									});
-									
-									console.log("📋 Modo de operação:", effectiveSelagemId ? "EDIÇÃO (PATCH)" : "CRIAÇÃO (POST)");
-
-									if (effectiveSelagemId) {
-										// MODO EDIÇÃO/ATUALIZAÇÃO: Atualizar metadados usando PATCH com ID efetivo
-										console.log("📝 MODO EDIÇÃO - Atualizando registro existente:", effectiveSelagemId);
-										
-										const mainMetadataFormData = {
-											created_by: (localStorage.getItem('userEmail') || questionario),
-											main_metadata: {
-												numero_sei: values.naoAplica ? "N/A" : seiNumber,
-												numero_sei_nao_aplicavel: Boolean(values.naoAplica),
-											}
-										};
-
-										// Se tem sealNumber, também atualizar identificacao_espaco_habitado
-										const espacoHabitadoFormData = sealNumber ? {
-											created_by: (localStorage.getItem('userEmail') || questionario),
-											identificacao_espaco_habitado: {
-												numero_selo: sealNumber,
-											}
-										} : null;
-
-										console.log("📤 Dados para PATCH main_metadata:", mainMetadataFormData);
-										if (espacoHabitadoFormData) {
-											console.log("📤 Dados para PATCH identificacao_espaco_habitado:", espacoHabitadoFormData);
-										}
-
-										try {
-											// PATCH 1: Atualizar main_metadata
-											console.log("🔄 Atualizando main_metadata para selagem:", effectiveSelagemId);
-											const path = `/v1/selagens/${effectiveSelagemId}`;
-											const url = `${SURVEY_RESOURCE_BASE_URL}${path}`;
-
-											const response1 = await fetch(url, {
-												method: "PATCH",
-												headers: {
-													"Content-Type": "application/json",
-												},
-												body: JSON.stringify(mainMetadataFormData),
-											});
-
-											if (!response1.ok) {
-												const errorText = await response1.text();
-												console.error("❌ Erro PATCH main_metadata:", response1.status, errorText);
-												throw new Error(`Erro na requisição main_metadata: ${response1.status} - ${errorText}`);
-											}
-
-											// PATCH 2: Atualizar numero_selo se necessário
-											if (espacoHabitadoFormData) {
-												console.log("🔄 Atualizando numero_selo...");
-												const response2 = await fetch(url, {
-													method: "PATCH",
-													headers: {
-														"Content-Type": "application/json",
-													},
-													body: JSON.stringify(espacoHabitadoFormData),
-												});
-
-												if (!response2.ok) {
-													const errorText = await response2.text();
-													console.error("❌ Erro PATCH identificacao_espaco_habitado:", response2.status, errorText);
-													throw new Error(`Erro na requisição numero_selo: ${response2.status} - ${errorText}`);
-												}
-											}
-
-											console.log("✅ Selagem atualizada com sucesso");
-											setIsMetadataModalOpen(false);
-											Swal.fire({
-												position: "top-end",
-												icon: "success",
-												html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Selagem atualizada com sucesso
-												</div>`,
-												showConfirmButton: false,
-												timer: 1500,
-												customClass: {
-													popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-												},
-											});
-
-										} catch (error) {
-											const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-											console.error("❌ Erro ao atualizar selagem:", error);
-											
-											Swal.fire({
-												icon: "error",
-												title: "Erro ao atualizar selagem",
-												html: `
-													<div class="text-lg text-center break-words w-full -translate-y-2">
-													Erro ao atualizar os dados
-													</div>
-													<div class="text-sm text-center break-words w-full mt-2">
-													${errorMessage}<br/>
-													Veja o console para mais detalhes.
-													</div>
-												`,
-												showConfirmButton: true,
-												confirmButtonText: "Ok",
-												customClass: {
-													popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
-												},
-											});
-										}
-									} else {
-										// MODO CRIAÇÃO: Usar POST para criar nova selagem
-										console.log("➕ MODO CRIAÇÃO - Criando novo registro");
-																			const dataToSend = {
-										created_by: (localStorage.getItem('userEmail') || questionario),
-																main_metadata: {
-								numero_sei: values.naoAplica ? "N/A" : seiNumber,
-								numero_sei_nao_aplicavel: Boolean(values.naoAplica),
-								numero_selo: sealNumber,
-								quantidade_familias: numberFamilies,
-							},
-											// authorization_token: "seu_token_aqui",
-										};
-
-										console.log("📤 Dados para POST (criação):", dataToSend);
-										console.log("🌐 URL da API:", SURVEY_RESOURCE_URL);
-
-										try {
-											console.log("🚀 Chamando survey_resource.CreateSelagem");
-											const json = await survey_resource.CreateSelagem(SURVEY_RESOURCE_BASE_URL, dataToSend);
-											console.log("✅ Selagem criada com sucesso:", json);
-											if (json?.selagem?.id) {
-												setLoadedSelagemData(json.selagem)
-												localStorage.setItem('selagemId', json.selagem.id)
-												console.log("💾 Registro criado com sucesso - ID salvo:", json.selagem.id);
-												if (json.selagem.visit_count !== undefined) {
-													form.setValue('visitNumber', String(json.selagem.visit_count))
-												}
-												const surveyId = json?.selagem?.survey_id || json?.survey_id || json?.selagem?.id || '';
-												if (surveyId) {
-													form.setValue('questionario', surveyId);
-												}
-											}
-											setIsMetadataModalOpen(false);
-											Swal.fire({
-												position: "top-end",
-												icon: "success",
-												html: `<div class="text-lg text-center break-words w-full -translate-y-2">
-													Selagem cadastrada com sucesso
-												</div>`,
-												showConfirmButton: false,
-												timer: 1500,
-												customClass: {
-													popup: "w-[200px] h-[160px] flex flex-col justify-start items-center",
-												},
-											});
-
-										} catch (error) {
-											const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-											console.error("❌ Erro ao criar selagem:", error);
-											
-											Swal.fire({
-												icon: "error",
-												title: "Erro ao criar selagem",
-												html: `
-													<div class="text-lg text-center break-words w-full -translate-y-2">
-													Erro ao enviar os dados
-													</div>
-													<div class="text-sm text-center break-words w-full mt-2">
-													${errorMessage}<br/>
-													Veja o console para mais detalhes.
-													</div>
-												`,
-												showConfirmButton: true,
-												confirmButtonText: "Ok",
-												customClass: {
-													popup: "w-[300px] h-[200px] flex flex-col justify-start items-center",
-												},
-											});
-										}
-									}
-									}}
+									onClick={async () =>  setIsMetadataModalOpen(false)}
 									className="mt-4"
 								>
 									{(selagemId || loadedSelagemData?.id || localStorage.getItem('selagemId')) ? "Atualizar Selagem" : "Abrir Visita"}
 								</Button>
 							)}
-
 						</DialogContent>
 
 					</Dialog>
@@ -1214,18 +952,17 @@ const FormResidencial = ({
 								<span>Novo Residencial</span>
 							)}
 						</div>
-						
+
 					</div>
 					<div className="w-full border-t border-gray-300 my-4"></div>
 					{/* Always render the IdentRespForm */}
 					{familyFields.map((field, index) => (
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
-							<IdentUnidadeForm sectionIndex={0} familyIndex={index} />							
+							<IdentUnidadeForm sectionIndex={0} familyIndex={index} />
 							<IdentResp sectionIndex={1} familyIndex={index} />
-							<InfContatoForm sectionIndex={2} familyIndex={index} />							
+							<InfContatoForm sectionIndex={2} familyIndex={index} />
 							<IntegranteFamiliaForm sectionIndex={3} familyIndex={index} />
-							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />
-							<RendaResponsaveisForm sectionIndex={5} familyIndex={index} />
+							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />							
 							<IntegraçãoUrbanaSocialForm sectionIndex={6} familyIndex={index} />
 							<StatusNotasForm sectionIndex={7} familyIndex={index} />
 							<AnexosForm sectionIndex={8} familyIndex={index} />
