@@ -135,7 +135,7 @@ const AnimalEstimacaoForm = ({ sectionIndex: sectionNumber, familyIndex }: Anima
                 <CollapsibleTrigger asChild>
                     {/* ✅ CABEÇALHO REDUZIDO - FONTE MENOR, ALTURA MENOR, CINZA CLARO */}
                     <div className="section-header cursor-pointer bg-gray-100 p-2 mb-2 rounded-xl">
-                        <h4 className="text-lg font-semibold mb-1" data-secao={section.title}>
+                        <h4 className="text-xl font-semibold mb-1" data-secao={section.title}>
                             {`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${section.title}`}
                         </h4>
                         {/* ✅ CONTADOR DE ANIMAIS COM FONTE MENOR */}

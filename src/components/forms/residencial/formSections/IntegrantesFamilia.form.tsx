@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/residencial/definitions/integrantesFamilia.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-
+import { cpf as cpfValidator } from 'cpf-cnpj-validator';
+import { buscarEnderecoPorCep } from '../api_cep';
+import { mask, unMask } from 'remask';
 interface IntegrantesFamiliaFormProps {
     id?: string;
     sectionIndex?: number;
@@ -19,15 +21,426 @@ interface Integrante {
 }
 
 const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: IntegrantesFamiliaFormProps) => {
+
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
     // Estado para controlar qual integrante está expandido
     const [integrantesExpandidos, setIntegrantesExpandidos] = useState<number[]>([]);
     const form = useFormContext();
-
     // 🔁 Reage a mudanças em todos os campos da família
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     const formSections = getMergedFormSections(formValues);
     const section = formSections[0];
+
+    const dataNascimentoIntegrante1 = form.watch(`families[${familyIndex}].dataNascimentoIntegrante1`);
+    const dataNascimentoIntegrante2 = form.watch(`families[${familyIndex}].dataNascimentoIntegrante2`);
+    const dataNascimentoIntegrante3 = form.watch(`families[${familyIndex}].dataNascimentoIntegrante3`);
+
+    // Adicione estes watches no início do componente:
+    const cepI1 = form.watch(`families[${familyIndex}].cepI1`);
+    const cepI2 = form.watch(`families[${familyIndex}].cepI2`);
+    const cepI3 = form.watch(`families[${familyIndex}].cepI3`);
+
+    // ----------- Máscara CEP para Integrante 1 -----------
+    useEffect(() => {
+        if (cepI1) {
+            let cepMasked = cepI1.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepI1`, cepMasked);
+        }
+    }, [cepI1]);
+    // ----------- Máscara CEP para Integrante 2 -----------
+    useEffect(() => {
+        if (cepI2) {
+            let cepMasked = cepI2.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepI2`, cepMasked);
+        }
+    }, [cepI2]);
+    // ----------- Máscara CEP para Integrante 3 -----------
+    useEffect(() => {
+        if (cepI3) {
+            let cepMasked = cepI3.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepI3`, cepMasked);
+        }
+    }, [cepI3]);
+
+    // ----------- Buscar CEP para Integrante 1 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepI1`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroI1`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroI1`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufI1`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI1`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroI1`, '');
+                form.setValue(`families[${familyIndex}].bairroI1`, '');
+                form.setValue(`families[${familyIndex}].complementoI1`, '');
+                form.setValue(`families[${familyIndex}].ufI1`, '');
+                form.setValue(`families[${familyIndex}].cidadeI1`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepI1`);
+                    form.setValue(`families[${familyIndex}].logradouroI1`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroI1`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoI1`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufI1`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeI1`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP (I1):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepI1`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepI1`)]);
+    // ----------- Buscar CEP para escola Integrante 2 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepI2`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroI2`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroI2`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufI2`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI2`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroI2`, '');
+                form.setValue(`families[${familyIndex}].bairroI2`, '');
+                form.setValue(`families[${familyIndex}].complementoI2`, '');
+                form.setValue(`families[${familyIndex}].ufI2`, '');
+                form.setValue(`families[${familyIndex}].cidadeI2`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepI2`);
+                    form.setValue(`families[${familyIndex}].logradouroI2`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroI2`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoI2`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufI2`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeI2`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP (I2):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepI2`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepI2`)]);
+    // ----------- Buscar CEP escola para Integrante 3 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepI3`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroI3`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroI3`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufI3`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI3`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroI3`, '');
+                form.setValue(`families[${familyIndex}].bairroI3`, '');
+                form.setValue(`families[${familyIndex}].complementoI3`, '');
+                form.setValue(`families[${familyIndex}].ufI3`, '');
+                form.setValue(`families[${familyIndex}].cidadeI3`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepI3`);
+                    form.setValue(`families[${familyIndex}].logradouroI3`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroI3`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoI3`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufI3`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeI3`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP (I3):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepI3`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepI3`)]);
+
+    // ----------- Buscar CEP Trabalho para Integrante 1 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepTrabalho1`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroTrabalho1`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroTrabalho1`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho1`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroTrabalho1`, '');
+                form.setValue(`families[${familyIndex}].bairroTrabalho1`, '');
+                form.setValue(`families[${familyIndex}].complementoTrabalho1`, '');
+                form.setValue(`families[${familyIndex}].ufTrabalho1`, '');
+                form.setValue(`families[${familyIndex}].cidadeTrabalho1`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepTrabalho1`);
+                    form.setValue(`families[${familyIndex}].logradouroTrabalho1`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroTrabalho1`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoTrabalho1`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufTrabalho1`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeTrabalho1`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP Trabalho (I1):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepTrabalho1`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepTrabalho1`)]);
+
+    // ----------- Buscar CEP Trabalho para Integrante 2 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepTrabalho2`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroTrabalho2`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroTrabalho2`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho2`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroTrabalho2`, '');
+                form.setValue(`families[${familyIndex}].bairroTrabalho2`, '');
+                form.setValue(`families[${familyIndex}].complementoTrabalho2`, '');
+                form.setValue(`families[${familyIndex}].ufTrabalho2`, '');
+                form.setValue(`families[${familyIndex}].cidadeTrabalho2`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepTrabalho2`);
+                    form.setValue(`families[${familyIndex}].logradouroTrabalho2`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroTrabalho2`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoTrabalho2`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufTrabalho2`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeTrabalho2`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP Trabalho (I2):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepTrabalho2`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepTrabalho2`)]);
+
+    // ----------- Buscar CEP Trabalho para Integrante 3 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepTrabalho3`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
+
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroTrabalho3`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroTrabalho3`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho3`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroTrabalho3`, '');
+                form.setValue(`families[${familyIndex}].bairroTrabalho3`, '');
+                form.setValue(`families[${familyIndex}].complementoTrabalho3`, '');
+                form.setValue(`families[${familyIndex}].ufTrabalho3`, '');
+                form.setValue(`families[${familyIndex}].cidadeTrabalho3`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepTrabalho3`);
+                    form.setValue(`families[${familyIndex}].logradouroTrabalho3`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroTrabalho3`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoTrabalho3`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufTrabalho3`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeTrabalho3`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP Trabalho (I3):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepTrabalho3`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
+                }
+            };
+
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepTrabalho3`)]);
+
+    // ----------- Validacao CPF escola Integrante 1 -----------
+    useEffect(() => {
+        const pathCpf = `families[${familyIndex}].numeroCPFI1`;
+        const cpfRaw = form.getValues(pathCpf);
+
+        form.clearErrors(pathCpf);
+
+        if (cpfRaw) {
+            const onlyNumbers = unMask(cpfRaw);
+            const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+            form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+
+            if (!cpfValidator.isValid(onlyNumbers)) {
+                form.setError(pathCpf, {
+                    type: 'manual',
+                    message: 'CPF inválido.',
+                });
+            }
+        }
+    }, [form.watch(`families[${familyIndex}].numeroCPFI1`)]);
+
+    // ----------- Validacao CPF Integrante 2 -----------
+    useEffect(() => {
+        const pathCpf = `families[${familyIndex}].numeroCPFI2`;
+        const cpfRaw = form.getValues(pathCpf);
+
+        form.clearErrors(pathCpf);
+
+        if (cpfRaw) {
+            const onlyNumbers = unMask(cpfRaw);
+            const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+            form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+
+            if (!cpfValidator.isValid(onlyNumbers)) {
+                form.setError(pathCpf, {
+                    type: 'manual',
+                    message: 'CPF inválido.',
+                });
+            }
+        }
+    }, [form.watch(`families[${familyIndex}].numeroCPFI2`)]);
+
+    // ----------- Validacao CPF Integrante 3 -----------
+    useEffect(() => {
+        const pathCpf = `families[${familyIndex}].numeroCPFI3`;
+        const cpfRaw = form.getValues(pathCpf);
+
+        form.clearErrors(pathCpf);
+
+        if (cpfRaw) {
+            const onlyNumbers = unMask(cpfRaw);
+            const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+            form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+
+            if (!cpfValidator.isValid(onlyNumbers)) {
+                form.setError(pathCpf, {
+                    type: 'manual',
+                    message: 'CPF inválido.',
+                });
+            }
+        }
+    }, [form.watch(`families[${familyIndex}].numeroCPFI3`)]);
+
+    //valida Data
+    useEffect(() => {
+        const validarDataIntegrante = (dataNascimento: string, campo: string, idade: string) => {
+            const pathNascimento = `families[${familyIndex}].${campo}`;
+            const pathIdade = `families[${familyIndex}].${idade}`;
+
+            console.log(`📅 ${campo}:`, dataNascimento);
+
+            if (!dataNascimento || dataNascimento === "") {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                return;
+            }
+
+            const data = new Date(dataNascimento);
+            const hoje = new Date();
+
+            if (isNaN(data.getTime())) {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                alert(`Data inválida no campo ${campo}.`);
+                return;
+            }
+
+            if (data > hoje) {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                alert(`Data de nascimento não pode ser futura no campo ${campo}.`);
+                return;
+            }
+        };
+
+        // Valida todos os integrantes
+        requestAnimationFrame(() => {
+            validarDataIntegrante(dataNascimentoIntegrante1, 'dataNascimentoIntegrante1', 'idadeIntegrante1');
+            validarDataIntegrante(dataNascimentoIntegrante2, 'dataNascimentoIntegrante2', 'idadeIntegrante2');
+            validarDataIntegrante(dataNascimentoIntegrante3, 'dataNascimentoIntegrante3', 'idadeIntegrante3');
+        });
+    }, [
+        dataNascimentoIntegrante1,
+        dataNascimentoIntegrante2,
+        dataNascimentoIntegrante3,
+        familyIndex,
+        form.setValue
+    ]);
 
     // ✅ Função para agrupar campos por integrante - MESMA LÓGICA DOS ANIMAIS
     const getCamposPorIntegrante = (): Integrante[] => {
@@ -182,7 +595,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 <CollapsibleTrigger asChild>
                     {/* ✅ CABEÇALHO REDUZIDO - MESMO ESTILO DOS ANIMAIS */}
                     <div className="section-header cursor-pointer bg-gray-100 p-2 mb-2 rounded-xl">
-                        <h4 className="text-lg font-semibold mb-1" data-secao={section.title}>
+                        <h4 className="text-xl font-semibold mb-1" data-secao={section.title}>
                             {`Seção ${sectionNumber ? sectionNumber + 1 : 1} - ${section.title}`}
                         </h4>
                         {/* ✅ CONTADOR DE INTEGRANTES COM FONTE MENOR */}

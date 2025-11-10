@@ -11,7 +11,7 @@ import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_est
 import { estados } from '@/components/cidades_estados/estados';
 import { cidadesLocais } from '@/components/cidades_estados/cidade';
 import { buscarEnderecoPorCep } from '../api_cep';
-import { calcularIdade } from "@/components/forms/arrolamento/helpers/identResp.helper";
+import { calcularIdade} from "@/components/forms/residencial/helpers/identResp.helper";
 import { mask, unMask } from 'remask';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 interface IdentRespFormProps {
@@ -21,8 +21,8 @@ interface IdentRespFormProps {
 }
 
 const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
-    const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
 
+    const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
     const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
     const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
     const [cidadeOptions_t, setCidadeOptions_t] = useState<{ label: string; value: string }[]>([]);
@@ -38,8 +38,50 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
     const subPrefeituraSelecionada_r = form.watch(`families[${familyIndex}].subPrefeitura_r`);
     const subPrefeituraSelecionada_t = form.watch(`families[${familyIndex}].subPrefeitura_t`);
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoRespR`);
-
     const formValues = form.watch(`families[${familyIndex}]`) || {};
+
+
+    useEffect(() => {
+        console.log('📅 Data R', dataNascimento);
+
+        const pathNascimento = `families[${familyIndex}].dataNascimentoRespR`;
+        const pathIdade = `families[${familyIndex}].idadeRespR`;
+
+
+         console.log('📅 Data R', dataNascimento);
+
+        const validarELimpar = () => {
+            if (!dataNascimento || dataNascimento === "") {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                return;
+            }
+
+            const data = new Date(dataNascimento);
+            const hoje = new Date();
+
+            if (isNaN(data.getTime())) {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                alert("Data inválida.");
+                return;
+            }
+
+            if (data > hoje) {
+                form.setValue(pathNascimento, "");
+                form.setValue(pathIdade, "");
+                alert("Data de nascimento não pode ser futura.");
+                return;
+            }
+        };
+
+        // Executa no próximo frame para evitar conflitos com o React
+        requestAnimationFrame(validarELimpar);
+    }, [
+        dataNascimento,
+        familyIndex,
+        form.setValue
+    ]);
 
     // Carrega estados
     useEffect(() => {
@@ -64,7 +106,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
                 setEstadoOptions(options);
             });
     }, []);
-    
+
     // Cidades para uf_r
     useEffect(() => {
         if (!ufSelecionada_r) {
@@ -319,26 +361,26 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         }
     }, [dataNascimento, familyIndex, form.setValue]);
 
-     // ----------- Validacao CPF -----------
+    // ----------- Validacao CPF -----------
     useEffect(() => {
-		const pathCpf = `families[${familyIndex}].numero_cpf`;
-		const cpfRaw = form.getValues(pathCpf);
+        const pathCpf = `families[${familyIndex}].numero_cpf`;
+        const cpfRaw = form.getValues(pathCpf);
 
-		form.clearErrors(pathCpf);
+        form.clearErrors(pathCpf);
 
-		if (cpfRaw) {
-			const onlyNumbers = unMask(cpfRaw);
-			const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
-			form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
+        if (cpfRaw) {
+            const onlyNumbers = unMask(cpfRaw);
+            const maskedCpf = mask(onlyNumbers, ['999.999.999-99']);
+            form.setValue(pathCpf, maskedCpf, { shouldValidate: false });
 
-			if (!cpfValidator.isValid(onlyNumbers)) {
-				form.setError(pathCpf, {
-					type: 'manual',
-					message: 'CPF inválido.',
-				});
-			}
-		}
-	}, [form.watch(`families[${familyIndex}].numero_cpf`)]);
+            if (!cpfValidator.isValid(onlyNumbers)) {
+                form.setError(pathCpf, {
+                    type: 'manual',
+                    message: 'CPF inválido.',
+                });
+            }
+        }
+    }, [form.watch(`families[${familyIndex}].numero_cpf`)]);
     // Atualiza seções com opções nos campos dinâmicos
 
     const formSections = (() => {

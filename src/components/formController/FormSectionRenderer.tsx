@@ -391,6 +391,11 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     disabled={formField.disabled}
                     value={formField.value ?? ""}
                     onChange={(iso: string) => {
+                        // Se for uma string vazia, limpa o campo
+                        if (iso === "") {
+                            formField.onChange("");
+                            return;
+                        }
                         formField.onChange(iso);
                     }}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

@@ -1,9 +1,58 @@
 import { z } from "zod";
 import { FormConfig, FormField } from "@/utils/formUtils";
 import { subprefeituras, distritosPorSubprefeitura } from "../subprefeiturasDistritos";
+
 function slugify(pais: string) {
     return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
 }
+
+// ✅ BLOCO DE RENDA DO RESPONSÁVEL (idade ≥ 14) - CALCULADO A PARTIR DA DATA
+function calcularIdade(dataNascimento: string): { idade: number; mostrarRenda: boolean } {
+    if (!dataNascimento) return { idade: 0, mostrarRenda: false };
+
+    // Converter a data do formato YYYY-MM-DD para calcular idade
+    const [ano, mes, dia] = dataNascimento.split('-').map(Number);
+    const dataNasc = new Date(ano, mes - 1, dia); // mês é 0-indexed
+    const hoje = new Date();
+
+    let idade = hoje.getFullYear() - dataNasc.getFullYear();
+
+    // Ajustar se ainda não fez aniversário este ano
+    const mesAtual = hoje.getMonth();
+    const diaAtual = hoje.getDate();
+
+    if (mesAtual < (mes - 1) || (mesAtual === (mes - 1) && diaAtual < dia)) {
+        idade--;
+    }
+
+    return { idade, mostrarRenda: idade >= 14 };
+}
+
+// Opções para benefícios e origens de renda
+const BENEFICIOS_OPTIONS = [
+    "Bolsa Familia",
+    "Auxilio Emergencial", 
+    "BPC_Pessoa idosa",
+    "BPC_Pessoa com deficiencia",
+    "Auxilio inclusao",
+    "Renda cidada",
+    "Renda minima",
+    "Acao jovem"
+];
+
+const ORIGEM_RENDA_OPTIONS = [
+    "Aposentadoria (idade, invalidez ou por tempo de contribuição)",
+    "Pensão por morte",
+    "Pensão alimentícia", 
+    "Auxílio doença",
+    "Auxílio reclusão",
+    "Auxílio acidente",
+    "Salário família",
+    "Salário maternidade",
+    "Aluguel",
+    "Outros"
+];
+
 // Form validation schema
 export const situUsoUniSchema = z.object({
     responsavelR: z.string().optional(),
@@ -66,6 +115,47 @@ export const situUsoUniSchema = z.object({
     tempoConducaoDestino: z.string().optional(),
     idLocal: z.string().optional(),
     selagem_id: z.string().optional(),
+
+    // ✅ CAMPOS PARA RENDA DO RESPONSÁVEL
+    rendaResponsavel: z.string().optional(),
+    recebeBeneficioResponsavel: z.string().optional(),
+    beneficiosRecebidosResponsavel: z.array(z.string()).optional(),
+    valorRendaBolsaFResponsavel: z.string().optional(),
+    valorRendaAuxilioEResponsavel: z.string().optional(),
+    valorRendaBPC_PessoaIResponsavel: z.string().optional(),
+    valorRendaBPC_PessoaDResponsavel: z.string().optional(),
+    valorRendaAuxilioInclusaoResponsavel: z.string().optional(),
+    valorRendaCidadaResponsavel: z.string().optional(),
+    valorRendaMinimaResponsavel: z.string().optional(),
+    valorRendaAcaoJovemResponsavel: z.string().optional(),
+    naoAplicaValorRendaBolsaFResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaAuxilioEResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaBPC_PessoaIResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaBPC_PessoaDResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaAuxilioInclusaoResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaCidadaResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaMinimaResponsavel: z.boolean().optional(),
+    naoAplicaValorRendaAcaoJovemResponsavel: z.boolean().optional(),
+    origemRendaResponsavel: z.array(z.string()).optional(),
+    valorRendaAposentadoriaResponsavel: z.string().optional(),
+    valorRendaPensaoPorMorteResponsavel: z.string().optional(),
+    valorRendaPensaoAlimenticiaResponsavel: z.string().optional(),
+    valorRendaAuxilioDoencaResponsavel: z.string().optional(),
+    valorRendaAuxilioReclusaoResponsavel: z.string().optional(),
+    valorRendaAuxilioAcidenteResponsavel: z.string().optional(),
+    valorRendaSalarioFamiliaResponsavel: z.string().optional(),
+    valorRendaSalarioMaternidadeResponsavel: z.string().optional(),
+    valorRendaAluguelResponsavel: z.string().optional(),
+    naoInformadoValorRendaAposentadoriaResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaPensaoPorMorteResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaPensaoAlimenticiaResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaAuxilioDoencaResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaAuxilioReclusaoResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaAuxilioAcidenteResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaSalarioFamiliaResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaSalarioMaternidadeResponsavel: z.boolean().optional(),
+    naoInformadoValorRendaAluguelResponsavel: z.boolean().optional(),
+    especificarOutrosResponsavel: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof situUsoUniSchema>;
@@ -125,7 +215,8 @@ export const defaultValues: Partial<FormValues> = {
     distrito_t: "",
     idLocal: "not",
 };
-const selectedSub = "Butantã"; // <-- apenas valor fixo
+
+const selectedSub = "Butantã";
 const subPrefeituraOptions = subprefeituras.map((nome) => ({
     label: nome,
     value: nome,
@@ -134,8 +225,6 @@ const distritoOptions = (sub: string) => {
     const distritos = distritosPorSubprefeitura[sub] || [];
     return distritos.map((d) => ({ label: d, value: d }));
 };
-
-
 
 export const identRespDefinition: FormConfig = {
     title: "Identificação do Responsável pela Unidade",
@@ -154,13 +243,11 @@ export const identRespDefinition: FormConfig = {
                         { label: "Não", value: "nao" }
                     ]
                 },
-
-
-
             ]
         }
     ]
 };
+
 // Utilitário para inserir campos após um campo específico
 function insertAfter(fields: FormField[], targetName: string, toInsert: FormField[]) {
     const index = fields.findIndex(f => f.name === targetName);
@@ -171,6 +258,7 @@ function insertAfter(fields: FormField[], targetName: string, toInsert: FormFiel
         ...fields.slice(index + 1)
     ];
 }
+
 // Retorna campos condicionais baseados nos valores do formulário
 export function getConditionalFields(formValues: Partial<FormValues>) {
     const usoUnidadeConditionals: FormField[] = [];
@@ -179,10 +267,181 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     const deficienciaConditionals: FormField[] = [];
     const educacaoConditionals: FormField[] = [];
     const atividadeRemuneradaConditionals: FormField[] = [];
+    const rendaResponsavelConditionals: FormField[] = [];
 
+    // ✅ BLOCO DE RENDA DO RESPONSÁVEL (idade ≥ 14) - CALCULADO A PARTIR DA DATA
+    const dataNascimentoResponsavel = formValues.dataNascimentoRespR || "";
+    const { idade: idadeCalculadaResponsavel, mostrarRenda: mostrarRendaResponsavel } = calcularIdade(dataNascimentoResponsavel);
+
+    console.log('🔍 Data nascimento responsável:', dataNascimentoResponsavel);
+    console.log('🔍 Idade calculada responsável:', idadeCalculadaResponsavel);
+    console.log('🔍 Mostrar renda responsável (idade ≥ 14):', mostrarRendaResponsavel);
+
+    if (mostrarRendaResponsavel) {
+        rendaResponsavelConditionals.push(
+            {
+                name: "rendaResponsavel",
+                label: `Renda do Responsável (idade: ${idadeCalculadaResponsavel} anos)`,
+                type: "label" as const,
+                required: false,
+            },
+            {
+                name: "recebeBeneficioResponsavel",
+                label: "Recebe benefício?",
+                type: "radio" as const,
+                required: false,
+                options: [
+                    { label: "Sim", value: "sim" },
+                    { label: "Não", value: "nao" },
+                ]
+            }
+        );
+
+        if (formValues.recebeBeneficioResponsavel === "sim") {
+            rendaResponsavelConditionals.push({
+                name: "beneficiosRecebidosResponsavel",
+                label: "Benefícios recebidos",
+                type: "multicombobox",
+                required: false,
+                placeholder: "Escolha os benefícios",
+                options: BENEFICIOS_OPTIONS.map((b) => ({
+                    label: b.replace(/_/g, " "),
+                    value: b,
+                })),
+            });
+
+            const beneficiosRecebidosResponsavel = formValues.beneficiosRecebidosResponsavel || [];
+
+            // Configuração dos benefícios para evitar repetição de código
+            const beneficiosConfig = [
+                { key: "Bolsa Familia", label: "Bolsa Família", fieldName: "valorRendaBolsaFResponsavel" },
+                { key: "Auxilio Emergencial", label: "Auxílio Emergencial", fieldName: "valorRendaAuxilioEResponsavel" },
+                { key: "BPC_Pessoa idosa", label: "BPC Pessoa Idosa", fieldName: "valorRendaBPC_PessoaIResponsavel" },
+                { key: "BPC_Pessoa com deficiencia", label: "BPC Pessoa com Deficiência", fieldName: "valorRendaBPC_PessoaDResponsavel" },
+                { key: "Auxilio inclusao", label: "Auxílio Inclusão", fieldName: "valorRendaAuxilioInclusaoResponsavel" },
+                { key: "Renda cidada", label: "Renda Cidadã", fieldName: "valorRendaCidadaResponsavel" },
+                { key: "Renda minima", label: "Renda Mínima", fieldName: "valorRendaMinimaResponsavel" },
+                { key: "Acao jovem", label: "Ação Jovem", fieldName: "valorRendaAcaoJovemResponsavel" }
+            ];
+
+            beneficiosConfig.forEach(({ key, label, fieldName }) => {
+                if (beneficiosRecebidosResponsavel.includes(key)) {
+                    rendaResponsavelConditionals.push(
+                        {
+                            name: fieldName,
+                            label: `Valor do ${label}`,
+                            type: "text",
+                            required: true,
+                            placeholder: "Digite o valor"
+                        },
+                        {
+                            name: `naoAplica${fieldName}`,
+                            label: "Não se aplica",
+                            type: "checkbox" as const,
+                            required: false,
+                        }
+                    );
+                }
+            });
+        }
+
+        rendaResponsavelConditionals.push({
+            name: "origemRendaResponsavel",
+            label: "Indique a origem da renda",
+            type: "multicombobox",
+            required: false,
+            placeholder: "Selecione as origens de renda",
+            options: ORIGEM_RENDA_OPTIONS.map((item) => ({
+                label: item,
+                value: item,
+            })),
+        });
+
+        const origensSelecionadasResponsavel = formValues.origemRendaResponsavel || [];
+
+        // Configuração das origens de renda para evitar repetição de código
+        const origensConfig = [
+            {
+                key: "Aposentadoria (idade, invalidez ou por tempo de contribuição)",
+                fieldName: "valorRendaAposentadoriaResponsavel",
+                label: "Aposentadoria"
+            },
+            {
+                key: "Pensão por morte",
+                fieldName: "valorRendaPensaoPorMorteResponsavel",
+                label: "Pensão por morte"
+            },
+            {
+                key: "Pensão alimentícia",
+                fieldName: "valorRendaPensaoAlimenticiaResponsavel",
+                label: "Pensão alimentícia"
+            },
+            {
+                key: "Auxílio doença",
+                fieldName: "valorRendaAuxilioDoencaResponsavel",
+                label: "Auxílio doença"
+            },
+            {
+                key: "Auxílio reclusão",
+                fieldName: "valorRendaAuxilioReclusaoResponsavel",
+                label: "Auxílio reclusão"
+            },
+            {
+                key: "Auxílio acidente",
+                fieldName: "valorRendaAuxilioAcidenteResponsavel",
+                label: "Auxílio acidente"
+            },
+            {
+                key: "Salário família",
+                fieldName: "valorRendaSalarioFamiliaResponsavel",
+                label: "Salário família"
+            },
+            {
+                key: "Salário maternidade",
+                fieldName: "valorRendaSalarioMaternidadeResponsavel",
+                label: "Salário maternidade"
+            },
+            {
+                key: "Aluguel",
+                fieldName: "valorRendaAluguelResponsavel",
+                label: "Aluguel"
+            }
+        ];
+
+        origensConfig.forEach(({ key, fieldName, label }) => {
+            if (origensSelecionadasResponsavel.includes(key)) {
+                rendaResponsavelConditionals.push(
+                    {
+                        name: fieldName,
+                        label: `Valor da ${label}`,
+                        type: "text",
+                        required: true,
+                        placeholder: "Digite o valor"
+                    },
+                    {
+                        name: `naoInformado${fieldName}`,
+                        label: "Não informado",
+                        type: "checkbox" as const,
+                        required: false,
+                    }
+                );
+            }
+        });
+
+        if (origensSelecionadasResponsavel.includes("Outros")) {
+            rendaResponsavelConditionals.push({
+                name: "especificarOutrosResponsavel",
+                label: "Especifique as fontes de renda (Outros)",
+                type: "text",
+                required: true,
+                placeholder: "Descreva a fonte de renda"
+            });
+        }
+    }
+
+    // CAMPOS EXISTENTES
     if (formValues.responsavelR === "sim") {
         usoUnidadeConditionals.push(
-
             {
                 name: "nomeCompletoRespR",
                 label: "Nome Completo",
@@ -221,7 +480,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                     { label: "CPF", value: "CPF" },
                     { label: "RNM", value: "RNM" },
                     { label: "CNH", value: "CNH" },
-
                 ],
             },
             {
@@ -230,7 +488,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "checkbox",
                 required: false,
                 placeholder: "((00) 00000-0000)",
-
             },
             {
                 name: "temPessoaDeficiencia",
@@ -243,7 +500,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                     { label: "Não sei informar", value: "Não sei informar" },
                     { label: "Não repondeu", value: "Não repondeu" },
                 ]
-
             },
             {
                 name: "frequetaEscola",
@@ -269,8 +525,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     }
 
     const documentosSelecionados = Array.isArray(formValues.documentosSelecionados) ? formValues.documentosSelecionados : [];
-
-
 
     if (documentosSelecionados.includes("RG")) {
         documentosConditionals.push({
@@ -313,7 +567,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
     }
 
     if (formValues.temPessoaDeficiencia === "sim") {
-        // 1) Inserir campo: A pessoa é interditada por consequência da deficiência?
         deficienciaConditionals.push({
             name: "pessoaInterditada",
             label: "A pessoa é interditada por consequência da deficiência?",
@@ -325,7 +578,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
             ]
         });
 
-        // 3) Se for interditada, inserir campos adicionais
         if (formValues.pessoaInterditada === "sim") {
             deficienciaConditionals.push(
                 {
@@ -347,7 +599,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 }
             );
         }
-        // 2) Inserir campo: Sabe ler e escrever?
+
         deficienciaConditionals.push({
             name: "sabeLerEscrever",
             label: "Sabe ler e escrever?",
@@ -358,7 +610,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 { label: "Não", value: "nao" },
             ]
         });
-        // Campo multicombo
+
         deficienciaConditionals.push({
             name: "filiacao_",
             label: "Filiação",
@@ -376,28 +628,27 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 { label: "Nome filiação 8", value: "Nome filiação 8" },
                 { label: "Nome filiação 9", value: "Nome filiação 9" },
                 { label: "Nome filiação 10", value: "Nome filiação 10" },
-
-
             ],
         });
 
         const filiacao = formValues.filiacao_ ?? [];
         for (const f of filiacao) {
             const key = slugify(f);
-            deficienciaConditionals.push({
-                name: `nomeFiliacao.${key}`,
-                label: `${f}`,
-                type: "text",
-                required: false,
-            },
+            deficienciaConditionals.push(
+                {
+                    name: `nomeFiliacao.${key}`,
+                    label: `${f}`,
+                    type: "text",
+                    required: false,
+                },
                 {
                     name: `naoAplica.${key}`,
                     label: `Não se aplica ${f}`,
                     type: "checkbox",
                     required: false,
-                });
+                }
+            );
         }
-
     }
 
     if (formValues.frequetaEscola === "sim") {
@@ -408,14 +659,11 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "radio" as const,
                 required: false,
                 options: [
-
                     { label: "Presencial", value: "Presencial" },
                     { label: "EAD", value: "EAD" },
                     { label: "Hibrido", value: "Hibrido" },
                     { label: "Outros", value: "Outros" },
-
                 ]
-
             },
             {
                 name: "nomeInstituicaoEnsino",
@@ -424,7 +672,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 required: true,
                 placeholder: "Digite o Nome da instituição de ensino"
             },
-
         );
     }
 
@@ -479,14 +726,14 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 name: "uf_r",
                 label: "Uf",
                 type: "combobox",
-                options: [], // Se precisar, pode passar as opções reais aqui
+                options: [],
                 required: true,
             },
             {
                 name: "cidade_r",
                 label: "Cidade",
                 type: "combobox",
-                options: [], // Também pode passar as opções reais aqui
+                options: [],
                 required: true,
             },
             {
@@ -522,24 +769,17 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 ],
             }
         );
-    }
-
-    else if (formValues.modalidadeEnsino === "EAD" && formValues.frequetaEscola === "sim") {
+    } else if (formValues.modalidadeEnsino === "EAD" && formValues.frequetaEscola === "sim") {
         educacaoConditionals.push(
-
             {
                 name: "localizacaoInstituicaoEnsino",
                 label: "Localização da Instituição de Ensino",
                 type: "radio" as const,
                 required: false,
-
                 options: [
-
                     { label: "Na área", value: "Na area" },
                     { label: "Em outro lugar", value: " Em outro lugar" },
-
                 ]
-
             }
         );
     }
@@ -552,16 +792,10 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "radio" as const,
                 required: false,
                 options: [
-
                     { label: "Sim", value: "sim" },
                     { label: "Não", value: "nao" },
-
-
                 ]
-
             },
-
-
         );
     }
 
@@ -573,7 +807,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "multicombobox" as const,
                 required: false,
                 options: [
-
                     { label: "Domingo", value: "Domingo" },
                     { label: "Segunda", value: "Segunda" },
                     { label: "Terça", value: "Terça" },
@@ -581,9 +814,7 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                     { label: "Quinta", value: "Quinta" },
                     { label: "Sexta", value: "Sexta" },
                     { label: "Sábado", value: "Sábado" },
-
                 ]
-
             },
             {
                 name: "quaisConducoes",
@@ -591,30 +822,25 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "multicombobox" as const,
                 required: false,
                 options: [
-
                     { label: "Ônibus", value: "Onibus" },
                     { label: "Metrô", value: "Metro" },
                     { label: "Trem", value: "Trem" },
                     { label: "Ônibus Escolar", value: "Onibus Escolar" },
                     { label: "Carro particular", value: "Carro particular" },
                     { label: "Outros", value: "Outros" }
-
                 ]
-
             },
             {
                 name: "quantHoras",
                 label: "Horário de saída da unidade",
                 type: "time" as const,
                 required: false,
-
             },
             {
                 name: "tempoTotal",
                 label: "Tempo total do percurso",
                 type: "text" as const,
                 required: false,
-
             },
             {
                 name: "tempoAndando",
@@ -622,12 +848,10 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "time" as const,
                 required: false,
             },
-
         );
     }
 
     if (formValues.atividadeRemunerada === "sim") {
-
         atividadeRemuneradaConditionals.push(
             {
                 name: "modalidadeTrabalho",
@@ -657,7 +881,6 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 type: "text" as const,
                 required: false,
             },
-            // Campos com sufixo "_t" explicitos
             {
                 name: "cep_t",
                 label: "Cep",
@@ -702,14 +925,14 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
                 name: "uf_t",
                 label: "Uf",
                 type: "combobox",
-                options: [], // Preencha com as opções reais se precisar
+                options: [],
                 required: true,
             },
             {
                 name: "cidade_t",
                 label: "Cidade",
                 type: "combobox",
-                options: [], // Preencha com as opções reais se precisar
+                options: [],
                 required: true,
             },
             {
@@ -790,13 +1013,30 @@ export function getConditionalFields(formValues: Partial<FormValues>) {
         );
     }
 
-    return { usoUnidadeConditionals, identRespConditionals, documentosConditionals, deficienciaConditionals, educacaoConditionals, atividadeRemuneradaConditionals };
+    return { 
+        usoUnidadeConditionals, 
+        identRespConditionals, 
+        documentosConditionals, 
+        deficienciaConditionals, 
+        educacaoConditionals, 
+        atividadeRemuneradaConditionals,
+        rendaResponsavelConditionals 
+    };
 }
+
 // Retorna todas as seções do formulário com campos condicionais na posição correta
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     try {
         const baseFields = [...identRespDefinition.sections[0].fields];
-        const { usoUnidadeConditionals, identRespConditionals, documentosConditionals, deficienciaConditionals, educacaoConditionals, atividadeRemuneradaConditionals } = getConditionalFields(formValues);
+        const { 
+            usoUnidadeConditionals, 
+            identRespConditionals, 
+            documentosConditionals, 
+            deficienciaConditionals, 
+            educacaoConditionals, 
+            atividadeRemuneradaConditionals,
+            rendaResponsavelConditionals 
+        } = getConditionalFields(formValues);
 
         let fields = [...baseFields];
         fields = insertAfter(fields, "situacaoUsoUnidade", identRespConditionals);
@@ -805,6 +1045,9 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
         fields = insertAfter(fields, "temPessoaDeficiencia", deficienciaConditionals);
         fields = insertAfter(fields, "frequetaEscola", educacaoConditionals);
         fields = insertAfter(fields, "atividadeRemunerada", atividadeRemuneradaConditionals);
+        
+        // ✅ INSERIR BLOCO DE RENDA DO RESPONSÁVEL APÓS O CAMPO DE IDADE
+        fields = insertAfter(fields, "idadeRespR", rendaResponsavelConditionals);
 
         return [
             {
