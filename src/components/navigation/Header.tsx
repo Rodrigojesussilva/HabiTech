@@ -1,27 +1,32 @@
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, CirclePlus } from "lucide-react"
+import { useNavigate } from "react-router-dom";
+import { useState, CSSProperties } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogOut, CirclePlus } from "lucide-react";
+
+type LogoVars = CSSProperties & {
+  ["--logo-w"]?: string;
+  ["--logo-w-md"]?: string;
+};
 
 interface HeaderProps {
   children?: React.ReactNode;
+  logoWidth?: { base?: number; md?: number };
 }
 
-export default function Header({ children }: HeaderProps) {
+export default function Header({ children, logoWidth }: HeaderProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const toggleMenu = () => setIsMenuOpen((v) => !v);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const base = logoWidth?.base ?? 110; // px no mobile
+  const md = logoWidth?.md ?? 150;     // px no md+
 
-  const navigateToForm = (formPath: string) => {
-    navigate(formPath);
-    setIsMenuOpen(false);
+  const logoStyle: LogoVars = {
+    "--logo-w": `${base}px`,
+    "--logo-w-md": `${md}px`,
   };
 
   const formOptions = [
-    
     { name: "Selagem", path: "/create-selagem" },
     { name: "Arrolamento", path: "/create-arrolamento" },
     { name: "Residencial", path: "/create-residencial" },
@@ -29,47 +34,86 @@ export default function Header({ children }: HeaderProps) {
     { name: "Ocupação Predial", path: "/create-ocupacao-predial" },
   ];
 
+  const go = (path: string) => {
+    navigate(path);
+    setIsMenuOpen(false);
+  };
+
   return (
     <>
-      <header className="fixed z-12 w-full border-b bg-secondary shadow-sm">
-        <div className="flex mx-auto h-14 items-center justify-between px-4">
-          {/* Logo */}
-          <div className="flex flex-row items-center gap-8">
-            <div className="hidden md:block">
-              <img src="/psp.png" alt="Image" className="h-12 w-28" />
-            </div>
-            <div className="text-xl font-bold text-primary">Instrumentos de Pesquisa</div>
+      {/* Header */}
+      <header className="fixed top-0 inset-x-0 z-50 w-full h-14 border-b bg-secondary/95 backdrop-blur supports-[backdrop-filter]:bg-secondary/80 shadow-sm">
+        <div className="mx-auto max-w-[1400px] h-full px-3 sm:px-4 flex items-center justify-between">
+          {/* Logo + Título */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img
+              src="/logo-habitasampa.png"
+              alt="HabitaSampa"
+              style={logoStyle}
+              className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none"
+              loading="eager"
+            />
+            <span className="text-base sm:text-lg md:text-2xl font-semibold leading-none text-primary truncate">
+              Instrumentos de Pesquisa
+            </span>
           </div>
 
-          {/* Form Selection Menu */}
-          <div className="flex flex-row items-center gap-6">
+          {/* Ações */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Botão Novo Formulário */}
             <div className="relative">
-              <button onClick={toggleMenu} className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2 cursor-pointer">
-                <CirclePlus className="text-secondary" />
+              <button
+                onClick={toggleMenu}
+                aria-expanded={isMenuOpen}
+                className="h-9 px-3 md:px-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <CirclePlus className="h-4 w-4" />
                 <span className="hidden md:block">Novo Formulário</span>
               </button>
 
-              <div className={`absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-20 transition-opacity duration-500 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 visible pointer-events-none'}`}>
+              {/* Dropdown */}
+              <div
+                className={`absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg ring-1 ring-black/5 z-50 transition-opacity duration-200 ${
+                  isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                }`}
+              >
                 <div className="py-1">
-                  {formOptions.map((form, index) => (
-                    <button key={index} onClick={() => navigateToForm(form.path)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer">
-                      {form.name}
+                  {formOptions.map((f) => (
+                    <button
+                      key={f.path}
+                      onClick={() => go(f.path)}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                    >
+                      {f.name}
                     </button>
                   ))}
                 </div>
               </div>
-
             </div>
-            <Avatar>
+
+            {/* Avatar */}
+            <Avatar className="size-8">
               <AvatarImage src="/avatar1.jpg" />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>EU</AvatarFallback>
             </Avatar>
-            <button onClick={() => { localStorage.removeItem('isAuthenticated'); window.location.href = '/login'; }} className="flex cursor-pointer items-center justify-center p-2 rounded-full hover:bg-gray-100 transition-colors" title="Sair">
-              <LogOut />
+
+            {/* Logout — visível no mobile também */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("isAuthenticated");
+                window.location.href = "/login";
+              }}
+              className="flex cursor-pointer items-center justify-center p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title="Sair"
+              aria-label="Sair"
+            >
+              <LogOut className="h-5 w-5" />
             </button>
           </div>
         </div>
       </header>
+
+      <div className="h-14" aria-hidden="true" />
       {children}
     </>
   );
