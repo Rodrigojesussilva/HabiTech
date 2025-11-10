@@ -53,7 +53,10 @@ export default function Header({ children, logoWidth }: HeaderProps) {
               className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none"
               loading="eager"
             />
-            <span className="text-base sm:text-lg md:text-2xl font-semibold leading-none text-primary truncate">
+            <span className=" text-center leading-none font-semibold
+              text-[13px] xs:text-sm sm:text-lg md:text-2xl
+              text-[var(--habitasampa-blue,#0F62AC)]
+              px-1 truncate">
               Instrumentos de Pesquisa
             </span>
           </div>
@@ -65,7 +68,7 @@ export default function Header({ children, logoWidth }: HeaderProps) {
               <button
                 onClick={toggleMenu}
                 aria-expanded={isMenuOpen}
-                className="h-9 px-3 md:px-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+                 className="h-9 px-3 md:px-4 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-all flex items-center gap-2 cursor-pointer shadow-sm border-2 border-[#0A66C2] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0A66C2]/30"
               >
                 <CirclePlus className="h-4 w-4" />
                 <span className="hidden md:block">Novo Formulário</span>
@@ -103,7 +106,7 @@ export default function Header({ children, logoWidth }: HeaderProps) {
                 localStorage.removeItem("isAuthenticated");
                 window.location.href = "/login";
               }}
-              className="flex cursor-pointer items-center justify-center p-2 rounded-full hover:bg-gray-100 transition-colors"
+             className="bg-blue-600 flex cursor-pointer items-center justify-center p-2 rounded-full text-white hover:bg-blue-700 active:bg-blue-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 shadow-sm"
               title="Sair"
               aria-label="Sair"
             >
