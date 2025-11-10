@@ -30,7 +30,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
     const [endDate] = useState("")
 
     const form = useFormContext();
-    const { control, setValue, watch } = form;
+    const { control, watch } = form;
 
     const formValues = form.watch(`families[${familyIndex}]`) || {};
     let formSections = getMergedFormSections(formValues);

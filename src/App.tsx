@@ -8,6 +8,7 @@ import ThemeEditor from './components/theme-editor'
 import { Routes, Route } from "react-router-dom";
 import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
 import FormSelagem from './components/forms/selagem/FormSelagem'
+import FormResidencial from './components/forms/residencial/FormResidencial'
 import { useState, useEffect } from 'react'
 import DemoPageS from './components/formDataTables/selagem/list'
 import Home from './app/home'
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
                 <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />
+                <Route path="/create-residencial" element={<FormularioContainer FormComponent={FormResidencial} />} />
                 <Route path="/edit-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} />} />
                 <Route path="/view-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} viewMode={true} />} />
                 <Route path="/theme-editor" element={<ThemeEditor />} />

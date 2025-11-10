@@ -7,7 +7,7 @@ import {
 
 // Import your FormSectionRenderer
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
-import { formatarNumeroComTresDecimais, formatarNumeroComQuatroDecimais, formatarNumeroComDoisDecimais, formatarAlfaNumericoComDoisCaracteres } from "@/components/forms/selagem/helpers/identEspacoHabitado.helper";
+import { formatarNumeroComTresDecimais, formatarNumeroComQuatroDecimais, formatarAlfaNumericoComDoisCaracteres } from "@/components/forms/selagem/helpers/identEspacoHabitado.helper";
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"

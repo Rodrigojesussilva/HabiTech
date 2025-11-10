@@ -9,7 +9,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Option = {
   label: string;
@@ -18,7 +18,7 @@ type Option = {
 
 interface MultiComboboxProps {
   options: Option[];
-  value: string[];
+  value: string[] | undefined | null; // Pode receber undefined ou null
   onChange: (value: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -32,27 +32,40 @@ export function MultiCombobox({
   disabled = false,
 }: MultiComboboxProps) {
   const [open, setOpen] = useState(false);
-  const selectedOptions = options.filter((option) => value.includes(option.value));
 
+  // Garantindo que "value" sempre seja um array para evitar erros
+  const safeValue = Array.isArray(value) ? value : [];
+
+  // Opções selecionadas, filtrando as opções que estão no safeValue
+  const selectedOptions = options.filter((option) => safeValue.includes(option.value));
+
+  // Alterna a seleção de um valor
   const toggleValue = (val: string) => {
     if (disabled) return;
-    if (value.includes(val)) {
-      onChange(value.filter((v) => v !== val));
+    if (safeValue.includes(val)) {
+      onChange(safeValue.filter((v) => v !== val));
     } else {
-      onChange([...value, val]);
+      onChange([...safeValue, val]);
     }
   };
 
+  // Remove um valor da seleção
   const removeValue = (val: string) => {
     if (disabled) return;
-    onChange(value.filter((v) => v !== val));
+    onChange(safeValue.filter((v) => v !== val));
   };
 
+  // Handle para seleção pelo comando
   const handleSelect = (val: string) => {
     if (disabled) return;
     toggleValue(val);
     setOpen(false);
   };
+
+  // Fechar popover se "disabled" mudar para true
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
 
   return (
     <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
@@ -60,7 +73,10 @@ export function MultiCombobox({
         <div
           role="button"
           tabIndex={disabled ? -1 : 0}
-          className={cn("flex w-full flex-wrap items-center gap-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm", disabled && "opacity-60 cursor-not-allowed pointer-events-none")}
+          className={cn(
+            "flex w-full flex-wrap items-center gap-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm",
+            disabled && "opacity-60 cursor-not-allowed pointer-events-none"
+          )}
           aria-expanded={open}
         >
           <div className="flex flex-wrap gap-1 flex-1 text-left">
@@ -79,6 +95,7 @@ export function MultiCombobox({
                         removeValue(opt.value);
                       }}
                       className="hover:text-foreground"
+                      aria-label={`Remover ${opt.label}`}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -105,7 +122,7 @@ export function MultiCombobox({
             <CommandList className="max-h-[240px] overflow-y-auto overflow-x-hidden">
               <CommandGroup>
                 {options.map((option) => {
-                  const isSelected = value.includes(option.value);
+                  const isSelected = safeValue.includes(option.value);
                   return (
                     <CommandItem
                       key={option.value}
