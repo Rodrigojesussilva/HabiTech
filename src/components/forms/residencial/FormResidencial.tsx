@@ -44,7 +44,7 @@ import { integraçãoUrbanaSocialSchema } from "@/components/forms/residencial/d
 import { statusNotasSchema } from "@/components/forms/residencial/definitions/statusNotas.definition";
 
 import { anexosSchema } from "@/components/forms/selagem/definitions/anexos.definition";
-import { SURVEY_RESOURCE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
+import {SURVEY_RESOURCE_BASE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
 import { loadSelagemData } from './helpers/apiMapper';
