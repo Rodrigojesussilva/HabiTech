@@ -40,7 +40,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoRespR`);
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
-
+//valida da\ta de nascimetnpo
     useEffect(() => {
         console.log('📅 Data R', dataNascimento);
 
@@ -162,7 +162,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
         setSubPrefeituraOptions(options);
     }, []);
-
+    
     // Distritos para subPrefeitura_r
     useEffect(() => {
         if (!subPrefeituraSelecionada_r) {
