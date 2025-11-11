@@ -744,7 +744,7 @@ const FormResidencial = ({
 					type: "text",
 					required: true,
 					sidebarform: true,
-					showinmodal: false
+					showinmodal: true
 				} as FormFieldType,
 
 				{

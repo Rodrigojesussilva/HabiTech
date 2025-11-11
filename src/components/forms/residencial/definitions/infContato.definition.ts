@@ -3,8 +3,10 @@ import { FormConfig, FormField } from "@/utils/formUtils";
 
 // Form validation schema
 export const infContatoSchema = z.object({
+
     telefoneCelular: z.string().optional(),
     telefoneAdicional: z.string().optional(),
+    nomeRecado: z.string().optional(),
     email: z.string().optional(),
     outroContato: z.string().optional(),
     selagem_id: z.string().optional(),
@@ -16,8 +18,10 @@ export type FormValues = z.infer<typeof infContatoSchema>;
 
 // Default values
 export const defaultValues: Partial<FormValues> = {
+
     telefoneCelular: "",
     telefoneAdicional: "",
+    nomeRecado: "",
     email: "",
     outroContato: "",
     idLocal: "not",
@@ -47,8 +51,15 @@ export const infContatoDefinition: FormConfig = {
 
                 },
                 {
+                    name: "nomeRecado",
+                    label: "Nome de para Recado",
+                    type: "text",
+                    required: true,
+
+                },
+                {
                     name: "email",
-                    label: "E‑mail ",
+                    label: "E-mail ",
                     type: "email",
                     required: true,
                     min: 1,

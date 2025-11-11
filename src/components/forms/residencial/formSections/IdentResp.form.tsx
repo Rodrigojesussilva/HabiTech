@@ -11,7 +11,7 @@ import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_est
 import { estados } from '@/components/cidades_estados/estados';
 import { cidadesLocais } from '@/components/cidades_estados/cidade';
 import { buscarEnderecoPorCep } from '../api_cep';
-import { calcularIdade} from "@/components/forms/residencial/helpers/identResp.helper";
+import { calcularIdade } from "@/components/forms/residencial/helpers/identResp.helper";
 import { mask, unMask } from 'remask';
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 interface IdentRespFormProps {
@@ -40,7 +40,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
     const dataNascimento = form.watch(`families[${familyIndex}].dataNascimentoRespR`);
     const formValues = form.watch(`families[${familyIndex}]`) || {};
 
-
+//valida da\ta de nascimetnpo
     useEffect(() => {
         console.log('📅 Data R', dataNascimento);
 
@@ -48,7 +48,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         const pathIdade = `families[${familyIndex}].idadeRespR`;
 
 
-         console.log('📅 Data R', dataNascimento);
+        console.log('📅 Data R', dataNascimento);
 
         const validarELimpar = () => {
             if (!dataNascimento || dataNascimento === "") {
@@ -162,7 +162,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
         setSubPrefeituraOptions(options);
     }, []);
-
+    
     // Distritos para subPrefeitura_r
     useEffect(() => {
         if (!subPrefeituraSelecionada_r) {
@@ -192,34 +192,28 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         const cep = form.watch(`families[${familyIndex}].cep_r`);
         const cepLimpo = (cep || '').replace(/\D/g, '');
 
-        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouro_r`);
-        const bairroAtual = form.getValues(`families[${familyIndex}].bairro_r`);
-        const ufAtual = form.getValues(`families[${familyIndex}].uf_r`);
-        const cidadeAtual = form.getValues(`families[${familyIndex}].cidade_r`);
-
-        const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
-                form.setValue(`families[${familyIndex}].logradouro_r`, '');
-                form.setValue(`families[${familyIndex}].bairro_r`, '');
-                form.setValue(`families[${familyIndex}].complemento_r`, '');
-                form.setValue(`families[${familyIndex}].uf_r`, '');
-                form.setValue(`families[${familyIndex}].cidade_r`, '');
-            }
-        };
-
         if (cepLimpo.length === 8) {
             const buscarEndereco = async () => {
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cep_r`);
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouro_r`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairro_r`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complemento_r`, endereco.complemento || '');
                     form.setValue(`families[${familyIndex}].uf_r`, endereco.uf || '');
                     form.setValue(`families[${familyIndex}].cidade_r`, endereco.cidade || '');
+
                 } catch (error) {
                     console.error('Erro ao buscar CEP (r):', error);
-                    limparCamposEndereco();
+                    // Limpa os campos apenas em caso de erro
+                    form.setValue(`families[${familyIndex}].logradouro_r`, '');
+                    form.setValue(`families[${familyIndex}].bairro_r`, '');
+                    form.setValue(`families[${familyIndex}].complemento_r`, '');
+                    form.setValue(`families[${familyIndex}].uf_r`, '');
+                    form.setValue(`families[${familyIndex}].cidade_r`, '');
+
                     form.setError(`families[${familyIndex}].cep_r`, {
                         type: 'manual',
                         message: 'CEP inválido ou não encontrado.',
@@ -236,34 +230,28 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         const cep = form.watch(`families[${familyIndex}].cep_t`);
         const cepLimpo = (cep || '').replace(/\D/g, '');
 
-        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouro_t`);
-        const bairroAtual = form.getValues(`families[${familyIndex}].bairro_t`);
-        const ufAtual = form.getValues(`families[${familyIndex}].uf_t`);
-        const cidadeAtual = form.getValues(`families[${familyIndex}].cidade_t`);
-
-        const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
-                form.setValue(`families[${familyIndex}].logradouro_t`, '');
-                form.setValue(`families[${familyIndex}].bairro_t`, '');
-                form.setValue(`families[${familyIndex}].complemento_t`, '');
-                form.setValue(`families[${familyIndex}].uf_t`, '');
-                form.setValue(`families[${familyIndex}].cidade_t`, '');
-            }
-        };
-
         if (cepLimpo.length === 8) {
             const buscarEndereco = async () => {
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cep_t`);
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouro_t`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairro_t`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complemento_t`, endereco.complemento || '');
                     form.setValue(`families[${familyIndex}].uf_t`, endereco.uf || '');
                     form.setValue(`families[${familyIndex}].cidade_t`, endereco.cidade || '');
+
                 } catch (error) {
                     console.error('Erro ao buscar CEP (t):', error);
-                    limparCamposEndereco();
+                    // Limpa os campos apenas em caso de erro
+                    form.setValue(`families[${familyIndex}].logradouro_t`, '');
+                    form.setValue(`families[${familyIndex}].bairro_t`, '');
+                    form.setValue(`families[${familyIndex}].complemento_t`, '');
+                    form.setValue(`families[${familyIndex}].uf_t`, '');
+                    form.setValue(`families[${familyIndex}].cidade_t`, '');
+
                     form.setError(`families[${familyIndex}].cep_t`, {
                         type: 'manual',
                         message: 'CEP inválido ou não encontrado.',
