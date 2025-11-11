@@ -8,7 +8,7 @@ type ShortcutItem = {
   title: string;
   subtitle?: string;
   icon: React.ReactNode;
-  to?: string;            // rota (opcional). Se existir, o card vira <Link>
+  to?: string;
 };
 
 const FAVORITES_KEY = "dashboard_favorites";
@@ -20,8 +20,24 @@ const shortcutItems: ShortcutItem[] = [
   { id: "ocupacao-predial", title: "Ocupação Predial", subtitle: "", icon: <Building className="h-6 w-6" />, to: "/edificacoes" },
 ];
 
+/** Helpers para evitar catch {} vazio e warnings do ESLint */
+function safeLocalGet<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function safeLocalSet<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // quota excedida / private mode: ignorar de propósito
+  }
+}
+
 export default function Home() {
-  // --- Shortcuts state/logic (inline) ---
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,14 +45,9 @@ export default function Home() {
   const cardRefs = useRef<HTMLButtonElement[]>([]);
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
-      if (Array.isArray(stored)) setFavorites(stored as string[]);
-    } catch (_err) {
-      void _err; // no-op
-    }
-
+    setFavorites(safeLocalGet<string[]>(FAVORITES_KEY, []));
     const timer = setTimeout(() => setIsLoading(false), 400);
+
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
@@ -44,6 +55,7 @@ export default function Home() {
       }
     };
     window.addEventListener("keydown", handleKey);
+
     return () => {
       window.removeEventListener("keydown", handleKey);
       clearTimeout(timer);
@@ -51,11 +63,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    } catch (_err) {
-      void _err; // no-op
-    }
+    safeLocalSet(FAVORITES_KEY, favorites);
   }, [favorites]);
 
   const toggleFavorite = (id: string) => {
@@ -102,8 +110,6 @@ export default function Home() {
         e.preventDefault();
         focusCardAt(filteredItems.length - 1);
         break;
-      default:
-        break;
     }
   };
 
@@ -120,9 +126,8 @@ export default function Home() {
         <p className="text-gray-600">Inicie um novo formulário ou revise os dados coletados.</p>
       </section>
 
-      {/* SHORTCUTS (apenas 4) */}
+      {/* SHORTCUTS */}
       <section className="p-6 md:p-8">
-        {/* Busca */}
         <div className="mb-6 flex flex-col gap-2 items-center">
           <div className="relative w-full max-w-xl">
             <input
@@ -137,20 +142,14 @@ export default function Home() {
                          hover:border-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/20
                          transition pl-3 pr-8 py-2.5"
             />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-              /
-            </span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">/</span>
           </div>
           <div className="text-xs text-slate-500" aria-live="polite">
             {query ? `Resultados: ${filteredItems.length}` : favorites.length ? `Favoritos: ${favorites.length}` : null}
           </div>
         </div>
 
-        {/* Grid de 4 itens */}
-        <div
-          id="shortcuts-grid"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mx-auto max-w-[1200px]"
-        >
+        <div id="shortcuts-grid" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mx-auto max-w-[1200px]">
           {isLoading &&
             Array.from({ length: 4 }).map((_, idx) => (
               <div key={`s-${idx}`} className="bg-white rounded-xl border border-slate-200 p-6 animate-pulse">
@@ -166,16 +165,12 @@ export default function Home() {
 
               const CardContent = (
                 <>
-                  <div className="mb-4 h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                    <span className="group-hover:text-white text-slate-700 transition-colors">
-                      {item.icon}
-                    </span>
+                  <div className="mb-4 h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-orange-500 transition-colors">
+                    <span className="group-hover:text-white text-slate-700 transition-colors">{item.icon}</span>
                   </div>
                   <div>
                     <h3 className="text-slate-900 leading-tight">{item.title}</h3>
-                    {item.subtitle && (
-                      <p className="text-slate-600 leading-tight text-sm mt-0.5">{item.subtitle}</p>
-                    )}
+                    {item.subtitle && <p className="text-slate-600 leading-tight text-sm mt-0.5">{item.subtitle}</p>}
                   </div>
                 </>
               );
@@ -211,12 +206,9 @@ export default function Home() {
                     title={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                     onClick={() => toggleFavorite(item.id)}
                     className={`absolute top-2 right-2 p-2 rounded-full border transition-all duration-200 ${
-                      isFav
-                        ? "bg-blue-600 border-blue-600 text-white"
-                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      isFav ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
                     }`}
                   >
-                    {/* estrela inline */}
                     <svg
                       width="16"
                       height="16"
