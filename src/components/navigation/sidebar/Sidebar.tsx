@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Fingerprint, Stamp, House, Factory, Building } from "lucide-react";
 import { NavMain } from "@/components/navigation/sidebar/NavMain";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarRail } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
 
 const data = {
@@ -17,10 +17,9 @@ const data = {
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} className="border-r bg-sidebar">
-      <Link to="/home" className="w-full">
-        <SidebarHeader>
-          <div className="h-2" />
-        </SidebarHeader>
+      {/* Link para Home (sem header vazio, evita bloco branco) */}
+      <Link to="/home" className="sr-only">
+        Ir para a Home
       </Link>
 
       <SidebarContent>
