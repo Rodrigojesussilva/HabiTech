@@ -113,7 +113,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
 
             buscarEndereco();
         }
-    }, [form.watch(`families[${familyIndex}].cepI1`)]);
+    }, [form.watch(`families[${familyIndex}].cepI1`)]);~
+
     // ----------- Buscar CEP para escola Integrante 2 -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cepI2`);
@@ -157,6 +158,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepI2`)]);
+    
     // ----------- Buscar CEP escola para Integrante 3 -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cepI3`);
