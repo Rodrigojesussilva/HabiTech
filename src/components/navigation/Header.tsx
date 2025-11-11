@@ -31,27 +31,31 @@ export default function Header({ children, logoWidth }: HeaderProps) {
     <>
       <header className="fixed top-0 inset-x-0 z-50 w-full h-14 border-b bg-secondary/95 backdrop-blur supports-[backdrop-filter]:bg-secondary/80 shadow-sm">
         <div className="mx-auto max-w-[1400px] h-full px-3 sm:px-4 flex items-center justify-between">
-          
-          {/* ESQUERDA: logo + título (ocupa o espaço restante) */}
+          {/* ESQUERDA */}
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-            <img
-              src="/logo-habitasampa.png"
-              alt="HabitaSampa"
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              aria-label="Ir para a página inicial"
+              title="Ir para a página inicial"
+              className="shrink-0 -m-1 p-1 bg-transparent border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-md"
               style={logoStyle}
-              className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none shrink-0"
-              loading="eager"
-            />
+            >
+              <img
+                src="/logo-habitasampa.png"
+                alt="HabitaSampa"
+                className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none"
+                loading="eager"
+                draggable={false}
+              />
+            </button>
+
             <span
               className={[
-                // tamanhos
                 "text-[13px] xs:text-sm sm:text-lg md:text-2xl",
-                // estilo
                 "font-semibold leading-tight text-[var(--habitasampa-blue,#0F62AC)]",
-                // comportamento de quebra
                 "whitespace-normal break-words line-clamp-2 md:line-clamp-1",
-                // ocupar e permitir elipse só no md+
                 "flex-1 min-w-0 md:truncate",
-                // alinhamentos
                 "text-left"
               ].join(" ")}
             >
@@ -59,7 +63,7 @@ export default function Header({ children, logoWidth }: HeaderProps) {
             </span>
           </div>
 
-          {/* DIREITA: ações (não encolher) */}
+          {/* DIREITA */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <div className="relative">
               <button
