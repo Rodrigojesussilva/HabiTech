@@ -1094,6 +1094,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
     }, [cepTrabalho3]);
 
 
+
     // ----------- Buscar CEP para Integrante 1 -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cepI1`);
@@ -1119,6 +1120,19 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepI1`);
+
+                    // ⚠️ Verificação adicionada: CEP deve ser de SP
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI1`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepI1`, '');
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouroI1`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroI1`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoI1`, endereco.complemento || '');
@@ -1136,51 +1150,64 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
 
             buscarEndereco();
         }
-    }, [form.watch(`families[${familyIndex}].cepI1`)]); ~
+    }, [form.watch(`families[${familyIndex}].cepI1`)]);
 
-        // ----------- Buscar CEP para escola Integrante 2 -----------
-        useEffect(() => {
-            const cep = form.watch(`families[${familyIndex}].cepI2`);
-            const cepLimpo = (cep || '').replace(/\D/g, '');
 
-            const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroI2`);
-            const bairroAtual = form.getValues(`families[${familyIndex}].bairroI2`);
-            const ufAtual = form.getValues(`families[${familyIndex}].ufI2`);
-            const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI2`);
+    // ----------- Buscar CEP para escola Integrante 2 -----------
+    useEffect(() => {
+        const cep = form.watch(`families[${familyIndex}].cepI2`);
+        const cepLimpo = (cep || '').replace(/\D/g, '');
 
-            const limparCamposEndereco = () => {
-                if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
-                    form.setValue(`families[${familyIndex}].logradouroI2`, '');
-                    form.setValue(`families[${familyIndex}].bairroI2`, '');
-                    form.setValue(`families[${familyIndex}].complementoI2`, '');
-                    form.setValue(`families[${familyIndex}].ufI2`, '');
-                    form.setValue(`families[${familyIndex}].cidadeI2`, '');
+        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouroI2`);
+        const bairroAtual = form.getValues(`families[${familyIndex}].bairroI2`);
+        const ufAtual = form.getValues(`families[${familyIndex}].ufI2`);
+        const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI2`);
+
+        const limparCamposEndereco = () => {
+            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+                form.setValue(`families[${familyIndex}].logradouroI2`, '');
+                form.setValue(`families[${familyIndex}].bairroI2`, '');
+                form.setValue(`families[${familyIndex}].complementoI2`, '');
+                form.setValue(`families[${familyIndex}].ufI2`, '');
+                form.setValue(`families[${familyIndex}].cidadeI2`, '');
+            }
+        };
+
+        if (cepLimpo.length === 8) {
+            const buscarEndereco = async () => {
+                try {
+                    const endereco = await buscarEnderecoPorCep(cepLimpo);
+                    form.clearErrors(`families[${familyIndex}].cepI2`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI2`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
+                    form.setValue(`families[${familyIndex}].logradouroI2`, endereco.logradouro || '');
+                    form.setValue(`families[${familyIndex}].bairroI2`, endereco.bairro || '');
+                    form.setValue(`families[${familyIndex}].complementoI2`, endereco.complemento || '');
+                    form.setValue(`families[${familyIndex}].ufI2`, endereco.uf || '');
+                    form.setValue(`families[${familyIndex}].cidadeI2`, endereco.cidade || '');
+                } catch (error) {
+                    console.error('Erro ao buscar CEP (I2):', error);
+                    limparCamposEndereco();
+                    form.setError(`families[${familyIndex}].cepI2`, {
+                        type: 'manual',
+                        message: 'CEP inválido ou não encontrado.',
+                    });
                 }
             };
 
-            if (cepLimpo.length === 8) {
-                const buscarEndereco = async () => {
-                    try {
-                        const endereco = await buscarEnderecoPorCep(cepLimpo);
-                        form.clearErrors(`families[${familyIndex}].cepI2`);
-                        form.setValue(`families[${familyIndex}].logradouroI2`, endereco.logradouro || '');
-                        form.setValue(`families[${familyIndex}].bairroI2`, endereco.bairro || '');
-                        form.setValue(`families[${familyIndex}].complementoI2`, endereco.complemento || '');
-                        form.setValue(`families[${familyIndex}].ufI2`, endereco.uf || '');
-                        form.setValue(`families[${familyIndex}].cidadeI2`, endereco.cidade || '');
-                    } catch (error) {
-                        console.error('Erro ao buscar CEP (I2):', error);
-                        limparCamposEndereco();
-                        form.setError(`families[${familyIndex}].cepI2`, {
-                            type: 'manual',
-                            message: 'CEP inválido ou não encontrado.',
-                        });
-                    }
-                };
-
-                buscarEndereco();
-            }
-        }, [form.watch(`families[${familyIndex}].cepI2`)]);
+            buscarEndereco();
+        }
+    }, [form.watch(`families[${familyIndex}].cepI2`)]);
 
     // ----------- Buscar CEP escola para Integrante 3 -----------
     useEffect(() => {
@@ -1207,6 +1234,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepI3`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI3`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouroI3`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroI3`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoI3`, endereco.complemento || '');
@@ -1225,6 +1264,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepI3`)]);
+
 
     // ----------- Buscar CEP Trabalho para Integrante 1 -----------
     useEffect(() => {
@@ -1251,6 +1291,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho1`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho1`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho1`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho1`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho1`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho1`, endereco.complemento || '');
@@ -1269,6 +1321,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepTrabalho1`)]);
+
 
     // ----------- Buscar CEP Trabalho para Integrante 2 -----------
     useEffect(() => {
@@ -1295,6 +1348,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho2`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho2`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho2`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho2`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho2`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho2`, endereco.complemento || '');
@@ -1312,7 +1377,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
 
             buscarEndereco();
         }
-    }, [form.watch(`families[${familyIndex}].cepTrabalho2`)]);
+    }, [form.watch(`families[${familyIndex}].cepTrabalho2`)])
+
 
     // ----------- Buscar CEP Trabalho para Integrante 3 -----------
     useEffect(() => {
@@ -1339,6 +1405,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho3`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho3`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho3`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho3`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho3`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho3`, endereco.complemento || '');
@@ -1357,6 +1435,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepTrabalho3`)]);
+
+
 
     // ----------- Validacao CPF escola Integrante 1 -----------
     useEffect(() => {

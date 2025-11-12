@@ -963,9 +963,9 @@ const FormResidencial = ({
 							<InfContatoForm sectionIndex={2} familyIndex={index} />
 							<IntegranteFamiliaForm sectionIndex={3} familyIndex={index} />
 							<AnimalEstimacaoForm sectionIndex={4} familyIndex={index} />							
-							<IntegraçãoUrbanaSocialForm sectionIndex={6} familyIndex={index} />
-							<StatusNotasForm sectionIndex={7} familyIndex={index} />
-							<AnexosForm sectionIndex={8} familyIndex={index} />
+							<IntegraçãoUrbanaSocialForm sectionIndex={5} familyIndex={index} />
+							<StatusNotasForm sectionIndex={6} familyIndex={index} />
+							<AnexosForm sectionIndex={7} familyIndex={index} />
 						</div>
 					))}
 

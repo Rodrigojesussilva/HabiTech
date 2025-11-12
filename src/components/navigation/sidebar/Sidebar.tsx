@@ -3,6 +3,7 @@ import { Stamp, House, Factory, Building } from "lucide-react";
 import { FaPeopleRoof } from "react-icons/fa6"; 
 import { NavMain } from "@/components/navigation/sidebar/NavMain";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
 
 const data = {
   navMain: [
@@ -17,10 +18,7 @@ const data = {
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} className="border-r bg-sidebar">
-<<<<<<< HEAD
-=======
       <Link to="/home" className="sr-only">Ir para a Home</Link>
->>>>>>> 7312b0fc83fbdc388563fe5d2259ff0d016a0343
 
       <SidebarContent>
         <NavMain items={data.navMain} />

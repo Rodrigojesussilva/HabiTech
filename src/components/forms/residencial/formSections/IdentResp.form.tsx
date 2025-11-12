@@ -284,7 +284,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
             });
     }, [ufSelecionada]);
 
-
     // Carrega subprefeituras (pode ser fetch ou lista estática) para trabalho
     useEffect(() => {
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
@@ -415,7 +414,24 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cep_r`);
 
-                    // Preenche os campos diretamente
+                    // Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cep_r`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+
+                        // Limpa os campos de endereço
+                        form.setValue(`families[${familyIndex}].cep_r`, '');
+                        form.setValue(`families[${familyIndex}].logradouro_r`, '');
+                        form.setValue(`families[${familyIndex}].bairro_r`, '');
+                        form.setValue(`families[${familyIndex}].complemento_r`, '');
+                        form.setValue(`families[${familyIndex}].uf_r`, '');
+                        form.setValue(`families[${familyIndex}].cidade_r`, '');
+                        return;
+                    }
+
+                    // Preenche os campos se for SP
                     form.setValue(`families[${familyIndex}].logradouro_r`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairro_r`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complemento_r`, endereco.complemento || '');
@@ -442,6 +458,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         }
     }, [form.watch(`families[${familyIndex}].cep_r`)]);
 
+
     // ----------- CEP PARA _t -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cep_t`);
@@ -453,7 +470,24 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cep_t`);
 
-                    // Preenche os campos diretamente
+                    // Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cep_t`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+
+                        // Limpa os campos de endereço
+                        form.setValue(`families[${familyIndex}].cep_t`, '');
+                        form.setValue(`families[${familyIndex}].logradouro_t`, '');
+                        form.setValue(`families[${familyIndex}].bairro_t`, '');
+                        form.setValue(`families[${familyIndex}].complemento_t`, '');
+                        form.setValue(`families[${familyIndex}].uf_t`, '');
+                        form.setValue(`families[${familyIndex}].cidade_t`, '');
+                        return;
+                    }
+
+                    // Preenche os campos se for SP
                     form.setValue(`families[${familyIndex}].logradouro_t`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairro_t`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complemento_t`, endereco.complemento || '');
@@ -479,7 +513,6 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cep_t`)]);
-
 
 
     // ----------- Máscara CEP para _r -----------
