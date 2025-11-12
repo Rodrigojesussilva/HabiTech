@@ -1464,6 +1464,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Informações de Filiação",
                 type: "label" as const,
                 required: false,
+
             },
             {
                 name: "filiacao1_nome1",
@@ -1477,6 +1478,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                disableField: "filiacao1_nome1"
             },
             {
                 name: "filiacao2_nome1",
@@ -1484,12 +1486,14 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 type: "text" as const,
                 required: false,
                 placeholder: "Nome completo da filiação 2",
+
             },
             {
                 name: "filiacao2_naoSeAplica1",
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                disableField: "filiacao2_nome1"
             },
             {
                 name: "pessoaDeficiencia1",
@@ -1645,20 +1649,23 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraI1",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoI1",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
+                    // Campos condicionais para SP
+                    ...(formValues.ufI1 === 'SP' ? [
+                        {
+                            name: "subPrefeituraI1",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoI1",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
                     {
                         name: "localizacaoInstituicaoEnsino1",
                         label: "Localização da Instituição de Ensino",
@@ -1817,6 +1824,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
+                    
                     {
                         name: "cidadeTrabalho1",
                         label: "Cidade",
@@ -1824,20 +1832,23 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraTrabalho1",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoTrabalho1",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    }
+                      ...(formValues.ufTrabalho1 === 'SP' ? [
+                        {
+                            name: "subPrefeituraTrabalho1",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoTrabalho1",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
+                    
                 );
             }
 
@@ -2256,16 +2267,17 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
             },
             {
                 name: "filiacao1_nome2",
-                label: "Nome da filiação 1",
+                label: "Identificação do Selo - Complemento",
                 type: "text" as const,
-                required: false,
-                placeholder: "Nome completo da filiação 1",
+                required: false
             },
             {
                 name: "filiacao1_naoSeAplica2",
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                dependent: true,
+                disableField: "filiacao1_nome2",  // ⬅️ Adicione esta linha
             },
             {
                 name: "filiacao2_nome2",
@@ -2279,6 +2291,8 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                dependent: true,
+                disableField: "filiacao2_nome2",  // ⬅️ Adicione esta linha
             },
             {
                 name: "pessoaDeficiencia2",
@@ -2434,20 +2448,23 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraI2",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoI2",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
+                    // Campos condicionais para SP
+                    ...(formValues.ufI2 === 'SP' ? [
+                        {
+                            name: "subPrefeituraI2",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoI2",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
                     {
                         name: "localizacaoInstituicaoEnsino2",
                         label: "Localização da Instituição de Ensino",
@@ -2613,20 +2630,22 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraTrabalho2",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoTrabalho2",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    }
+                      ...(formValues.ufTrabalho2 === 'SP' ? [
+                        {
+                            name: "subPrefeituraTrabalho2",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoTrabalho2",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
                 );
             }
 
@@ -3043,6 +3062,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                disableField: "filiacao1_nome3"
             },
             {
                 name: "filiacao2_nome3",
@@ -3056,6 +3076,7 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                 label: "Não se aplica",
                 type: "checkbox" as const,
                 required: false,
+                disableField: "filiacao2_nome3"
             },
             {
                 name: "pessoaDeficiencia3",
@@ -3211,20 +3232,23 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraI3",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoI3",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
+                    // Campos condicionais para SP
+                    ...(formValues.ufI3 === 'SP' ? [
+                        {
+                            name: "subPrefeituraI3",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoI3",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
                     {
                         name: "localizacaoInstituicaoEnsino3",
                         label: "Localização da Instituição de Ensino",
@@ -3390,20 +3414,22 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
                         options: [],
                         required: true,
                     },
-                    {
-                        name: "subPrefeituraTrabalho3",
-                        label: "Subprefeitura",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    },
-                    {
-                        name: "distritoTrabalho3",
-                        label: "Distrito",
-                        type: "combobox" as const,
-                        options: [],
-                        required: false,
-                    }
+                   ...(formValues.ufTrabalho3 === 'SP' ? [
+                        {
+                            name: "subPrefeituraTrabalho3",
+                            label: "Subprefeitura",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                        {
+                            name: "distritoTrabalho3",
+                            label: "Distrito",
+                            type: "combobox" as const,
+                            options: [],
+                            required: false,
+                        },
+                    ] : []),
                 );
             }
 

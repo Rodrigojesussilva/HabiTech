@@ -6,8 +6,8 @@ import {
 } from "@/components/forms/selagem/definitions/identUnidade.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
 import { buscarEnderecoPorCep } from '../api_cep'; // ajuste o path conforme seu projeto
-import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
-import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
+    import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
+    import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 import Swal from 'sweetalert2';
 import survey_resource from "../../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL } from "../../../../service/constants"
@@ -190,7 +190,7 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             },
         });
     };
-
+   //cadastro
     useEffect(() => {
         const handleBlur = async () => {
             const activeFieldName = document.activeElement?.getAttribute("name");
@@ -267,12 +267,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         setSubPrefeituraOptions(options);
     }, []);
 
-    // Carrega subprefeituras (pode ser fetch ou lista estática)
-    useEffect(() => {
-        const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
-        setSubPrefeituraOptions(options);
-    }, []);
-
     // Atualiza distritos ao mudar subPrefeitura
     useEffect(() => {
         if (!selectedSubPrefeitura) {
@@ -339,8 +333,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
         // ⚠️ Não faz nada se CEP incompleto
     }, [cep, familyIndex, form]);
 
-
-
     // Torna o SP padrão na UF
     useEffect(() => {
         const currentUf = form.getValues(`families[${familyIndex}].uf`);
@@ -384,7 +376,6 @@ const InfoContatoForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoConta
             }
         }
     }, [formValues.naoAplica, form, familyIndex]);
-
 
     // Atualiza UF
     useEffect(() => {

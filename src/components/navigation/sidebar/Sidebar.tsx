@@ -1,8 +1,7 @@
 import * as React from "react";
 import { Fingerprint, Stamp, House, Factory, Building } from "lucide-react";
 import { NavMain } from "@/components/navigation/sidebar/NavMain";
-import { Sidebar, SidebarContent, SidebarRail } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarRail } from "@/components/ui/sidebar";
 
 const data = {
   navMain: [
@@ -17,14 +16,21 @@ const data = {
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} className="border-r bg-sidebar">
-      {/* Link para Home (sem header vazio, evita bloco branco) */}
-      <Link to="/home" className="sr-only">
-        Ir para a Home
-      </Link>
 
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
+
+      <SidebarFooter className="p-1 border-t">
+        <div className="flex justify-center">
+          <img
+            src="/prefeitura.png"
+            alt="HabitaSampa"            
+            className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none shrink-0"
+            loading="eager"
+          />
+        </div>
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
