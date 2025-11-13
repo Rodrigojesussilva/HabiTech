@@ -7,7 +7,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { buscarEnderecoPorCep } from '../api_cep';
 import { mask, unMask } from 'remask';
-import { estados as fetchEstados, getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
+import { getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
 import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
 import { estados } from '@/components/cidades_estados/estados';
 import { cidadesLocais } from '@/components/cidades_estados/cidade'; // cidades.ts gerado
