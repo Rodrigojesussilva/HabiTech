@@ -32,17 +32,6 @@ export default function Header({ children }: HeaderProps) {
         <div className="mx-auto max-w-[1400px] h-full px-3 sm:px-4 flex items-center justify-between">
           {/* Logo + Título */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <img
-              src="/logo-habitasampa.png"
-              alt="HabitaSampa"
-              style={logoStyle}
-               className="h-16 w-auto md:h-18 lg:h-20 object-contain select-none transition-all"
-              loading="eager"
-            />
-            <span className="text-[14px] sm:text-lg md:text-xl font-semibold text-[var(--habitasampa-blue,#0F62AC)] whitespace-nowrap leading-tight">
-        <div className="flex mx-auto h-full items-center justify-between px-4 max-w-[1400px]">
-          {/* Logo e título */}
-          <div className="flex flex-row items-center gap-4 sm:gap-6">
             <button
               onClick={() => navigate("/")}
               className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 rounded-md"
@@ -57,11 +46,11 @@ export default function Header({ children }: HeaderProps) {
             <span className="text-[14px] sm:text-lg md:text-xl font-semibold text-[var(--habitasampa-blue,#0F62AC)] whitespace-nowrap leading-tight">
               Instrumentos de Pesquisa
             </span>
-
           </div>
 
           {/* Menu e Avatar */}
-          <div className="flex flex-row items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* Botão Novo Formulário */}
             <div className="relative">
               <button
                 onClick={toggleMenu}
@@ -72,12 +61,13 @@ export default function Header({ children }: HeaderProps) {
                 <span className="hidden md:block font-medium">Novo Formulário</span>
               </button>
 
-              {/* Dropdown do menu */}
+              {/* Dropdown */}
               <div
-                className={`absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg ring-1 ring-black/5 z-50 transform transition-all duration-200 ease-in-out ${isMenuOpen
+                className={`absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg ring-1 ring-black/5 z-50 transform transition-all duration-200 ease-in-out ${
+                  isMenuOpen
                     ? "opacity-100 visible scale-100"
                     : "opacity-0 invisible scale-95 pointer-events-none"
-                  }`}
+                }`}
               >
                 <div className="py-1">
                   {formOptions.map((form, index) => (
@@ -99,7 +89,7 @@ export default function Header({ children }: HeaderProps) {
               <AvatarFallback>EU</AvatarFallback>
             </Avatar>
 
-            {/* Botão sair */}
+            {/* Botão Sair */}
             <button
               onClick={() => {
                 localStorage.removeItem("isAuthenticated");
