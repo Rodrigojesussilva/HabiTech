@@ -7,6 +7,11 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cpf as cpfValidator } from 'cpf-cnpj-validator';
 import { buscarEnderecoPorCep } from '../api_cep';
 import { mask, unMask } from 'remask';
+import { getCidadesOptions } from '../../../cidades_estados/api_estadosCidades';
+import { subprefeituras, distritosPorSubprefeitura } from '../subprefeiturasDistritos';
+import { estados } from '@/components/cidades_estados/estados';
+import { cidadesLocais } from '@/components/cidades_estados/cidade'; // cidades.ts gerado
+
 interface IntegrantesFamiliaFormProps {
     id?: string;
     sectionIndex?: number;
@@ -23,12 +28,143 @@ interface Integrante {
 const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: IntegrantesFamiliaFormProps) => {
 
     const [mostrarIdentificacao, setMostrarIdentificacao] = useState(false);
+
+    const [estadoOptionsI1, setEstadoOptionsI1] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsI1, setCidadeOptionsI1] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsI1, setSubPrefeituraOptionsI1] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateI1, setDistritoOptionsStateI1] = useState<{ label: string; value: string }[]>([]);
+
+    const [estadoOptionsI2, setEstadoOptionsI2] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsI2, setCidadeOptionsI2] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsI2, setSubPrefeituraOptionsI2] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateI2, setDistritoOptionsStateI2] = useState<{ label: string; value: string }[]>([]);
+
+    const [estadoOptionsI3, setEstadoOptionsI3] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsI3, setCidadeOptionsI3] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsI3, setSubPrefeituraOptionsI3] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateI3, setDistritoOptionsStateI3] = useState<{ label: string; value: string }[]>([]);
+
+
+    // 🗺️ Estados (options) para os campos de Trabalho
+    const [estadoOptionsTrabalho1, setEstadoOptionsTrabalho1] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsTrabalho1, setCidadeOptionsTrabalho1] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsTrabalho1, setSubPrefeituraOptionsTrabalho1] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateTrabalho1, setDistritoOptionsStateTrabalho1] = useState<{ label: string; value: string }[]>([]);
+
+    const [estadoOptionsTrabalho2, setEstadoOptionsTrabalho2] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsTrabalho2, setCidadeOptionsTrabalho2] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsTrabalho2, setSubPrefeituraOptionsTrabalho2] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateTrabalho2, setDistritoOptionsStateTrabalho2] = useState<{ label: string; value: string }[]>([]);
+
+    const [estadoOptionsTrabalho3, setEstadoOptionsTrabalho3] = useState<{ label: string; value: string }[]>([]);
+    const [cidadeOptionsTrabalho3, setCidadeOptionsTrabalho3] = useState<{ label: string; value: string }[]>([]);
+    const [subPrefeituraOptionsTrabalho3, setSubPrefeituraOptionsTrabalho3] = useState<{ label: string; value: string }[]>([]);
+    const [distritoOptionsStateTrabalho3, setDistritoOptionsStateTrabalho3] = useState<{ label: string; value: string }[]>([]);
+
+
+
+
+
     // Estado para controlar qual integrante está expandido
     const [integrantesExpandidos, setIntegrantesExpandidos] = useState<number[]>([]);
     const form = useFormContext();
-    // 🔁 Reage a mudanças em todos os campos da família
+    // 🔁 Reage a mudanças em todos os campos da getCamposPorIntegrante
     const formValues = form.watch(`families[${familyIndex}]`) || {};
-    const formSections = getMergedFormSections(formValues);
+    const formSections = getMergedFormSections(formValues).map(section => ({
+        ...section,
+        fields: section.fields.map(field => {
+            // Preenche campos com lista de estados - I1
+            if (field.name === 'ufI1') {
+                return {
+                    ...field,
+                    options: estadoOptionsI1
+                };
+            }
+            if (field.name === 'cidadeI1') {
+                return { ...field, options: cidadeOptionsI1 };
+            }
+            if (field.name === "subPrefeituraI1") {
+                return {
+                    ...field,
+                    options: subPrefeituraOptionsI1,
+                };
+            }
+            if (field.name === "distritoI1") {
+                return {
+                    ...field,
+                    options: distritoOptionsStateI1,
+                };
+            }
+
+            // Preenche campos com lista de estados - I2
+            if (field.name === 'ufI2') {
+                return {
+                    ...field,
+                    options: estadoOptionsI2
+                };
+            }
+            if (field.name === 'cidadeI2') {
+                return { ...field, options: cidadeOptionsI2 };
+            }
+            if (field.name === "subPrefeituraI2") {
+                return {
+                    ...field,
+                    options: subPrefeituraOptionsI2,
+                };
+            }
+            if (field.name === "distritoI2") {
+                return {
+                    ...field,
+                    options: distritoOptionsStateI2,
+                };
+            }
+
+            // Preenche campos com lista de estados - I3
+            if (field.name === 'ufI3') {
+                return {
+                    ...field,
+                    options: estadoOptionsI3
+                };
+            }
+            if (field.name === 'cidadeI3') {
+                return { ...field, options: cidadeOptionsI3 };
+            }
+            if (field.name === "subPrefeituraI3") {
+                return {
+                    ...field,
+                    options: subPrefeituraOptionsI3,
+                };
+            }
+            if (field.name === "distritoI3") {
+                return {
+                    ...field,
+                    options: distritoOptionsStateI3,
+                };
+            }
+
+            // Preenche campos com lista de estados - Trabalho1
+            if (field.name === 'ufTrabalho1') return { ...field, options: estadoOptionsTrabalho1 };
+            if (field.name === 'cidadeTrabalho1') return { ...field, options: cidadeOptionsTrabalho1 };
+            if (field.name === 'subPrefeituraTrabalho1') return { ...field, options: subPrefeituraOptionsTrabalho1 };
+            if (field.name === 'distritoTrabalho1') return { ...field, options: distritoOptionsStateTrabalho1 };
+
+            // Preenche campos com lista de estados - Trabalho2
+            if (field.name === 'ufTrabalho2') return { ...field, options: estadoOptionsTrabalho2 };
+            if (field.name === 'cidadeTrabalho2') return { ...field, options: cidadeOptionsTrabalho2 };
+            if (field.name === 'subPrefeituraTrabalho2') return { ...field, options: subPrefeituraOptionsTrabalho2 };
+            if (field.name === 'distritoTrabalho2') return { ...field, options: distritoOptionsStateTrabalho2 };
+
+            // Preenche campos com lista de estados - Trabalho2
+            if (field.name === 'ufTrabalho3') return { ...field, options: estadoOptionsTrabalho3 };
+            if (field.name === 'cidadeTrabalho3') return { ...field, options: cidadeOptionsTrabalho3 };
+            if (field.name === 'subPrefeituraTrabalho3') return { ...field, options: subPrefeituraOptionsTrabalho3 };
+            if (field.name === 'distritoTrabalho3') return { ...field, options: distritoOptionsStateTrabalho3 };
+
+
+
+            return field;
+        })
+    }));
     const section = formSections[0];
 
     const dataNascimentoIntegrante1 = form.watch(`families[${familyIndex}].dataNascimentoIntegrante1`);
@@ -40,6 +176,857 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
     const cepI2 = form.watch(`families[${familyIndex}].cepI2`);
     const cepI3 = form.watch(`families[${familyIndex}].cepI3`);
 
+    const cepTrabalho1 = form.watch(`families[${familyIndex}].cepTrabalho1`);
+    const cepTrabalho2 = form.watch(`families[${familyIndex}].cepTrabalho2`);
+    const cepTrabalho3 = form.watch(`families[${familyIndex}].cepTrabalho3`);
+
+    const ufSelecionadaI1 = form.watch(`families[${familyIndex}].ufI1`);
+    const selectedSubPrefeituraI1 = form.watch(`families[${familyIndex}].subPrefeituraI1`);
+
+    const ufSelecionadaI2 = form.watch(`families[${familyIndex}].ufI2`);
+    const selectedSubPrefeituraI2 = form.watch(`families[${familyIndex}].subPrefeituraI2`);
+
+    const ufSelecionadaI3 = form.watch(`families[${familyIndex}].ufI3`);
+    const selectedSubPrefeituraI3 = form.watch(`families[${familyIndex}].subPrefeituraI3`);
+
+
+    // 🏢 Campos observados no formulário (Trabalho)
+    const ufSelecionadaTrabalho1 = form.watch(`families[${familyIndex}].ufTrabalho1`);
+    const selectedSubPrefeituraTrabalho1 = form.watch(`families[${familyIndex}].subPrefeituraTrabalho1`);
+
+    const ufSelecionadaTrabalho2 = form.watch(`families[${familyIndex}].ufTrabalho2`);
+    const selectedSubPrefeituraTrabalho2 = form.watch(`families[${familyIndex}].subPrefeituraTrabalho2`);
+
+    const ufSelecionadaTrabalho3 = form.watch(`families[${familyIndex}].ufTrabalho3`);
+    const selectedSubPrefeituraTrabalho3 = form.watch(`families[${familyIndex}].subPrefeituraTrabalho3`);
+
+
+    //INTEGRANTE 1
+
+    // Carrega subprefeituras para I1 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI1`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsI1(options);
+        } else {
+            setSubPrefeituraOptionsI1([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI1`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I1 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI1`);
+
+        if (currentUf !== "SP" || !selectedSubPrefeituraI1) {
+            setDistritoOptionsStateI1([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI1] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI1(options);
+    }, [selectedSubPrefeituraI1, form.getValues(`families[${familyIndex}].ufI1`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I1 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI1`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI1`);
+
+        // Só mostra distritos se for SP, São Paulo e tem subprefeitura selecionada
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraI1) {
+            setDistritoOptionsStateI1([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI1] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI1(options);
+    }, [selectedSubPrefeituraI1, form.getValues(`families[${familyIndex}].ufI1`), form.getValues(`families[${familyIndex}].cidadeI1`)]);
+
+    // Torna o SP padrão na UF I1
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI1`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].ufI1`, "SP");
+        }
+    }, []);
+
+    // Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia I1
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI1`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI1`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeI1`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI1`)]);
+
+    // Atualiza UF I1
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map((e: any) => ({ label: e.nome, value: e.sigla }));
+
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI1(options);
+            })
+            .catch((error: any) => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+
+                const options = estados.map((e: any) => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI1(options);
+            });
+    }, []);
+
+    // Atualiza Cidade I1
+    useEffect(() => {
+        if (!ufSelecionadaI1) {
+            setCidadeOptionsI1([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaI1)
+            .then(cidades => {
+                if (ufSelecionadaI1 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+
+                setCidadeOptionsI1(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaI1}, usando dados locais:`, error);
+
+                if (ufSelecionadaI1 in cidadesLocais) {
+                    const cidadesLocaisDaUf = cidadesLocais[ufSelecionadaI1 as keyof typeof cidadesLocais];
+                    setCidadeOptionsI1(cidadesLocaisDaUf);
+                } else {
+                    setCidadeOptionsI1([]);
+                }
+            });
+    }, [ufSelecionadaI1]);
+
+
+    //INTEGRANTE 2
+
+    // Carrega subprefeituras para I2 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI2`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsI2(options);
+        } else {
+            setSubPrefeituraOptionsI2([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI2`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I2 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI2`);
+
+        if (currentUf !== "SP" || !selectedSubPrefeituraI2) {
+            setDistritoOptionsStateI2([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI2] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI2(options);
+    }, [selectedSubPrefeituraI2, form.getValues(`families[${familyIndex}].ufI2`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I2 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI2`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI2`);
+
+        // Só mostra distritos se for SP, São Paulo e tem subprefeitura selecionada
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraI2) {
+            setDistritoOptionsStateI2([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI2] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI2(options);
+    }, [
+        selectedSubPrefeituraI2,
+        form.getValues(`families[${familyIndex}].ufI2`),
+        form.getValues(`families[${familyIndex}].cidadeI2`)
+    ]);
+
+    // Torna o SP padrão na UF I2
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI2`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].ufI2`, "SP");
+        }
+    }, []);
+
+    // Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia I2
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI2`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI2`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeI2`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI2`)]);
+
+    // Atualiza UF I2
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map((e: any) => ({ label: e.nome, value: e.sigla }));
+
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI2(options);
+            })
+            .catch((error: any) => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+
+                const options = estados.map((e: any) => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI2(options);
+            });
+    }, []);
+
+    // Atualiza Cidade I2
+    useEffect(() => {
+        if (!ufSelecionadaI2) {
+            setCidadeOptionsI2([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaI2)
+            .then(cidades => {
+                if (ufSelecionadaI2 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+
+                setCidadeOptionsI2(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaI2}, usando dados locais:`, error);
+
+                if (ufSelecionadaI2 in cidadesLocais) {
+                    const cidadesLocaisDaUf = cidadesLocais[ufSelecionadaI2 as keyof typeof cidadesLocais];
+                    setCidadeOptionsI2(cidadesLocaisDaUf);
+                } else {
+                    setCidadeOptionsI2([]);
+                }
+            });
+    }, [ufSelecionadaI2]);
+
+    //INTEGRANTE I3
+
+    // Carrega subprefeituras para I3 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI3`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsI3(options);
+        } else {
+            setSubPrefeituraOptionsI3([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI3`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I3 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI3`);
+
+        if (currentUf !== "SP" || !selectedSubPrefeituraI3) {
+            setDistritoOptionsStateI3([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI3] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI3(options);
+    }, [selectedSubPrefeituraI3, form.getValues(`families[${familyIndex}].ufI3`)]);
+
+    // Atualiza distritos ao mudar subPrefeitura I3 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI3`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI3`);
+
+        // Só mostra distritos se for SP, São Paulo e tem subprefeitura selecionada
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraI3) {
+            setDistritoOptionsStateI3([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraI3] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateI3(options);
+    }, [
+        selectedSubPrefeituraI3,
+        form.getValues(`families[${familyIndex}].ufI3`),
+        form.getValues(`families[${familyIndex}].cidadeI3`)
+    ]);
+
+    // Torna o SP padrão na UF I3
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI3`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].ufI3`, "SP");
+        }
+    }, []);
+
+    // Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia I3
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufI3`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeI3`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeI3`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufI3`)]);
+
+    // Atualiza UF I3
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map((e: any) => ({ label: e.nome, value: e.sigla }));
+
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI3(options);
+            })
+            .catch((error: any) => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+
+                const options = estados.map((e: any) => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsI3(options);
+            });
+    }, []);
+
+    // Atualiza Cidade I3
+    useEffect(() => {
+        if (!ufSelecionadaI3) {
+            setCidadeOptionsI3([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaI3)
+            .then(cidades => {
+                if (ufSelecionadaI3 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+
+                setCidadeOptionsI3(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaI3}, usando dados locais:`, error);
+
+                if (ufSelecionadaI3 in cidadesLocais) {
+                    const cidadesLocaisDaUf = cidadesLocais[ufSelecionadaI3 as keyof typeof cidadesLocais];
+                    setCidadeOptionsI3(cidadesLocaisDaUf);
+                } else {
+                    setCidadeOptionsI3([]);
+                }
+            });
+    }, [ufSelecionadaI3]);
+
+    //TRABALH0 1
+
+    // 1️⃣ Carrega subprefeituras para Trabalho1 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsTrabalho1(options);
+        } else {
+            setSubPrefeituraOptionsTrabalho1([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho1`)]);
+
+    // 2️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho1 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+
+        if (currentUf !== "SP" || !selectedSubPrefeituraTrabalho1) {
+            setDistritoOptionsStateTrabalho1([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho1] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateTrabalho1(options);
+    }, [selectedSubPrefeituraTrabalho1, form.getValues(`families[${familyIndex}].ufTrabalho1`)]);
+
+    // 3️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho1 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho1`);
+
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraTrabalho1) {
+            setDistritoOptionsStateTrabalho1([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho1] || [];
+        const options = distritos.map(nome => ({ label: nome, value: nome }));
+        setDistritoOptionsStateTrabalho1(options);
+    }, [selectedSubPrefeituraTrabalho1, form.getValues(`families[${familyIndex}].ufTrabalho1`), form.getValues(`families[${familyIndex}].cidadeTrabalho1`)]);
+
+    // 4️⃣ Torna o SP padrão na UF Trabalho1
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+        if (!currentUf) {
+            form.setValue(`families[${familyIndex}].ufTrabalho1`, "SP");
+        }
+    }, []);
+
+    // 5️⃣ Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia Trabalho1
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho1`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho1`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeTrabalho1`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho1`)]);
+
+    // 6️⃣ Atualiza UF Trabalho1
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map((e: any) => ({ label: e.nome, value: e.sigla }));
+
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsTrabalho1(options);
+            })
+            .catch((error: any) => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+
+                const options = estados.map((e: any) => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex((e: any) => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+
+                setEstadoOptionsTrabalho1(options);
+            });
+    }, []);
+
+    // 7️⃣ Atualiza Cidade Trabalho1
+    useEffect(() => {
+        if (!ufSelecionadaTrabalho1) {
+            setCidadeOptionsTrabalho1([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaTrabalho1)
+            .then(cidades => {
+                if (ufSelecionadaTrabalho1 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+
+                setCidadeOptionsTrabalho1(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaTrabalho1}, usando dados locais:`, error);
+
+                if (ufSelecionadaTrabalho1 in cidadesLocais) {
+                    const cidadesLocaisDaUf = cidadesLocais[ufSelecionadaTrabalho1 as keyof typeof cidadesLocais];
+                    setCidadeOptionsTrabalho1(cidadesLocaisDaUf);
+                } else {
+                    setCidadeOptionsTrabalho1([]);
+                }
+            });
+    }, [ufSelecionadaTrabalho1]);
+
+
+    //TRABALHO 2
+
+    // 1️⃣ Carrega subprefeituras para Trabalho2 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsTrabalho2(options);
+        } else {
+            setSubPrefeituraOptionsTrabalho2([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho2`)]);
+
+    // 2️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho2 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        if (currentUf !== "SP" || !selectedSubPrefeituraTrabalho2) {
+            setDistritoOptionsStateTrabalho2([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho2] || [];
+        setDistritoOptionsStateTrabalho2(distritos.map(nome => ({ label: nome, value: nome })));
+    }, [selectedSubPrefeituraTrabalho2, form.getValues(`families[${familyIndex}].ufTrabalho2`)]);
+
+    // 3️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho2 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho2`);
+
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraTrabalho2) {
+            setDistritoOptionsStateTrabalho2([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho2] || [];
+        setDistritoOptionsStateTrabalho2(distritos.map(nome => ({ label: nome, value: nome })));
+    }, [selectedSubPrefeituraTrabalho2, form.getValues(`families[${familyIndex}].ufTrabalho2`), form.getValues(`families[${familyIndex}].cidadeTrabalho2`)]);
+
+    // 4️⃣ Torna o SP padrão na UF Trabalho2
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        if (!currentUf) form.setValue(`families[${familyIndex}].ufTrabalho2`, "SP");
+    }, []);
+
+    // 5️⃣ Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia Trabalho2
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho2`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho2`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeTrabalho2`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho2`)]);
+
+    // 6️⃣ Atualiza UF Trabalho2
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map(e => ({ label: e.nome, value: e.sigla }));
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+                setEstadoOptionsTrabalho2(options);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+                const options = estados.map(e => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+                setEstadoOptionsTrabalho2(options);
+            });
+    }, []);
+
+    // 7️⃣ Atualiza Cidade Trabalho2
+    useEffect(() => {
+        if (!ufSelecionadaTrabalho2) {
+            setCidadeOptionsTrabalho2([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaTrabalho2)
+            .then(cidades => {
+                if (ufSelecionadaTrabalho2 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+                setCidadeOptionsTrabalho2(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaTrabalho2}, usando dados locais:`, error);
+                if (ufSelecionadaTrabalho2 in cidadesLocais) {
+                    setCidadeOptionsTrabalho2(cidadesLocais[ufSelecionadaTrabalho2 as keyof typeof cidadesLocais]);
+                } else {
+                    setCidadeOptionsTrabalho2([]);
+                }
+            });
+    }, [ufSelecionadaTrabalho2]);
+
+
+    //TRABALHO 3
+
+    // 1️⃣ Carrega subprefeituras para Trabalho3 - mas só se a UF for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        if (currentUf === "SP") {
+            const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
+            setSubPrefeituraOptionsTrabalho3(options);
+        } else {
+            setSubPrefeituraOptionsTrabalho3([]);
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho3`)]);
+
+    // 2️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho3 SOMENTE se for SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        if (currentUf !== "SP" || !selectedSubPrefeituraTrabalho3) {
+            setDistritoOptionsStateTrabalho3([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho3] || [];
+        setDistritoOptionsStateTrabalho3(distritos.map(nome => ({ label: nome, value: nome })));
+    }, [selectedSubPrefeituraTrabalho3, form.getValues(`families[${familyIndex}].ufTrabalho3`)]);
+
+    // 3️⃣ Atualiza distritos ao mudar subPrefeitura Trabalho3 SOMENTE se for São Paulo/SP
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho3`);
+
+        if (currentUf !== "SP" || currentCidade !== "São Paulo" || !selectedSubPrefeituraTrabalho3) {
+            setDistritoOptionsStateTrabalho3([]);
+            return;
+        }
+
+        const distritos = distritosPorSubprefeitura[selectedSubPrefeituraTrabalho3] || [];
+        setDistritoOptionsStateTrabalho3(distritos.map(nome => ({ label: nome, value: nome })));
+    }, [selectedSubPrefeituraTrabalho3, form.getValues(`families[${familyIndex}].ufTrabalho3`), form.getValues(`families[${familyIndex}].cidadeTrabalho3`)]);
+
+    // 4️⃣ Torna o SP padrão na UF Trabalho3
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        if (!currentUf) form.setValue(`families[${familyIndex}].ufTrabalho3`, "SP");
+    }, []);
+
+    // 5️⃣ Torna a cidade São Paulo padrão **somente se** a UF for SP e cidade estiver vazia Trabalho3
+    useEffect(() => {
+        const currentUf = form.getValues(`families[${familyIndex}].ufTrabalho3`);
+        const currentCidade = form.getValues(`families[${familyIndex}].cidadeTrabalho3`);
+        if (currentUf === "SP" && !currentCidade) {
+            form.setValue(`families[${familyIndex}].cidadeTrabalho3`, "São Paulo");
+        }
+    }, [form.getValues(`families[${familyIndex}].ufTrabalho3`)]);
+
+    // 6️⃣ Atualiza UF Trabalho3
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const response = await fetch('sua-url-da-api-aqui');
+                if (!response.ok) throw new Error('Erro na API');
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        fetchEstados()
+            .then((list: any[]) => {
+                const options = list.map(e => ({ label: e.nome, value: e.sigla }));
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+                setEstadoOptionsTrabalho3(options);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar estados da API, usando dados locais:', error);
+                const options = estados.map(e => ({ label: e.label, value: e.value }));
+                const spIndex = options.findIndex(e => e.label === 'São Paulo');
+                if (spIndex > -1) {
+                    const [sp] = options.splice(spIndex, 1);
+                    options.unshift(sp);
+                }
+                setEstadoOptionsTrabalho3(options);
+            });
+    }, []);
+
+    // 7️⃣ Atualiza Cidade Trabalho3
+    useEffect(() => {
+        if (!ufSelecionadaTrabalho3) {
+            setCidadeOptionsTrabalho3([]);
+            return;
+        }
+
+        getCidadesOptions(ufSelecionadaTrabalho3)
+            .then(cidades => {
+                if (ufSelecionadaTrabalho3 === 'SP') {
+                    const spIndex = cidades.findIndex(c => c.label === 'São Paulo');
+                    if (spIndex > -1) {
+                        const [spCity] = cidades.splice(spIndex, 1);
+                        cidades.unshift(spCity);
+                    }
+                }
+                setCidadeOptionsTrabalho3(cidades);
+            })
+            .catch(error => {
+                console.error(`Erro ao buscar cidades da UF ${ufSelecionadaTrabalho3}, usando dados locais:`, error);
+                if (ufSelecionadaTrabalho3 in cidadesLocais) {
+                    setCidadeOptionsTrabalho3(cidadesLocais[ufSelecionadaTrabalho3 as keyof typeof cidadesLocais]);
+                } else {
+                    setCidadeOptionsTrabalho3([]);
+                }
+            });
+    }, [ufSelecionadaTrabalho3]);
+
+
+    // Para a primeira filiação (filiacao1_nome3)
+    useEffect(() => {
+        if (formValues.filiacao1_naoSeAplica3) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao1_nome3`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao1_nome3`, "");
+            }
+        }
+    }, [formValues.filiacao1_naoSeAplica3, form, familyIndex]);
+
+    // Para a segunda filiação (filiacao2_nome3)
+    useEffect(() => {
+        if (formValues.filiacao2_naoSeAplica3) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao2_nome3`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao2_nome3`, "");
+            }
+        }
+    }, [formValues.filiacao2_naoSeAplica3, form, familyIndex]);
+
+    // Para a primeira filiação (filiacao1_nome2)
+    useEffect(() => {
+        if (formValues.filiacao1_naoSeAplica2) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao1_nome2`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao1_nome2`, "");
+            }
+        }
+    }, [formValues.filiacao1_naoSeAplica2, form, familyIndex]);
+
+    // Para a segunda filiação (filiacao2_nome2)
+    useEffect(() => {
+        if (formValues.filiacao2_naoSeAplica2) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao2_nome2`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao2_nome2`, "");
+            }
+        }
+    }, [formValues.filiacao2_naoSeAplica2, form, familyIndex]);
+
+    // Para a primeira filiação
+    useEffect(() => {
+        if (formValues.filiacao1_naoSeAplica1) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao1_nome1`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao1_nome1`, "");
+            }
+        }
+    }, [formValues.filiacao1_naoSeAplica1, form, familyIndex]);
+
+    // Para a segunda filiação
+    useEffect(() => {
+        if (formValues.filiacao2_naoSeAplica1) {
+            const nomeAtual = form.getValues(`families[${familyIndex}].filiacao2_nome1`);
+
+            if (nomeAtual && nomeAtual !== '') {
+                form.setValue(`families[${familyIndex}].filiacao2_nome1`, "");
+            }
+        }
+    }, [formValues.filiacao2_naoSeAplica1, form, familyIndex]);
+
+
     // ----------- Máscara CEP para Integrante 1 -----------
     useEffect(() => {
         if (cepI1) {
@@ -50,6 +1037,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             form.setValue(`families[${familyIndex}].cepI1`, cepMasked);
         }
     }, [cepI1]);
+
     // ----------- Máscara CEP para Integrante 2 -----------
     useEffect(() => {
         if (cepI2) {
@@ -60,6 +1048,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             form.setValue(`families[${familyIndex}].cepI2`, cepMasked);
         }
     }, [cepI2]);
+
     // ----------- Máscara CEP para Integrante 3 -----------
     useEffect(() => {
         if (cepI3) {
@@ -70,6 +1059,41 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             form.setValue(`families[${familyIndex}].cepI3`, cepMasked);
         }
     }, [cepI3]);
+
+    // ----------- Máscara CEP para Trabalho1 -----------
+    useEffect(() => {
+        if (cepTrabalho1) {
+            let cepMasked = cepTrabalho1.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepTrabalho1`, cepMasked);
+        }
+    }, [cepTrabalho1]);
+
+    // ----------- Máscara CEP para Trabalho2 -----------
+    useEffect(() => {
+        if (cepTrabalho2) {
+            let cepMasked = cepTrabalho2.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepTrabalho2`, cepMasked);
+        }
+    }, [cepTrabalho2]);
+
+    // ----------- Máscara CEP para Trabalho3 -----------
+    useEffect(() => {
+        if (cepTrabalho3) {
+            let cepMasked = cepTrabalho3.replace(/\D/g, "").slice(0, 8);
+            if (cepMasked.length > 5) {
+                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            }
+            form.setValue(`families[${familyIndex}].cepTrabalho3`, cepMasked);
+        }
+    }, [cepTrabalho3]);
+
+
 
     // ----------- Buscar CEP para Integrante 1 -----------
     useEffect(() => {
@@ -96,6 +1120,19 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepI1`);
+
+                    // ⚠️ Verificação adicionada: CEP deve ser de SP
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI1`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepI1`, '');
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouroI1`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroI1`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoI1`, endereco.complemento || '');
@@ -114,6 +1151,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepI1`)]);
+
+
     // ----------- Buscar CEP para escola Integrante 2 -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cepI2`);
@@ -139,6 +1178,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepI2`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI2`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouroI2`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroI2`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoI2`, endereco.complemento || '');
@@ -157,6 +1208,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepI2`)]);
+
     // ----------- Buscar CEP escola para Integrante 3 -----------
     useEffect(() => {
         const cep = form.watch(`families[${familyIndex}].cepI3`);
@@ -182,6 +1234,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepI3`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepI3`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        return;
+                    }
+
+                    // Preenche os campos diretamente
                     form.setValue(`families[${familyIndex}].logradouroI3`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroI3`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoI3`, endereco.complemento || '');
@@ -200,6 +1264,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepI3`)]);
+
 
     // ----------- Buscar CEP Trabalho para Integrante 1 -----------
     useEffect(() => {
@@ -226,6 +1291,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho1`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho1`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho1`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho1`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho1`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho1`, endereco.complemento || '');
@@ -244,6 +1321,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepTrabalho1`)]);
+
 
     // ----------- Buscar CEP Trabalho para Integrante 2 -----------
     useEffect(() => {
@@ -270,6 +1348,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho2`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho2`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho2`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho2`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho2`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho2`, endereco.complemento || '');
@@ -287,7 +1377,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
 
             buscarEndereco();
         }
-    }, [form.watch(`families[${familyIndex}].cepTrabalho2`)]);
+    }, [form.watch(`families[${familyIndex}].cepTrabalho2`)])
+
 
     // ----------- Buscar CEP Trabalho para Integrante 3 -----------
     useEffect(() => {
@@ -314,6 +1405,18 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                 try {
                     const endereco = await buscarEnderecoPorCep(cepLimpo);
                     form.clearErrors(`families[${familyIndex}].cepTrabalho3`);
+
+                    // 🔹 Verifica se o CEP pertence ao estado de São Paulo
+                    if (endereco.uf !== 'SP') {
+                        form.setError(`families[${familyIndex}].cepTrabalho3`, {
+                            type: 'manual',
+                            message: 'O CEP informado não pertence ao estado de São Paulo.',
+                        });
+                        limparCamposEndereco();
+                        form.setValue(`families[${familyIndex}].cepTrabalho3`, '');
+                        return;
+                    }
+
                     form.setValue(`families[${familyIndex}].logradouroTrabalho3`, endereco.logradouro || '');
                     form.setValue(`families[${familyIndex}].bairroTrabalho3`, endereco.bairro || '');
                     form.setValue(`families[${familyIndex}].complementoTrabalho3`, endereco.complemento || '');
@@ -332,6 +1435,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
             buscarEndereco();
         }
     }, [form.watch(`families[${familyIndex}].cepTrabalho3`)]);
+
+
 
     // ----------- Validacao CPF escola Integrante 1 -----------
     useEffect(() => {
@@ -441,6 +1546,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         familyIndex,
         form.setValue
     ]);
+
+
 
     // ✅ Função para agrupar campos por integrante - MESMA LÓGICA DOS ANIMAIS
     const getCamposPorIntegrante = (): Integrante[] => {
@@ -588,6 +1695,8 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const found = relacaoOptions.find(opt => opt.value === relacao);
         return found ? found.label : "Não informado";
     };
+
+
 
     return (
         <div className="text-left">
