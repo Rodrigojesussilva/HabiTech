@@ -50,13 +50,10 @@ export default function Header({ children, logoWidth }: HeaderProps) {
               src="/logo-habitasampa.png"
               alt="HabitaSampa"
               style={logoStyle}
-              className="w-[var(--logo-w)] md:w-[var(--logo-w-md)] h-auto object-contain select-none"
+               className="h-16 w-auto md:h-18 lg:h-20 object-contain select-none transition-all"
               loading="eager"
             />
-            <span className=" text-center leading-none font-semibold
-              text-[13px] xs:text-sm sm:text-lg md:text-2xl
-              text-[var(--habitasampa-blue,#0F62AC)]
-              px-1 truncate">
+            <span className="text-[14px] sm:text-lg md:text-xl font-semibold text-[var(--habitasampa-blue,#0F62AC)] whitespace-nowrap leading-tight">
               Instrumentos de Pesquisa
             </span>
           </div>
