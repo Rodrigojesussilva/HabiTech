@@ -20,7 +20,6 @@ const shortcutItems: ShortcutItem[] = [
   { id: "ocupacao-predial", title: "Ocupação Predial", subtitle: "", icon: <Building className="h-6 w-6" />, to: "/edificacoes" },
 ];
 
-/** Helpers para evitar catch {} vazio e warnings do ESLint */
 function safeLocalGet<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);

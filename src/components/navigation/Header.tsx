@@ -55,8 +55,9 @@ export default function Header({ children, logoWidth }: HeaderProps) {
                 "text-[13px] xs:text-sm sm:text-lg md:text-2xl",
                 "font-semibold leading-tight text-[var(--habitasampa-blue,#0F62AC)]",
                 "whitespace-normal break-words line-clamp-2 md:line-clamp-1",
+                "md:ml-8 lg:ml-21",
                 "flex-1 min-w-0 md:truncate",
-                "text-left"
+                "text-left",
               ].join(" ")}
             >
               Instrumentos de Pesquisa
