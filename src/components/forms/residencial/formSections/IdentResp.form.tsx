@@ -87,6 +87,16 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
         form.setValue
     ]);
 
+    useEffect(() => {
+
+        if (formValues.naoSeAplicaNomeSocial) {
+            const nomeResponsavel = form.getValues(`families[${familyIndex}].nomeSocialR`);
+            if (nomeResponsavel) {
+                form.setValue(`families[${familyIndex}].nomeSocialR`, "");
+            }
+        }
+    }, [formValues.naoSeAplicaNomeSocial, form, familyIndex]);
+
     // Carrega subprefeituras (pode ser fetch ou lista estática)
     useEffect(() => {
         const options = subprefeituras.map(nome => ({ label: nome, value: nome }));
