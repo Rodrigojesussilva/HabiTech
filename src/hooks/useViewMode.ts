@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/lib/router-compat';
 
 /**
  * Hook que detecta automaticamente se estamos numa rota de visualização

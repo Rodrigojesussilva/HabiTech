@@ -8,15 +8,15 @@ import {
   SidebarFooter,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/Link";
 
 const data = {
   navMain: [
     { title: "Selagem", url: "/lista-selagens", icon: Stamp, isActive: true, items: [] },
     { title: "Arrolamento", url: "/lista-arrolamentos", icon: FaPeopleRoof, items: [] },
-    { title: "Residencial", url: "#", icon: House, items: [] },
-    { title: "Não Residencial", url: "#", icon: Factory, items: [] },
-    { title: "Ocupação Predial", url: "#", icon: Building, items: [] },
+    { title: "Residencial", url: "/lista-residenciais", icon: House, items: [] },
+    { title: "Não Residencial", url: "/lista-nao-residenciais", icon: Factory, items: [] },
+    { title: "Ocupação Predial", url: "/lista-ocupacao-predial", icon: Building, items: [] },
   ],
 };
 
@@ -25,24 +25,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     <Sidebar
       collapsible="icon"
       {...props}
-      className="border-r bg-sidebar" 
+      className="border-r bg-sidebar"
     >
       <Link to="/home" className="sr-only">
         Ir para a Home
       </Link>
 
       {/* conteúdo da sidebar */}
-      <SidebarContent className="px-3 pt-4 pb-2">
+      <SidebarContent className="px-3 pt-4 pb-2 group-data-[collapsible=icon]:px-0">
         <NavMain items={data.navMain} />
       </SidebarContent>
 
-      {/* footer  */}
-      <SidebarFooter className=" px-3 py-17 mt-auto">
+      <SidebarFooter className="mt-auto px-3 py-5 group-data-[collapsible=icon]:hidden">
         <div className="flex justify-center">
           <img
             src="/psp.png"
-            alt="Prefeitura de São Paulo"
-            className="w-30 md:w-40 h-auto object-contain select-none shrink-0"
+            alt="Prefeitura de São Paulo — Habitação"
+            className="h-auto w-full max-w-[180px] shrink-0 select-none object-contain"
             loading="eager"
           />
         </div>

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useFormMetadata } from '@/hooks/useFormMetadata';
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "@/lib/router-compat";
 import useViewMode from '@/hooks/useViewMode';
 
 import IdentRespForm from "./formSections/IdentResp.form"
@@ -53,6 +53,8 @@ import Swal from 'sweetalert2'
 import { mapArrolamentoToFormData } from './helpers/apiMapper'
 import { useRef } from 'react'
 import { formatarSelo } from "./helpers/selo.helper";
+import FormCompletionProgress from "@/components/forms/FormCompletionProgress";
+import FormPageHeader from "@/components/forms/FormPageHeader";
 // Define the schema for a single family, integrating IdentResp schema
 const familySchema = z.object({
 	...identRespSchema.shape,
@@ -129,9 +131,7 @@ const FormArrolamento = ({
 		setIsViewMode(baseViewMode || (isEditMode && !canUserEditRecord));
 	}, [baseViewMode, isEditMode, loadedArrolamentoData?.created_by]);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
-	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 	const [finalizing, setFinalizing] = useState(false);
-	const [saving, setSaving] = useState(false);
 	const serverMainMetadataRef = useRef<any>(null);
    const ignoreNextCloseRef = useRef(false);
 	console.log(isMobile);
@@ -165,6 +165,7 @@ const FormArrolamento = ({
 			families: [{}],
 		},
 	});
+	const progressValues = useWatch({ control: form.control });
 
 
 
@@ -490,19 +491,6 @@ const FormArrolamento = ({
  			setFinalizing(false)
  		}
  	}
-
- 	const handleSaveVisit = async () => {
-    try {
-      setSaving(true)
-      // Apenas fecha o modal de salvar; os PATCHs são automáticos por campo
-      setIsSaveModalOpen(false)
-      Swal.fire({
-        position: 'top-end', icon: 'success', title: 'Alterações salvas', showConfirmButton: false, timer: 1200
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
 
 	// Modal de metadados: handler simples
 	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
@@ -1036,28 +1024,24 @@ return (
 						}}
 						className="mt-4"
 					>
-						Salvar
+						Concluir
 						</Button>
 
 					</DialogContent>
 				</Dialog>
 
-				<div className="flex flex-row justify-between gap-2">
-					<div className="text-left text-lg font-bold flex items-center gap-2">
-						{isEditMode ? (
-							<>
-								<span>Editando Arrolamento</span>
-								{isLoadingData && <span className="text-sm text-blue-600 animate-pulse">(Carregando dados...)</span>}
-								{loadedArrolamentoData && <span className="text-sm text-green-600">({loadedArrolamentoData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
-							</>
-						) : (
-							<span>Novo Arrolamento</span>
-						)}
-					</div>
-
-					
-				</div>
-				<div className="w-full border-t border-gray-300 my-4"></div>
+				<FormPageHeader
+					title={isEditMode ? "Editando Arrolamento" : "Arrolamento"}
+					description="Levantamento de famílias, unidades residenciais e condições de moradia."
+					status={
+						<>
+							{isLoadingData && <span className="text-sm font-normal text-blue-600 animate-pulse">(Carregando dados...)</span>}
+							{loadedArrolamentoData && <span className="text-sm font-normal text-green-600">({loadedArrolamentoData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
+						</>
+					}
+				>
+					<FormCompletionProgress schema={formSchema} values={progressValues} />
+				</FormPageHeader>
 				{/* Always render the IdentRespForm */}
 				{familyFields.map((field, index) => (
 					<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
@@ -1086,11 +1070,8 @@ return (
 					</div>
 				))}
 
- 								{/* Botões finais */}
+				{/* Ações finais */}
 				<div className="flex flex-row justify-end gap-2 mt-6">
- 					<Button type="button" variant="outline" disabled={isViewMode || saving} onClick={() => setIsSaveModalOpen(true)}>
- 						{saving ? 'Salvando...' : 'Salvar'}
- 					</Button>
  					<Button type="button" className="bg-green-600 hover:bg-green-700" disabled={isViewMode || finalizing} onClick={() => setIsFinalizeModalOpen(true)}>
  						{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
  					</Button>
@@ -1114,23 +1095,6 @@ return (
  					</DialogContent>
  				</Dialog>
 
- 				{/* Modal de salvar - padrão Selagem */}
- 				<Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
- 					<DialogContent>
- 						<DialogHeader>
- 							<DialogTitle>Salvar</DialogTitle>
- 							<DialogDescription>
- 								Pressione salvar para fechar.
- 							</DialogDescription>
- 						</DialogHeader>
- 						<div className="flex justify-end gap-2">
- 							<Button variant="outline" onClick={() => setIsSaveModalOpen(false)} disabled={saving}>Cancelar</Button>
- 							<Button onClick={handleSaveVisit} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
- 								{saving ? 'Salvando...' : 'Salvar'}
- 							</Button>
- 						</div>
- 					</DialogContent>
- 				</Dialog>
 			</form>
 		</Form>
 	</div >

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { useParams } from "@/lib/router-compat";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/arrolamento/definitions/anexos.definition";
 import Swal from 'sweetalert2';
@@ -10,6 +10,7 @@ import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constan
 import useViewMode from '@/hooks/useViewMode'
 import { useCameraModal } from "@/components/camera/useCameraModal";
 import { useAtualizaOnClickBotao } from "@/components/camera/useAtualizaOnClickBotao";
+import { DEMO_AUTH_TOKEN } from "@/service/demo.api";
 
 interface AnexosFormProps {
   id?: string;
@@ -51,18 +52,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     familyIndex,
     abrirCamera
   );
-  const getAuthToken = (): string => {
-    const keys = ['authToken', 'authorization_token', 'token', 'access_token', 'jwt', 'idToken']
-    for (const k of keys) {
-      const v = localStorage.getItem(k)
-      if (v) {
-        console.log('[Arrolamento][Anexos][Auth] token source:', k, 'length:', v.length)
-        return v
-      }
-    }
-    console.warn('[Arrolamento][Anexos][Auth] token not found in localStorage')
-    return ''
-  }
+  const getAuthToken = (): string => DEMO_AUTH_TOKEN
   const authToken = getAuthToken()
   const createdBy = localStorage.getItem('userEmail') || ''
   console.log('[Arrolamento][Anexos][Init] createdBy:', createdBy)
@@ -76,9 +66,29 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
   const localKey = (sid: string) => `arrolamento_attachments_${sid}`
 
+  const saveLocalAttachment = (sid: string, field: string, attachment: AttachmentItem) => {
+    try {
+      const key = localKey(sid)
+      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
+      current[field] = [...(current[field] || []), attachment]
+      localStorage.setItem(key, JSON.stringify(current))
+    } catch (error) {
+      console.error('[Arrolamento][Anexos][Local][Save] failed:', error)
+    }
+  }
 
-
- 
+  const removeLocalAttachment = (sid: string, field: string, id: string) => {
+    try {
+      const key = localKey(sid)
+      const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
+      if (current[field]) {
+        current[field] = current[field].filter((attachment) => attachment.id !== id)
+        localStorage.setItem(key, JSON.stringify(current))
+      }
+    } catch (error) {
+      console.error('[Arrolamento][Anexos][Local][Remove] failed:', error)
+    }
+  }
 
   const loadFromLocal = (sid: string) => {
     try {
@@ -127,7 +137,11 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       })
       const list = (response as any)?.attachments || []
       console.log('[Arrolamento][Anexos][Load] signed_url attachments raw length:', list.length)
-      if (!Array.isArray(list) || list.length === 0) throw new Error('Empty signed_url response; fallback metadata_only')
+      if (!Array.isArray(list)) throw new Error('Resposta de anexos demonstrativos inválida.')
+      if (list.length === 0) {
+        loadFromLocal(currentId)
+        return
+      }
       const grouped: Record<string, AttachmentItem[]> = {}
       const parseMetadata = (m: unknown) => {
         if (!m) return {};
@@ -259,9 +273,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           next[fieldName] = [...(next[fieldName] || []), newItem]
           return next
         })
-        console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
-        // Persistir localmente para carregamento futuro sem token
-        //saveLocalAttachment(currentSelagemId, fieldName, newItem)
+        console.log('[Arrolamento][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
+        saveLocalAttachment(currentId, fieldName, newItem)
       } catch (e) {
         console.warn('[Arrolamento][Anexos][Upload] could not reflect response in UI:', e)
       }
@@ -302,8 +315,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         next[fieldName] = (next[fieldName] || []).filter(a => a.id !== attachmentId)
         return next
       })
-      //removeLocalAttachment(currentId, fieldName, attachmentId)
-      //console.log('[Arrolamento][Anexos][Remove] removed locally:', attachmentId)
+      removeLocalAttachment(currentId, fieldName, attachmentId)
     } catch (e) {
       console.error('[Arrolamento][Anexos][Remove] error:', e)
     }

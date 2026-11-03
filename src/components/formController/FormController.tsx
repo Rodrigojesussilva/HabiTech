@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/card";
 import FormSidebar from "./FormSidebar";
-import { useLocation } from "react-router-dom"; // Importa hook de rota
+import { useLocation } from "@/lib/router-compat";
 
 // Mobile Components
 import { MobileFormHeader } from "./mobile/MobileFormHeader";
@@ -58,33 +58,6 @@ const FormContainer: React.FC<FormContainerProps> = ({ FormComponent, openModalO
 			}
 		}
 	}, [location.pathname]);
-
-	// Limpa cache de IDs e dados não relacionados ao login ao entrar em qualquer formulário
-	useEffect(() => {
-		try {
-			const keysToKeep = new Set([
-				'isAuthenticated',
-				'userEmail',
-				'authToken',
-				'authorization_token',
-				'token',
-				'access_token',
-				'jwt',
-				'idToken',
-				'FORCE_PRODUCTION', // ambiente
-			]);
-			const allKeys: string[] = [];
-			for (let i = 0; i < localStorage.length; i++) {
-				const k = localStorage.key(i);
-				if (k) allKeys.push(k);
-			}
-			for (const k of allKeys) {
-				if (!keysToKeep.has(k)) {
-					localStorage.removeItem(k);
-				}
-			}
-		} catch {}
-	}, []);
 
 	return (
 		<>

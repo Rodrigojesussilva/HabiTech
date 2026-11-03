@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/Link";
 import { FileText } from "lucide-react";
 
 import {
@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useLocation } from "@/lib/router-compat"
 
 type AnyIcon = React.ComponentType<{ className?: string }>;
 
@@ -23,45 +24,22 @@ type NavItem = {
   items?: { title: string; url: string }[];
 };
 
-type SidebarCtx = {
-  isMobile?: boolean;
-  setOpenMobile?: (open: boolean) => void;
-};
-
 export function NavMain({ items }: { items: NavItem[] }) {
-  const sidebarUnknown = useSidebar() as unknown;
-
-  const { isMobile, setOpenMobile } = ((): SidebarCtx => {
-    if (typeof sidebarUnknown === "object" && sidebarUnknown !== null) {
-      const maybe = sidebarUnknown as Partial<SidebarCtx>;
-      return { isMobile: maybe.isMobile, setOpenMobile: maybe.setOpenMobile };
-    }
-    return {};
-  })();
+  const { isMobile, setOpenMobile } = useSidebar()
+  const { pathname } = useLocation()
 
   const handleClick = () => {
-    try {
-      if (isMobile && typeof setOpenMobile === "function") {
-        setOpenMobile(false);
-      }
-    } catch {
-      /* no-op */
-    }
-  };
+    if (isMobile) setOpenMobile(false)
+  }
 
   return (
-    <SidebarGroup className="-ml-2">
+    <SidebarGroup>
       <SidebarGroupLabel className="px-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-600" aria-hidden />
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-              Formulários
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-              Cadastrados
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-slate-600" aria-hidden />
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+            Formulários cadastrados
+          </span>
         </div>
       </SidebarGroupLabel>
 
@@ -70,16 +48,27 @@ export function NavMain({ items }: { items: NavItem[] }) {
       <SidebarMenu>
         {items.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.url
           return (
             <SidebarMenuItem key={item.url}>
-              <Link to={item.url} className="w-full" onClick={handleClick}>
-                <SidebarMenuButton className="cursor-pointer" tooltip={item.title}>
+              <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                className="h-11 cursor-pointer data-[active=true]:bg-blue-50 data-[active=true]:text-blue-800"
+                tooltip={item.title}
+              >
+                <Link
+                  to={item.url}
+                  onClick={handleClick}
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={item.title}
+                >
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary text-primary">
                     {Icon ? <Icon className="h-4 w-4" /> : null}
                   </div>
-                  <span className="text-primary">{item.title}</span>
-                </SidebarMenuButton>
-              </Link>
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           );
         })}

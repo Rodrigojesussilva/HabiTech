@@ -1,58 +1,23 @@
-/*
-Salve esse script em scripts/gerarCidades.js
+import { writeFileSync } from "node:fs"
+import { resolve } from "node:path"
 
-Antes, instale o node-fetch (para Node < 18):
-npm install node-fetch@2
-
-Crie a pasta src/components/forms/selagem se ainda não existir.
-
-Execute:
-node scripts/gerarCidades.js
-*/
-
-// scripts/gerarCidades.js
-import fetch from 'node-fetch';
-import { writeFileSync } from 'fs';
-
-const ESTADOS_API = 'https://servicodados.ibge.gov.br/api/v1/localidades/estados';
-
-async function fetchEstados() {
-  const res = await fetch(ESTADOS_API);
-  if (!res.ok) throw new Error('Erro ao buscar estados');
-  const data = await res.json();
-  return data.map(e => e.sigla);
+const demoCitiesByState = {
+  SP: ["São Paulo", "Campinas", "Guarulhos", "Santos", "Osasco"],
+  RJ: ["Rio de Janeiro", "Niterói", "Duque de Caxias"],
+  MG: ["Belo Horizonte", "Uberlândia", "Contagem"],
+  PR: ["Curitiba", "Londrina", "Maringá"],
+  BA: ["Salvador", "Feira de Santana", "Vitória da Conquista"],
 }
 
-async function fetchCidades(uf) {
-  const url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Erro ao buscar cidades de ${uf}`);
-  const data = await res.json();
-  return data.map(c => ({ label: c.nome, value: c.nome }));
-}
+const citiesForOptions = Object.fromEntries(
+  Object.entries(demoCitiesByState).map(([uf, cities]) => [
+    uf,
+    cities.map((city) => ({ label: city, value: city })),
+  ]),
+)
 
-async function gerarArquivo() {
-  try {
-    const estados = await fetchEstados();
-    const cidadesPorEstado = {};
+const output = `export const cidadesLocais = ${JSON.stringify(citiesForOptions, null, 2)};\n`
+const outputPath = resolve("src/components/forms/selagem/estados.ts")
 
-    for (const uf of estados) {
-      console.log(`Buscando cidades de ${uf}...`);
-      const cidades = await fetchCidades(uf);
-      cidadesPorEstado[uf] = cidades;
-    }
-
-    // Conteúdo do arquivo TS gerado
-    const conteudo = `// Este arquivo é gerado automaticamente via script gerarCidades.js\n\nexport const cidadesLocais = ${JSON.stringify(cidadesPorEstado, null, 2)};\n`;
-
-    // Use barras normais "/" ou barras duplas "\\" no caminho
-    const caminhoArquivo = 'src/components/forms/selagem/estados.ts';
-
-    writeFileSync(caminhoArquivo, conteudo, 'utf-8');
-    console.log(`Arquivo ${caminhoArquivo} gerado com sucesso!`);
-  } catch (error) {
-    console.error('Erro:', error);
-  }
-}
-
-gerarArquivo();
+writeFileSync(outputPath, output, "utf8")
+console.info(`Arquivo demonstrativo gerado em ${outputPath}`)

@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import type { Ref } from "react";
@@ -25,6 +25,8 @@ import {
     regFundiariaSchema,
     defaultValues as regFundiariaDefaultValues
 } from "./definitions/regFundiaria.definition";
+import FormCompletionProgress from "@/components/forms/FormCompletionProgress";
+import FormPageHeader from "@/components/forms/FormPageHeader";
 
 // Define the form schema with Zod - combining metadata and regFundiaria fields
 const formSchema = z.object({
@@ -64,6 +66,7 @@ const FormRegFundiaria = ({
             ...regFundiariaDefaultValues
         },
     });
+    const progressValues = useWatch({ control: form.control });
 
     const { setForm, setMetadata } = useFormMetadata();
 
@@ -171,18 +174,12 @@ const FormRegFundiaria = ({
                         </DialogContent>
                     </Dialog>
 
-                    <div className="flex flex-row justify-between gap-2">
-                        <div className="text-left text-lg font-bold">
-                            Regularização Fundiária
-                        </div>
-                        <div className="text-right flex flex-row gap-2">
-                            <h3>Preenchimento:</h3>
-                            <p className="text-primary">
-                                0%
-                            </p>
-                        </div>
-                    </div>
-                    <div className="w-full border-t border-gray-300 my-4"></div>
+                    <FormPageHeader
+                        title="Regularização Fundiária"
+                        description="Levantamento de informações para cadastro e regularização fundiária."
+                    >
+                        <FormCompletionProgress schema={formSchema} values={progressValues} />
+                    </FormPageHeader>
 
                     {/* Render RegFundiariaForm directly without family index */}
                     <div data-family-index="0">

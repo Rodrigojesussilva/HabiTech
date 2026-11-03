@@ -2,11 +2,12 @@
 
 ## Project Overview
 - **Purpose:** Frontend for SEHAB's research instruments system (Secretaria de Habitação de São Paulo).
-- **Stack:** React + TypeScript + Vite, with Tailwind CSS and ShadCN UI for styling.
+- **Stack:** React + TypeScript + Vite, TanStack Router, TanStack Query, Axios, MSW, and Socket.IO client; Tailwind CSS and ShadCN UI for styling.
 - **Structure:**
   - `src/` contains all source code, organized by feature and component type.
   - `src/components/` holds UI, form, and utility components, often grouped by domain (e.g., `forms/`, `ui/`, `formController/`).
-  - `src/service/` contains API service modules for backend communication.
+  - `src/service/` contains the Axios demo client and service helpers.
+  - `src/mocks/` contains MSW handlers and browser worker setup for all simulated API data.
   - `src/hooks/` for custom React hooks.
   - `src/lib/` and `src/utils/` for shared utilities and configuration.
 
@@ -18,9 +19,12 @@
 - **UI Components:**
   - Prefer ShadCN UI primitives in `src/components/ui/` for consistency.
   - Custom UI logic (e.g., modals, avatars) is in `src/components/ui/` and `src/components/` subfolders.
-- **API Communication:**
-  - All API calls are abstracted in `src/service/` (e.g., `arrolamento.api.ts`, `selagem.api.ts`).
-  - Use these service modules for all backend interactions; do not call APIs directly in components.
+- **API and demo data:**
+  - The app runs without a backend; keep all API requests on the local `/mock-api` origin and implement responses in `src/mocks/handlers.ts`.
+  - Use `src/service/demo.api.ts` for Axios requests; do not add external API URLs or direct backend connections.
+  - Socket.IO is opt-in and must remain disconnected by default; create clients through `src/service/realtime.client.ts`.
+- **Navigation and queries:**
+  - Use TanStack Router for app routes and TanStack Query for server-state-style data.
 - **State & Data Flow:**
   - Use React context and hooks for state management; avoid global state libraries.
   - Shared logic is extracted to `src/hooks/` and `src/utils/`.
@@ -37,11 +41,11 @@
 - **Testing:**
   - No explicit test runner found; add tests under `src/` if needed, following the component structure.
 - **Debugging:**
-  - Use `src/components/debug/` tools (e.g., `ApiConnectionTester.tsx`, `ApiStatusIndicator.tsx`) for API and environment debugging.
+  - Use `src/components/debug/` tools only for local demo/MSW diagnostics; do not add production/local backend switching.
 
 ## Integration & Extensibility
-- **External APIs:**
-  - All backend integration should go through `src/service/` modules.
+- **Mock API:**
+  - Add simulated API routes to `src/mocks/handlers.ts`; do not connect to external backends or lookup services.
 - **Adding Forms:**
   - Place new form definitions in `src/components/forms/` and connect logic via `formController/`.
 - **Adding UI Components:**

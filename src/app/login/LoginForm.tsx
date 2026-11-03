@@ -1,14 +1,13 @@
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
+import { DEMO_AUTH_TOKEN } from '@/service/demo.api';
 
 
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -39,17 +38,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
   });
 
   async function onSubmit(data: z.infer<typeof LoginSchema>) {
-    console.log("Form submitted with data:", data);
-
     try {
-      console.log("Authenticating user...");
-      
-      // TODO: Replace with actual API call
-      // await axios.post(`/api/login`, { 
-      //   email: data.email,
-      //   password: data.password 
-      // });
-      // Usuários válidos
       const validUsers = [
         { email: "piloto@sehab.gov.br", password: "sehab2025" },
         { email: "urbhis@sehab.sp.gov.br", password: "sehab2025" },
@@ -65,30 +54,30 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
         throw new Error("Email ou senha inválidos");
       }
 
-      // Store authentication state
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('userEmail', data.email); 
+      localStorage.setItem('authToken', DEMO_AUTH_TOKEN);
       setIsLoginDone(true);
       navigate("/home");
     } catch (error) {
-      console.error("Error during authentication:", error);
+      console.error("Erro no login demonstrativo:", error);
       alert("Email ou senha inválidos");
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`flex flex-col gap-7 ${className ?? ""}`} {...props}>
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-950">
             Entrar na sua conta
-          </h1>
-          <p className="text-balance text-sm text-muted-foreground">
-            Digite seu email e senha para acessar o sistema
+          </h2>
+          <p className="text-balance text-sm leading-relaxed text-slate-600">
+            Acesse com piloto@sehab.gov.br e senha sehab2025
           </p>
         </div>
-        <div className="grid gap-6">
-          <div className="grid gap-2">
+        <div className="grid gap-5">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="email"
@@ -96,8 +85,9 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
                 <FormItem>
                   <FormLabel className="block text-left">Email</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="patricia2@sehab.org.br" 
+                    <Input
+                      className="h-12 rounded-xl bg-slate-50 px-4 focus-visible:bg-white"
+                      placeholder="seu.email@sehab.gov.br"
                       type="email"
                       {...field} 
                     />
@@ -113,7 +103,8 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
                 <FormItem>
                   <FormLabel className="block text-left">Senha</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
+                      className="h-12 rounded-xl bg-slate-50 px-4 focus-visible:bg-white"
                       placeholder="Digite sua senha"
                       type="password"
                       {...field}
@@ -126,13 +117,12 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
           </div>
           <Button 
             type="submit" 
-            className="w-full"
-            onClick={() => console.log("Button clicked")}
+            className="h-12 w-full rounded-xl bg-blue-700 text-base font-semibold shadow-md shadow-blue-900/15 transition hover:bg-blue-800"
           >
-            Entrar
+            Acessar sistema
           </Button>
         </div>
       </form>
-    </Form>
+    </FormProvider>
   );
 }

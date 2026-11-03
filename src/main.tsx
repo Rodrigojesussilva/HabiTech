@@ -1,55 +1,38 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom';
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { RouterProvider } from "@tanstack/react-router"
+import { router } from "./router"
+import { initializeTheme } from "./lib/theme-utils"
+import "./index.css"
 
-import App from './App.tsx'
-import { initializeTheme } from './lib/theme-utils'
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30_000,
+    },
+  },
+})
 
-// Initialize theme from config
-initializeTheme();
+initializeTheme()
 
-// Clear client-side caches on first load per tab if not authenticated
-(function conditionalClearCachesAndForceLogin() {
-	try {
-		const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-		const clearedThisTab = sessionStorage.getItem('startupCacheCleared') === 'true';
+async function startApplication() {
+  const { worker } = await import("./mocks/browser")
+  await worker.start({ onUnhandledRequest: "error" })
 
-		if (!isAuthenticated && !clearedThisTab) {
-			// Clear storages
-			localStorage.clear();
-			sessionStorage.clear();
-			// mark after clear
-			sessionStorage.setItem('startupCacheCleared', 'true');
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+}
 
-			// Clear CacheStorage (for any previous SW/asset caches)
-			if ('caches' in window) {
-				caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});
-			}
-
-			// Unregister any Service Workers
-			if ('serviceWorker' in navigator) {
-				navigator.serviceWorker.getRegistrations().then(regs => {
-					regs.forEach(reg => reg.unregister().catch(() => {}));
-				}).catch(() => {});
-			}
-
-			// Ensure we land on /login (without polluting history)
-			try {
-				if (window.location.pathname !== '/login') {
-					window.history.replaceState(null, '', '/login');
-				}
-			} catch {}
-		} else if (isAuthenticated && !clearedThisTab) {
-			// Mark that we've evaluated on this tab to avoid re-clearing on navigations
-			sessionStorage.setItem('startupCacheCleared', 'true');
-		}
-	} catch {}
-})();
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>,
-)
+void startApplication().catch((error: unknown) => {
+  console.error("Não foi possível iniciar o modo de demonstração:", error)
+  const root = document.getElementById("root")
+  if (root) root.textContent = "Falha ao iniciar a demonstração. Consulte o console para detalhes."
+})

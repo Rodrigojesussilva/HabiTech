@@ -2,36 +2,29 @@ import './App.css'
 import LoginPage from './app/login/LoginPage'
 import Header from './components/navigation/Header'
 import ContentController from './app/strucuture/structure'
-import FormularioContainer from './components/formController/FormController'
 import ThemeEditor from './components/theme-editor'
-
-import { Routes, Route } from "react-router-dom";
-import FormArrolamento from './components/forms/arrolamento/FormArrolamento'
-import FormSelagem from './components/forms/selagem/FormSelagem'
-import FormResidencial from './components/forms/residencial/FormResidencial'
+import { Outlet } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import DemoPageS from './components/formDataTables/selagem/list'
-import Home from './app/home'
-import { ChartAreaInteractive } from './app/dashboard/dash'
-import ArrolamentoList from './components/formDataTables/arrolamento/list'
+import { DEMO_AUTH_TOKEN } from './service/demo.api'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
-    // Initialize state from localStorage
-    return localStorage.getItem('isAuthenticated') === 'true'
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+    if (isAuthenticated && !localStorage.getItem('authToken')) {
+      localStorage.setItem('authToken', DEMO_AUTH_TOKEN)
+    }
+    return isAuthenticated
   });
 
   const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   useEffect(() => {
-    // Update localStorage when isLoginDone changes
     if (isLoginDone) {
       localStorage.setItem('isAuthenticated', 'true');
     } else {
       localStorage.removeItem('isAuthenticated');
     }
 
-    // Add keyboard shortcut to show/hide theme editor (Ctrl+Shift+T)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'H') {
         setShowThemeEditor(prev => !prev);
@@ -43,44 +36,24 @@ function App() {
   }, [isLoginDone]);
 
   return (
-    <>
-      <div className="relative flex h-screen flex-col bg-background">
-        {!isLoginDone && (<Routes>
-          <Route path="/" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
-          <Route path="/login" element={<LoginPage setIsLoginDone={setIsLoginDone} />} />
-        </Routes>
-        )}
-        {isLoginDone && (
-          <>
-            <Header />
-            <ContentController>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/create-arrolamento" element={<FormularioContainer FormComponent={FormArrolamento} />} />
-                <Route path="/create-selagem" element={<FormularioContainer FormComponent={FormSelagem} />} />
-                <Route path="/create-residencial" element={<FormularioContainer FormComponent={FormResidencial} />} />
-                <Route path="/edit-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} />} />
-                <Route path="/view-selagem/:id" element={<FormularioContainer FormComponent={FormSelagem} openModalOnMount={false} viewMode={true} />} />
-                <Route path="/theme-editor" element={<ThemeEditor />} />
-                <Route path="/lista-arrolamentos" element={<ArrolamentoList />} />
-                <Route path="/edit-arrolamento/:id" element={<FormularioContainer FormComponent={FormArrolamento} openModalOnMount={false} />} />
-                <Route path="/view-arrolamento/:id" element={<FormularioContainer FormComponent={FormArrolamento} openModalOnMount={false} viewMode={true} />} />
-                <Route path="/lista-selagens" element={<DemoPageS />} />
-                <Route path="/chart" element={<ChartAreaInteractive />} />
-              </Routes>
-            </ContentController>
-          </>
-        )}
+    <div className="relative flex h-screen flex-col bg-background">
+      {!isLoginDone ? (
+        <LoginPage setIsLoginDone={setIsLoginDone} />
+      ) : (
+        <>
+          <Header />
+          <ContentController>
+            <Outlet />
+          </ContentController>
+        </>
+      )}
 
-        {/* Floating theme editor - toggle with Ctrl+Shift+T */}
-        {showThemeEditor && (
-          <div className="fixed top-4 right-4 z-50 w-126 max-h-[90vh] overflow-auto">
-            <ThemeEditor />
-          </div>
-        )}
-      </div>
-    </>
+      {showThemeEditor && (
+        <div className="fixed top-4 right-4 z-50 w-126 max-h-[90vh] overflow-auto">
+          <ThemeEditor />
+        </div>
+      )}
+    </div>
   )
 }
 

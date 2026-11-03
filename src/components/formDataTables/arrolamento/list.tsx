@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "@/lib/router-compat"
 import survey_resource from "../../../service/survey_resource.api"
 import { SURVEY_RESOURCE_URL } from "../../../service/constants"
 import Loader from "../../loader/Loader"

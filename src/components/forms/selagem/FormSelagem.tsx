@@ -10,7 +10,7 @@ import {
 
 import { useEffect, useState, useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "@/lib/router-compat";
 import {
 	Dialog,
 	DialogContent,
@@ -45,6 +45,8 @@ import { SURVEY_RESOURCE_URL, SURVEY_RESOURCE_BASE_URL } from "../../../service/
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2';
 import { loadSelagemData  } from './helpers/apiMapper';
+import FormCompletionProgress from "@/components/forms/FormCompletionProgress";
+import FormPageHeader from "@/components/forms/FormPageHeader";
 
 
 
@@ -112,8 +114,6 @@ const FormSelagem = ({
 	const [loadedSelagemData, setLoadedSelagemData] = useState<any>(null)
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false)
 	const [finalizing, setFinalizing] = useState(false)
-	const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
-	const [saving, setSaving] = useState(false)
 	// CONTROLE SIMPLES DA TABELA: Determina se está em modo visualização
 	const currentUserEmail = localStorage.getItem('userEmail') || ''
 	const canUserEditRecord = loadedSelagemData?.created_by === currentUserEmail
@@ -149,6 +149,7 @@ const FormSelagem = ({
 			visitNumber: "",
 		},
 	});
+	const progressValues = useWatch({ control: form.control });
 	const formValues = form.getValues(); // Isso retorna todos os valores do formulário.	
 
 	// Calcula automaticamente o número de selagem a partir dos campos da família ativa
@@ -650,23 +651,6 @@ const FormSelagem = ({
 		}
 	}
 
-	const handleSaveVisit = async () => {
-		try {
-			setSaving(true)
-			// Fecha o modal e exibe mensagem de sucesso
-			setIsSaveModalOpen(false)
-			Swal.fire({
-				position: 'top-end',
-				icon: 'success',
-				title: 'Alterações salvas',
-				showConfirmButton: false,
-				timer: 1200
-			})
-		} finally {
-			setSaving(false)
-		}
-	}
-
 	// Define the form structure using FormFieldType for each field
 	const metaDataSections: FormSection[] = [
 		{
@@ -851,24 +835,6 @@ const FormSelagem = ({
 						<Button variant="outline" onClick={() => setIsFinalizeModalOpen(false)} disabled={finalizing}>Cancelar</Button>
 						<Button onClick={handleFinalizeVisit} disabled={finalizing} className="bg-green-600 hover:bg-green-700">
 							{finalizing ? 'Finalizando...' : 'Finalizar Visita'}
-						</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
-
-			{/* Modal de salvar */}
-			<Dialog open={isSaveModalOpen} onOpenChange={setIsSaveModalOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Salvar alterações?</DialogTitle>
-						<DialogDescription>
-							Deseja salvar as alterações desta visita?
-						</DialogDescription>
-					</DialogHeader>
-					<div className="flex justify-end gap-2">
-						<Button variant="outline" onClick={() => setIsSaveModalOpen(false)} disabled={saving}>Cancelar</Button>
-						<Button onClick={handleSaveVisit} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
-							{saving ? 'Salvando...' : 'Salvar'}
 						</Button>
 					</div>
 				</DialogContent>
@@ -1204,21 +1170,18 @@ const FormSelagem = ({
 						</DialogContent>
 					</Dialog>
 
-					<div className="flex flex-row justify-between gap-2">
-						<div className="text-left text-lg font-bold flex items-center gap-2">
-							{isEditMode ? (
-								<>
-									<span>Editando Selagem</span>
-									{isLoadingData && <span className="text-sm text-blue-600 animate-pulse">(Carregando dados...)</span>}
-									{loadedSelagemData && <span className="text-sm text-green-600">({loadedSelagemData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
-								</>
-							) : (
-								<span>Nova Selagem</span>
-							)}
-						</div>
-						
-					</div>
-					<div className="w-full border-t border-gray-300 my-4"></div>
+					<FormPageHeader
+						title={isEditMode ? "Editando Selagem" : "Selagem"}
+						description="Identificação e caracterização dos espaços habitados, unidades e condições de ocupação."
+						status={
+							<>
+								{isLoadingData && <span className="text-sm font-normal text-blue-600 animate-pulse">(Carregando dados...)</span>}
+								{loadedSelagemData && <span className="text-sm font-normal text-green-600">({loadedSelagemData.survey_id ?? form.getValues('seiNumber') ?? ''})</span>}
+							</>
+						}
+					>
+						<FormCompletionProgress schema={formSchema} values={progressValues} />
+					</FormPageHeader>
 					{/* Always render the IdentRespForm */}
 					{familyFields.map((field, index) => (
 						<div key={field.id} data-family-index={index} className={`${activeFamilyIndex === index ? 'block' : 'hidden'}`}>
@@ -1244,14 +1207,6 @@ const FormSelagem = ({
 
 					{/* Botões de ação no final do formulário */}
 					<div className="flex justify-end mt-6 gap-2">
-						<Button
-							variant="default"
-							onClick={(e) => { e.preventDefault(); setIsSaveModalOpen(true) }}
-							disabled={isViewMode}
-							className="bg-blue-600 hover:bg-blue-700"
-						>
-							Salvar
-						</Button>
 						<Button
 							variant="default"
 							onClick={(e) => { e.preventDefault(); setIsFinalizeModalOpen(true) }}
