@@ -1,0 +1,447 @@
+import React from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import DateInput from '@/components/ui/date-input';
+import { Checkbox } from '@/components/ui/checkbox';
+
+import { Combobox } from '@/components/ui/combobox';
+import { MultiCombobox } from '@/components/ui/MultiCombobox';
+
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from "@/components/ui/label";
+import { FormField as FormFieldType, evaluateConditions, FormSection } from "@/utils/formUtils";
+import { useViewMode } from '@/hooks/useViewMode';
+
+interface FormSectionRendererProps {
+    section: FormSection;
+    formControl: any;
+    getFieldNumber: (sectionIndex: number, fieldIndex: number) => string | null;
+    sectionIndex: number;
+    formValues?: Record<string, any>;
+    handleModalFields?: boolean;
+    showSectionLabel?: boolean;
+    familyIndex?: number | null;
+}
+
+export const FormSectionRenderer = ({
+    section,
+    formControl,
+    getFieldNumber,
+    sectionIndex,
+    formValues = {},
+    handleModalFields = false,
+    showSectionLabel = true,
+    familyIndex = null,
+}: FormSectionRendererProps) => {
+    // Detecta automaticamente se estamos numa rota de visualização
+    const isViewMode = useViewMode();
+
+    return (
+        <div className="section mb-6">
+            {showSectionLabel && section.title && <h5 className="text-lg font-medium mb-4">{section.title}</h5>}
+            <div className="grid grid-cols-1 gap-4">
+                {section.fields.map((field, fieldIndex) => {
+                    // Skip field if it doesn't meet its conditions
+                    if (handleModalFields && !field.showinmodal) {
+                        return null;
+                    }
+                    if (field.conditions && !evaluateConditions(field.conditions, formValues)) {
+                        return null;
+                    }
+
+                    const key = familyIndex !== null ? `family.${familyIndex}.${field.name}` : field.name;
+                    const name = familyIndex !== null ? `families[${familyIndex}].${field.name}` : field.name;
+                    // Check if this field should be disabled by a checkbox or view mode
+                    let isDisabled = field.readonly || isViewMode;
+
+                    // Find if this field is controlled by any checkbox in the section
+                    const controllingCheckbox = section.fields.find(f =>
+                        f.type === 'checkbox' && f.disableField === field.name
+                    );
+
+                    if (controllingCheckbox) {
+                        isDisabled = isDisabled || !!formValues[controllingCheckbox.name];
+                    }
+
+                    const isDependent = field.dependent;
+
+                    // Special handling for checkbox fields
+                    if (field.type === 'checkbox') {
+                        return (
+                            <FormField
+                                key={key}
+                                control={formControl}
+                                name={name}
+                                render={({ field: JSONformField }) => (
+                                    <FormItem className={`flex flex-row items-start space-x-3 space-y-0 ${isDependent ? 'ml-6' : ''}`}>
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={JSONformField.value}
+                                                onCheckedChange={JSONformField.onChange}
+                                                disabled={isDisabled}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>
+                                                {!isDependent && getFieldNumber(sectionIndex, fieldIndex) &&
+                                                    <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
+                                                }
+                                                {field.label}
+                                            </FormLabel>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        );
+                    }
+
+                    // Special handling for label fields
+                    if (field.type === 'label') {
+                        return (
+                            <FormItem key={key}>
+                                <FormLabel className="flex items-center">
+                                    <span className="mr-2">{getFieldNumber(sectionIndex, fieldIndex)}</span>
+                                    {field.label}
+                                </FormLabel>
+                            </FormItem>
+                        );
+                    }
+
+                    return (
+                        <FormField
+                            key={key}
+                            control={formControl}
+                            name={name}
+                            render={({ field: JSONformField }) => (
+                                <FormItem>
+                                    <FormLabel className={`flex items-center ${isDependent ? 'ml-6' : ''}`}>
+                                        <span className="mr-2">{!isDependent ? getFieldNumber(sectionIndex, fieldIndex) : ''}</span>
+                                        {field.label}
+                                    </FormLabel>
+
+                                    <FormControl>
+                                        <div className={isDependent ? "ml-6" : ""}>
+                                            {renderFormField(field, {
+                                                ...JSONformField,
+                                                disabled: isDisabled
+                                            }, formValues)}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// Helper function to render different field types
+function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>) {
+    switch (field.type) {
+
+        case "label":
+            return null; // Label fields are rendered directly in the form item, not in the form control
+
+        case "button":
+            return (
+                <button
+                    type="button"
+                    onClick={field.onClick}
+                    className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-input bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                >
+                    <span className="text-lg font-bold">+</span>
+                    Adicionar
+                </button>
+            );
+
+
+        case "numberSpinner":
+            const stepValue = field.step ?? 0.01;
+            const allowDecimals = stepValue !== 1;
+            return (
+                <Input
+                    type="number"
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    min={0}
+                    max={field.max || undefined}
+                    step={stepValue}
+                    value={formField.value ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const rawValue = e.target.value;
+
+                        // Permite limpar o campo
+                        if (rawValue === "") {
+                            formField.onChange("");
+                            return;
+                        }
+
+                        // Validação baseada no step: se step === 1, somente inteiros; senão, até 2 casas decimais
+                        const numericRegex = allowDecimals
+                            ? /^(?:\d+|\d+\.\d{0,2})$/
+                            : /^\d+$/;
+
+                        // Se valor inválido (negativo, caracteres inválidos, ou decimais quando não permitido), ignora
+                        if (!numericRegex.test(rawValue)) {
+                            return;
+                        }
+
+                        // Converte para número e envia
+                        const value = Number(rawValue);
+                        formField.onChange(value);
+                    }}
+                    onKeyDown={(e) => {
+                        // Impede digitação de "-" e "e", que são permitidos por padrão em <input type="number">
+                        if (["-", "e", "E"].includes(e.key)) {
+                            e.preventDefault();
+                        }
+                        // Se não permitir decimais (step === 1), bloqueia "." e ","
+                        if (!allowDecimals && (e.key === "." || e.key === ",")) {
+                            e.preventDefault();
+                        }
+                    }}
+                    className="flex w-[500px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "textarea":
+            return (
+                <textarea
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                        formField.onChange(e.target.value);
+                    }}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "file":
+            return (
+                <Input
+                    type="file"
+                    disabled={formField.disabled}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const file = e.target.files?.[0];
+                        formField.onChange(file);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "text":
+            if (field.mask) {
+                return (
+                    <Input
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        placeholder={field.placeholder}
+                        {...formField}
+                        value={formField.value ?? ""}
+                        disabled={formField.disabled}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            if (field.mask === "alpha") {
+                                const onlyLetters = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+                                formField.onChange(onlyLetters);
+                                return;
+                            }
+                            formField.onChange(e.target.value);
+                        }}
+                    />
+                );
+            }
+            return (
+                <Input
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    value={(field.name === 'seiNumber' && (formValues['naoAplica'] || formField.value === '999999' || formField.value === 'N/A')) ? 'N/A' : (formField.value ?? '')}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        formField.onChange(e.target.value);
+                    }}
+                />
+            );
+
+        case "select":
+            return (
+                <Select
+                    onValueChange={formField.onChange}
+                    value={formField.value || ""}
+                    disabled={formField.disabled}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {field.options?.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            );
+
+        case "checkbox":
+            return (
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id={field.name}
+                        checked={formField.value || false}  // O valor pode ser um booleano
+                        disabled={formField.disabled}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            formField.onChange(e.target.checked);  // Retorna um valor booleano (checked)
+                        }}
+                        className="h-4 w-4 rounded border border-input bg-background"
+                    />
+                    <label htmlFor={field.name} className="text-sm">{field.placeholder}</label>
+                </div>
+            );
+
+        case "radio":
+            return (
+                <RadioGroup
+                    value={formField.value || ""}
+                    onValueChange={formField.onChange}
+                    disabled={formField.disabled}
+                >
+                    {field.options?.map((option) => (
+                        <div key={option.value} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option.value} id={`${field.name}-${option.value}`} />
+                            <Label htmlFor={`${field.name}-${option.value}`}>{option.label}</Label>
+                        </div>
+                    ))}
+                </RadioGroup>
+            );
+
+        case "display":
+            let displayValue = "";
+            if (field.displayValue) {
+                displayValue = field.displayValue(formValues);
+            }
+            return <div className="p-2 border rounded bg-gray-50">{displayValue}</div>;
+
+        case "number":
+            return (
+                <Input
+                    type="number"
+                    {...formField}
+                    placeholder={field.placeholder}
+                    disabled={formField.disabled}
+                    min={field.min}
+                    value={formField.value || field.min || ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value ? parseInt(e.target.value, 10) : field.min || "";
+                        formField.onChange(value);
+                    }}
+                    className="w-32"
+                />
+            );
+
+        case "email":
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Regex simples para validar o email
+
+            // Função para verificar se o email é válido
+            const isValidEmail = (email: string) => emailPattern.test(email);
+
+            return (
+                <div>
+                    <Input
+                        {...formField}
+                        type="email"
+                        placeholder={field.placeholder}
+                        disabled={formField.disabled}
+                        value={formField.value ?? ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const email = e.target.value;
+                            formField.onChange(email);
+                        }}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                            // Aqui você pode implementar alguma ação quando o campo perde o foco
+                            if (!isValidEmail(e.target.value) && e.target.value !== "") {
+                                // Exibir algum erro se o email não for válido
+                                alert("Por favor, insira um email válido.");
+                            }
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        autoComplete="email"  // Ajuda no preenchimento automático
+                    />
+                    {/* Mensagem de erro se o email não for válido */}
+                    {formField.value && !isValidEmail(formField.value) && (
+                        <div className="text-red-600 text-xs mt-1">
+                            Por favor, insira um email válido.
+                        </div>
+                    )}
+                </div>
+            );
+
+        case "date":
+            return (
+                <DateInput
+                    name={field.name}
+                    placeholder={field.placeholder || "DD/MM/AAAA"}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(iso: string) => {
+                        // Se for uma string vazia, limpa o campo
+                        if (iso === "") {
+                            formField.onChange("");
+                            return;
+                        }
+                        formField.onChange(iso);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+        case "time":
+            return (
+                <input
+                    type="time"
+                    name={field.name}
+                    placeholder={field.placeholder || "HH:MM"}
+                    disabled={formField.disabled}
+                    value={formField.value ?? ""}
+                    onChange={(e) => {
+                        formField.onChange(e.target.value);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+            );
+
+        case "combobox":
+            return (
+                <Combobox
+                    options={field.options || []}
+                    value={formField.value}
+                    onChange={formField.onChange}
+                    placeholder={field.placeholder || "Selecione uma opção"}
+                    disabled={formField.disabled}
+                />
+            );
+
+        case "multicombobox":
+            return (
+                <MultiCombobox
+                    options={field.options || []}
+                    value={formField.value || []}
+                    onChange={formField.onChange}
+                    placeholder={field.placeholder || "Selecione uma ou mais opções"}
+                    disabled={formField.disabled}
+                />
+            );
+
+        default:
+            return null;
+    }
+}
+
+
+export default FormSectionRenderer; 

@@ -1,0 +1,18 @@
+[33mcommit 8dced3b4ca6d04937cdfd0e42fb236cd251753bf[m
+Author: Alex Benjamin <aesbenjamin@gmail.com>
+Date:   Wed Aug 6 17:11:04 2025 -0300
+
+    funcionando edicao + patches
+
+src/components/formDataTables/selagem/list.tsx
+src/components/forms/selagem/FormSelagem.tsx
+src/components/forms/selagem/formSections/CaracInfraUrbUnid.form.tsx
+src/components/forms/selagem/formSections/CaractUnidade.form.tsx
+src/components/forms/selagem/formSections/IdentEspacoHabitado.form.tsx
+src/components/forms/selagem/formSections/IdentUnidade.form.tsx
+src/components/forms/selagem/formSections/OutrasInfoRelevantes.form.tsx
+src/components/forms/selagem/formSections/SituUsoUni.form.tsx
+src/components/forms/selagem/formSections/StatusNotas.form.tsx
+src/components/forms/selagem/formSections/anexos.form.tsx
+src/components/forms/selagem/helpers/apiMapper.ts
+src/service/constants.ts

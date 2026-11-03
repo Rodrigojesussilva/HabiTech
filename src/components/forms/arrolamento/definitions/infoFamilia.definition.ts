@@ -1,0 +1,491 @@
+import { z } from "zod";
+import { FormConfig, FormField } from "@/utils/formUtils";
+
+function slugify(pais: string) {
+    return pais.toLowerCase().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+}
+// Form validation schema
+export const infoFamiliaSchema = z.object({
+    rendaFamiliar: z.string().optional(),
+    totalPessoas: z.string().optional(),
+    criancas0a3: z.number().default(0),
+    criancas4a6: z.number().default(0),
+    criancas7a11: z.number().default(0),
+    adolescentes12a18: z.number().default(0),
+    adultos19a59: z.number().default(0),
+    idosos60: z.number().default(0),
+    pessoasComDeficiencia: z.number().default(0),
+    pessoasComDoencasCronicas: z.number().default(0),
+    gestantes: z.number().default(0),
+    pessoasImigrantes: z.number().default(0),
+    nacionalidadesSelecionadas: z.array(z.string()).default([]),
+    numerosPorPais: z.record(z.string(), z.number()).default({}),
+    idLocal: z.string().optional(),
+    arrolamento_id: z.string().optional(),
+});
+
+export type FormValues = z.infer<typeof infoFamiliaSchema>;
+
+// Default values
+export const defaultValues: Partial<FormValues> = {
+    
+    rendaFamiliar: "",
+    totalPessoas: "",
+    criancas0a3: 0,
+    criancas4a6: 0,
+    criancas7a11: 0,
+    adolescentes12a18: 0,
+    adultos19a59: 0,
+    idosos60: 0,
+    pessoasComDeficiencia: 0,
+    pessoasComDoencasCronicas: 0,
+    gestantes: 0,
+    pessoasImigrantes: 0,
+    nacionalidadesSelecionadas: [],
+    numerosPorPais: {},
+    idLocal: "not",
+};
+
+// Base form structure
+export const infoFamiliaDefinition: FormConfig = {
+    title: "Informações sobre a Família",
+    sections: [
+        {
+            id: "infoFamilia",
+            title: "Informações sobre a Família",
+            fields: [
+                {
+                    name: "totalPessoas",
+                    label: "Quantidade total de pessoas",
+                    type: "display" as const,
+                    required: false,
+                    displayValue: (data: Partial<FormValues>) => {
+                        const total =
+                            Number(data.criancas0a3 || 0) +
+                            Number(data.criancas4a6 || 0) +
+                            Number(data.criancas7a11 || 0) +
+                            Number(data.adolescentes12a18 || 0) +
+                            Number(data.adultos19a59 || 0) +
+                            Number(data.idosos60 || 0);
+
+                        return total.toString();
+                    }
+                },
+                {
+                    name: "rendaFamiliar",
+                    label: "Informe a renda familiar",
+                    type: "text" as const,
+                    required: false,
+                    placeholder: "R$ 0,00"
+                },
+                {
+                    name: "criancas0a3",
+                    label: "Quantidade de crianças (0 a 3 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "criancas4a6",
+                    label: "Quantidade de crianças (4 a 6 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "criancas7a11",
+                    label: "Quantidade de crianças (7 a 11 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "adolescentes12a18",
+                    label: "Quantidade de adolescentes (12 a 18 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "adultos19a59",
+                    label: "Quantidade de pessoas adultas (19 a 59 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "idosos60",
+                    label: "Quantidade de pessoas idosas (a partir de 60 anos)",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "pessoasComDoencasCronicas",
+                    label: "Quantidade de pessoas com doenças crônicas graves",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "gestantes",
+                    label: "Quantidade de gestantes de gestantes",
+                    type: "numberSpinner" as const,
+                    required: false,
+                    mask: "9999",
+                    placeholder: "0",
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                },
+                {
+                    name: "pessoasImigrantes",
+                    label: "Quantidade de pessoas imigrantes",
+                    type: "display" as const,
+                    required: false,
+                    displayValue: (data: Partial<FormValues>) => {
+                        return data.pessoasImigrantes?.toString() || "0";
+                    }
+                }
+            ]
+        }
+    ]
+};
+
+/**
+ * Get additional conditional fields based on form values and/or user selections
+ * Note: The nationality selection and country-specific fields would ideally be handled
+ * by a custom field component that can render the autocomplete and dynamic fields
+ */
+export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+    const fields: FormField[] = [];
+
+    // Campo multicombo
+    fields.push({
+        name: "nacionalidadesSelecionadas",
+        label: "Selecione as nacionalidades",
+        type: "multicombobox",
+        required: false,
+        placeholder: "Países",
+        options: [
+            { label: "Andorra", value: "Andorra" },
+            { label: "United Arab Emirates", value: "United Arab Emirates" },
+            { label: "Afghanistan", value: "Afghanistan" },
+            { label: "Antigua and Barbuda", value: "Antigua and Barbuda" },
+            { label: "Anguilla", value: "Anguilla" },
+            { label: "Albania", value: "Albania" },
+            { label: "Armenia", value: "Armenia" },
+            { label: "Angola", value: "Angola" },
+            { label: "Antarctica", value: "Antarctica" },
+            { label: "Argentina", value: "Argentina" },
+            { label: "American Samoa", value: "American Samoa" },
+            { label: "Austria", value: "Austria" },
+            { label: "Australia", value: "Australia" },
+            { label: "Aruba", value: "Aruba" },
+            { label: "Aland", value: "Aland" },
+            { label: "Azerbaijan", value: "Azerbaijan" },
+            { label: "Bosnia and Herzegovina", value: "Bosnia and Herzegovina" },
+            { label: "Barbados", value: "Barbados" },
+            { label: "Bangladesh", value: "Bangladesh" },
+            { label: "Belgium", value: "Belgium" },
+            { label: "Burkina Faso", value: "Burkina Faso" },
+            { label: "Bulgaria", value: "Bulgaria" },
+            { label: "Bahrain", value: "Bahrain" },
+            { label: "Burundi", value: "Burundi" },
+            { label: "Benin", value: "Benin" },
+            { label: "Saint Barthelemy", value: "Saint Barthelemy" },
+            { label: "Bermuda", value: "Bermuda" },
+            { label: "Brunei", value: "Brunei" },
+            { label: "Bolivia", value: "Bolivia" },
+            { label: "Bonaire", value: "Bonaire" },
+            { label: "Bahamas", value: "Bahamas" },
+            { label: "Bhutan", value: "Bhutan" },
+            { label: "Bouvet Island", value: "Bouvet Island" },
+            { label: "Botswana", value: "Botswana" },
+            { label: "Belarus", value: "Belarus" },
+            { label: "Belize", value: "Belize" },
+            { label: "Canada", value: "Canada" },
+            { label: "Cocos (Keeling) Islands", value: "Cocos (Keeling) Islands" },
+            { label: "Democratic Republic of the Congo", value: "Democratic Republic of the Congo" },
+            { label: "Central African Republic", value: "Central African Republic" },
+            { label: "Republic of the Congo", value: "Republic of the Congo" },
+            { label: "Switzerland", value: "Switzerland" },
+            { label: "Ivory Coast", value: "Ivory Coast" },
+            { label: "Cook Islands", value: "Cook Islands" },
+            { label: "Chile", value: "Chile" },
+            { label: "Cameroon", value: "Cameroon" },
+            { label: "China", value: "China" },
+            { label: "Colombia", value: "Colombia" },
+            { label: "Costa Rica", value: "Costa Rica" },
+            { label: "Cuba", value: "Cuba" },
+            { label: "Cape Verde", value: "Cape Verde" },
+            { label: "Curacao", value: "Curacao" },
+            { label: "Christmas Island", value: "Christmas Island" },
+            { label: "Cyprus", value: "Cyprus" },
+            { label: "Czech Republic", value: "Czech Republic" },
+            { label: "Germany", value: "Germany" },
+            { label: "Djibouti", value: "Djibouti" },
+            { label: "Denmark", value: "Denmark" },
+            { label: "Dominica", value: "Dominica" },
+            { label: "Dominican Republic", value: "Dominican Republic" },
+            { label: "Algeria", value: "Algeria" },
+            { label: "Ecuador", value: "Ecuador" },
+            { label: "Estonia", value: "Estonia" },
+            { label: "Egypt", value: "Egypt" },
+            { label: "Western Sahara", value: "Western Sahara" },
+            { label: "Eritrea", value: "Eritrea" },
+            { label: "Spain", value: "Spain" },
+            { label: "Ethiopia", value: "Ethiopia" },
+            { label: "Finland", value: "Finland" },
+            { label: "Fiji", value: "Fiji" },
+            { label: "Falkland Islands", value: "Falkland Islands" },
+            { label: "Micronesia", value: "Micronesia" },
+            { label: "Faroe Islands", value: "Faroe Islands" },
+            { label: "France", value: "France" },
+            { label: "Gabon", value: "Gabon" },
+            { label: "United Kingdom", value: "United Kingdom" },
+            { label: "Grenada", value: "Grenada" },
+            { label: "Georgia", value: "Georgia" },
+            { label: "French Guiana", value: "French Guiana" },
+            { label: "Guernsey", value: "Guernsey" },
+            { label: "Ghana", value: "Ghana" },
+            { label: "Gibraltar", value: "Gibraltar" },
+            { label: "Greenland", value: "Greenland" },
+            { label: "Gambia", value: "Gambia" },
+            { label: "Guinea", value: "Guinea" },
+            { label: "Guadeloupe", value: "Guadeloupe" },
+            { label: "Equatorial Guinea", value: "Equatorial Guinea" },
+            { label: "Greece", value: "Greece" },
+            { label: "South Georgia and the South Sandwich Islands", value: "South Georgia and the South Sandwich Islands" },
+            { label: "Guatemala", value: "Guatemala" },
+            { label: "Guam", value: "Guam" },
+            { label: "Guinea-Bissau", value: "Guinea-Bissau" },
+            { label: "Guyana", value: "Guyana" },
+            { label: "Hong Kong", value: "Hong Kong" },
+            { label: "Heard Island and McDonald Islands", value: "Heard Island and McDonald Islands" },
+            { label: "Honduras", value: "Honduras" },
+            { label: "Croatia", value: "Croatia" },
+            { label: "Haiti", value: "Haiti" },
+            { label: "Hungary", value: "Hungary" },
+            { label: "Indonesia", value: "Indonesia" },
+            { label: "Ireland", value: "Ireland" },
+            { label: "Israel", value: "Israel" },
+            { label: "Isle of Man", value: "Isle of Man" },
+            { label: "India", value: "India" },
+            { label: "British Indian Ocean Territory", value: "British Indian Ocean Territory" },
+            { label: "Iraq", value: "Iraq" },
+            { label: "Iran", value: "Iran" },
+            { label: "Iceland", value: "Iceland" },
+            { label: "Italy", value: "Italy" },
+            { label: "Jersey", value: "Jersey" },
+            { label: "Jamaica", value: "Jamaica" },
+            { label: "Jordan", value: "Jordan" },
+            { label: "Japan", value: "Japan" },
+            { label: "Kenya", value: "Kenya" },
+            { label: "Kyrgyzstan", value: "Kyrgyzstan" },
+            { label: "Cambodia", value: "Cambodia" },
+            { label: "Kiribati", value: "Kiribati" },
+            { label: "Comoros", value: "Comoros" },
+            { label: "Saint Kitts and Nevis", value: "Saint Kitts and Nevis" },
+            { label: "North Korea", value: "North Korea" },
+            { label: "South Korea", value: "South Korea" },
+            { label: "Kuwait", value: "Kuwait" },
+            { label: "Cayman Islands", value: "Cayman Islands" },
+            { label: "Kazakhstan", value: "Kazakhstan" },
+            { label: "Laos", value: "Laos" },
+            { label: "Lebanon", value: "Lebanon" },
+            { label: "Saint Lucia", value: "Saint Lucia" },
+            { label: "Liechtenstein", value: "Liechtenstein" },
+            { label: "Sri Lanka", value: "Sri Lanka" },
+            { label: "Liberia", value: "Liberia" },
+            { label: "Lesotho", value: "Lesotho" },
+            { label: "Lithuania", value: "Lithuania" },
+            { label: "Luxembourg", value: "Luxembourg" },
+            { label: "Latvia", value: "Latvia" },
+            { label: "Libya", value: "Libya" },
+            { label: "Morocco", value: "Morocco" },
+            { label: "Monaco", value: "Monaco" },
+            { label: "Moldova", value: "Moldova" },
+            { label: "Montenegro", value: "Montenegro" },
+            { label: "Saint Martin", value: "Saint Martin" },
+            { label: "Madagascar", value: "Madagascar" },
+            { label: "Marshall Islands", value: "Marshall Islands" },
+            { label: "North Macedonia", value: "North Macedonia" },
+            { label: "Mali", value: "Mali" },
+            { label: "Myanmar (Burma)", value: "Myanmar (Burma)" },
+            { label: "Mongolia", value: "Mongolia" },
+            { label: "Macao", value: "Macao" },
+            { label: "Northern Mariana Islands", value: "Northern Mariana Islands" },
+            { label: "Martinique", value: "Martinique" },
+            { label: "Mauritania", value: "Mauritania" },
+            { label: "Montserrat", value: "Montserrat" },
+            { label: "Malta", value: "Malta" },
+            { label: "Mauritius", value: "Mauritius" },
+            { label: "Maldives", value: "Maldives" },
+            { label: "Malawi", value: "Malawi" },
+            { label: "Mexico", value: "Mexico" },
+            { label: "Malaysia", value: "Malaysia" },
+            { label: "Mozambique", value: "Mozambique" },
+            { label: "Namibia", value: "Namibia" },
+            { label: "New Caledonia", value: "New Caledonia" },
+            { label: "Niger", value: "Niger" },
+            { label: "Norfolk Island", value: "Norfolk Island" },
+            { label: "Nigeria", value: "Nigeria" },
+            { label: "Nicaragua", value: "Nicaragua" },
+            { label: "Netherlands", value: "Netherlands" },
+            { label: "Norway", value: "Norway" },
+            { label: "Nepal", value: "Nepal" },
+            { label: "Nauru", value: "Nauru" },
+            { label: "Niue", value: "Niue" },
+            { label: "New Zealand", value: "New Zealand" },
+            { label: "Oman", value: "Oman" },
+            { label: "Panama", value: "Panama" },
+            { label: "Peru", value: "Peru" },
+            { label: "French Polynesia", value: "French Polynesia" },
+            { label: "Papua New Guinea", value: "Papua New Guinea" },
+            { label: "Philippines", value: "Philippines" },
+            { label: "Pakistan", value: "Pakistan" },
+            { label: "Poland", value: "Poland" },
+            { label: "Saint Pierre and Miquelon", value: "Saint Pierre and Miquelon" },
+            { label: "Pitcairn Islands", value: "Pitcairn Islands" },
+            { label: "Puerto Rico", value: "Puerto Rico" },
+            { label: "Palestine", value: "Palestine" },
+            { label: "Portugal", value: "Portugal" },
+            { label: "Palau", value: "Palau" },
+            { label: "Paraguay", value: "Paraguay" },
+            { label: "Qatar", value: "Qatar" },
+            { label: "Reunion", value: "Reunion" },
+            { label: "Romania", value: "Romania" },
+            { label: "Serbia", value: "Serbia" },
+            { label: "Russia", value: "Russia" },
+            { label: "Rwanda", value: "Rwanda" },
+            { label: "Saudi Arabia", value: "Saudi Arabia" },
+            { label: "Solomon Islands", value: "Solomon Islands" },
+            { label: "Seychelles", value: "Seychelles" },
+            { label: "Sudan", value: "Sudan" },
+            { label: "Sweden", value: "Sweden" },
+            { label: "Singapore", value: "Singapore" },
+            { label: "Saint Helena", value: "Saint Helena" },
+            { label: "Slovenia", value: "Slovenia" },
+            { label: "Svalbard and Jan Mayen", value: "Svalbard and Jan Mayen" },
+            { label: "Slovakia", value: "Slovakia" },
+            { label: "Sierra Leone", value: "Sierra Leone" },
+            { label: "San Marino", value: "San Marino" },
+            { label: "Senegal", value: "Senegal" },
+            { label: "Somalia", value: "Somalia" },
+            { label: "Suriname", value: "Suriname" },
+            { label: "South Sudan", value: "South Sudan" },
+            { label: "Sao Tome and Principe", value: "Sao Tome and Principe" },
+            { label: "El Salvador", value: "El Salvador" },
+            { label: "Sint Maarten", value: "Sint Maarten" },
+            { label: "Syria", value: "Syria" },
+            { label: "Eswatini", value: "Eswatini" },
+            { label: "Turks and Caicos Islands", value: "Turks and Caicos Islands" },
+            { label: "Chad", value: "Chad" },
+            { label: "French Southern Territories", value: "French Southern Territories" },
+            { label: "Togo", value: "Togo" },
+            { label: "Thailand", value: "Thailand" },
+            { label: "Tajikistan", value: "Tajikistan" },
+            { label: "Tokelau", value: "Tokelau" },
+            { label: "East Timor", value: "East Timor" },
+            { label: "Turkmenistan", value: "Turkmenistan" },
+            { label: "Tunisia", value: "Tunisia" },
+            { label: "Tonga", value: "Tonga" },
+            { label: "Turkey", value: "Turkey" },
+            { label: "Trinidad and Tobago", value: "Trinidad and Tobago" },
+            { label: "Tuvalu", value: "Tuvalu" },
+            { label: "Taiwan", value: "Taiwan" },
+            { label: "Tanzania", value: "Tanzania" },
+            { label: "Ukraine", value: "Ukraine" },
+            { label: "Uganda", value: "Uganda" },
+            { label: "U.S. Minor Outlying Islands", value: "U.S. Minor Outlying Islands" },
+            { label: "United States", value: "United States" },
+            { label: "Uruguay", value: "Uruguay" },
+            { label: "Uzbekistan", value: "Uzbekistan" },
+            { label: "Vatican City", value: "Vatican City" },
+            { label: "Saint Vincent and the Grenadines", value: "Saint Vincent and the Grenadines" },
+            { label: "Venezuela", value: "Venezuela" },
+            { label: "British Virgin Islands", value: "British Virgin Islands" },
+            { label: "U.S. Virgin Islands", value: "U.S. Virgin Islands" },
+            { label: "Vietnam", value: "Vietnam" },
+            { label: "Vanuatu", value: "Vanuatu" },
+            { label: "Wallis and Futuna", value: "Wallis and Futuna" },
+            { label: "Samoa", value: "Samoa" },
+            { label: "Kosovo", value: "Kosovo" },
+            { label: "Yemen", value: "Yemen" },
+            { label: "Mayotte", value: "Mayotte" },
+            { label: "South Africa", value: "South Africa" },
+            { label: "Zambia", value: "Zambia" },
+            { label: "Zimbabwe", value: "Zimbabwe" },
+
+        ],
+    });
+
+    // Gera um campo para cada país selecionado
+    const nacionalidades = formValues.nacionalidadesSelecionadas ?? [];
+    for (const pais of nacionalidades) {
+        const key = slugify(pais);
+        fields.push({
+            name: `numerosPorPais.${key}`,
+            label: `Número de pessoas de ${pais}`,
+            type: "numberSpinner",
+            required: false,
+            placeholder: "0",
+            min: 0,
+            max: 1000,
+            step: 1,
+        });
+    }
+
+    return fields;
+}
+
+
+/**
+ * Get complete form sections with merged static and conditional fields
+ * @param formValues Current form values from InfoFamilia form
+ * @returns Array of form sections with merged fields
+ */
+export function getMergedFormSections(formValues: Partial<FormValues>) {
+    // Get conditional fields based on current form values
+    const conditionalFields = getConditionalFields(formValues);
+
+    // Create and return a merged form structure with base fields and conditional fields
+    return [
+        {
+            ...infoFamiliaDefinition.sections[0],
+            fields: [
+                ...infoFamiliaDefinition.sections[0].fields,
+                ...conditionalFields
+            ]
+        }
+    ];
+} 

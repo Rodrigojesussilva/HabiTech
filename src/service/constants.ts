@@ -1,0 +1,20 @@
+const DEMO_API_URL = "/mock-api"
+
+export const API_CONFIG = {
+  DEMO: {
+    SURVEY_RESOURCE: DEMO_API_URL,
+    SELAGEM: DEMO_API_URL,
+    AUTH: DEMO_API_URL,
+    FILE: DEMO_API_URL,
+    USER: DEMO_API_URL,
+  },
+}
+
+export const CURRENT_API = API_CONFIG.DEMO
+export const API_BASE_URL = DEMO_API_URL
+export const SURVEY_RESOURCE_URL = DEMO_API_URL
+export const SURVEY_RESOURCE_BASE_URL = DEMO_API_URL
+export const SELAGEM_URL = DEMO_API_URL
+export const AUTH_URL = DEMO_API_URL
+export const FILE_URL = DEMO_API_URL
+export const USER_URL = DEMO_API_URL

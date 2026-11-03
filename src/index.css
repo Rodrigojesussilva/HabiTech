@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .text-left:has(> [data-slot="collapsible"] > .section-header[data-slot="collapsible-trigger"]),
+  .text-left > [data-slot="collapsible"]:has(> .section-header[data-slot="collapsible-trigger"]) {
+    margin-bottom: 2rem;
+  }
+
+  div[data-slot="collapsible"]:has(> .section-header[data-slot="collapsible-trigger"]) {
+    overflow: hidden;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 0.75rem;
+    background: white;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+  }
+
+  .section-header[data-slot="collapsible-trigger"] {
+    display: flex !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: rgb(243 244 246) !important;
+    padding: 1rem 1.5rem !important;
+    text-align: left;
+    transition: background-color 150ms ease;
+  }
+
+  .section-header[data-slot="collapsible-trigger"]:hover {
+    background: rgb(229 231 235) !important;
+  }
+
+  .section-header[data-slot="collapsible-trigger"] h4 {
+    margin: 0 !important;
+    color: rgb(15 23 42);
+    font-size: 1rem !important;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
+
+  .section-header[data-slot="collapsible-trigger"]::after {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex: none;
+    border-right: 2px solid rgb(71 85 105);
+    border-bottom: 2px solid rgb(71 85 105);
+    content: "";
+    transform: translateY(-0.125rem) rotate(45deg);
+    transition: transform 150ms ease;
+  }
+
+  .section-header[data-slot="collapsible-trigger"][data-state="open"]::after {
+    transform: translateY(0.125rem) rotate(225deg);
+  }
+}
+
+/* Mobile-specific styles for form navigation */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  /* Touch-friendly interaction zones */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent zoom on input focus on iOS */
+  @supports (-webkit-touch-callout: none) {
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+  
+  /* Safe area adjustments for mobile */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Form mobile improvements */
+@media (max-width: 1023px) {
+  /* Better spacing for mobile forms */
+  .form-section {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Improved button sizing for mobile */
+  .mobile-button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  
+  /* Better input styling for mobile */
+  .mobile-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+.app-fixed-header {
+  height: 6rem;
+}
+
+.app-fixed-header-spacer {
+  height: 6rem;
+  flex: none;
+}
+
+.app-header-layout {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.app-header-logo-wrap {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.app-header-brand {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.app-header-actions {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+@media (min-width: 768px) {
+  .app-fixed-header,
+  .app-fixed-header-spacer {
+    height: 4rem;
+  }
+
+  .app-header-layout {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .app-header-brand {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .app-header-actions {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+}
