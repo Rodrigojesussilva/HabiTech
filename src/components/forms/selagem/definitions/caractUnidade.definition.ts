@@ -69,10 +69,9 @@ export const caractUnidadeDefinition: FormConfig = {
  * This centralizes all conditional field logic specific to Docs in one place
  * @param formValues Current form values from Docs form
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
 
-    console.log(formValues);
     return conditionalFields;
 }
 
@@ -85,7 +84,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     // Get conditional fields based on current form values
     const conditionalFields = getConditionalFields(formValues);
-	console.log("Conditional Fields", conditionalFields);
 
     // Create and return a merged form structure with base fields and conditional fields
     return [
@@ -97,4 +95,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}

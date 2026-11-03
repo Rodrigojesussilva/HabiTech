@@ -69,34 +69,32 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
           const isNetworkFailure = axios.isAxiosError(error)
             && (!error.response || error.response.status >= 500);
 
-          if (cachedEmail !== email
-            || !cachedToken
-            || cachedToken === DEMO_AUTH_TOKEN
-            || cachedExpiry <= Date.now()
-            || !isNetworkFailure) {
+          if (!isNetworkFailure) {
             throw error;
           }
 
-          accessToken = cachedToken;
-          expiresAt = new Date(cachedExpiry).toISOString();
+          if (cachedEmail === email
+            && cachedToken
+            && cachedToken !== DEMO_AUTH_TOKEN
+            && cachedExpiry > Date.now()) {
+            accessToken = cachedToken;
+            expiresAt = new Date(cachedExpiry).toISOString();
+          } else {
+            const validOfflineLogin = email === "demo@example.test" && data.password === "demo2025";
+            if (!validOfflineLogin) throw error;
+            accessToken = DEMO_AUTH_TOKEN;
+          }
         }
       } else {
-        const validUsers = [
-          { email: "demo@example.test", password: "demo2025" },
-          { email: "teste1@example.test", password: "demo2025" },
-          { email: "teste2@example.test", password: "demo2025" },
-          { email: "teste3@example.test", password: "demo2025" },
-        ];
-
-        const isValidUser = validUsers.some(user =>
-          user.email === email && user.password === data.password
-        );
+        const isValidUser = email === "demo@example.test" && data.password === "demo2025";
         if (!isValidUser) throw new Error("E-mail ou senha inválidos.");
         accessToken = DEMO_AUTH_TOKEN;
       }
 
       localStorage.setItem("isAuthenticated", "true");
-      if (!isBackendApiConfigured) localStorage.setItem("userEmail", email);
+      if (!isBackendApiConfigured || accessToken === DEMO_AUTH_TOKEN) {
+        localStorage.setItem("userEmail", email);
+      }
       localStorage.setItem("authToken", accessToken);
       if (expiresAt) localStorage.setItem("authTokenExpiresAt", expiresAt);
       else localStorage.removeItem("authTokenExpiresAt");
@@ -128,7 +126,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
           </h2>
           <p className="text-balance text-sm leading-relaxed text-slate-600">
             {isBackendApiConfigured
-              ? "Entre com uma conta demonstrativa configurada no servidor."
+              ? "Acesso demonstrativo: demo@example.test · senha demo2025. Rascunhos ficam salvos localmente e sincronizam quando a API estiver disponível."
               : "Demonstração local: demo@example.test · senha demo2025"}
           </p>
         </div>

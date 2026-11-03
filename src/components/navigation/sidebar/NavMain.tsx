@@ -36,14 +36,14 @@ export function NavMain({ items }: { items: NavItem[] }) {
     <SidebarGroup>
       <SidebarGroupLabel className="px-2">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-slate-600" aria-hidden />
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+          <FileText className="h-4 w-4 text-cyan-700" aria-hidden />
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-blue-950">
             Formulários cadastrados
           </span>
         </div>
       </SidebarGroupLabel>
 
-      <div className="mx-2 mt-2 h-px bg-slate-200/80" />
+      <div className="mx-2 mt-2 h-px bg-gradient-to-r from-orange-400 via-blue-300 to-cyan-300" />
 
       <SidebarMenu>
         {items.map((item) => {
@@ -54,7 +54,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
               <SidebarMenuButton
                 asChild
                 isActive={isActive}
-                className="h-11 cursor-pointer data-[active=true]:bg-blue-50 data-[active=true]:text-blue-800"
+                className="h-11 cursor-pointer data-[active=true]:border-l-2 data-[active=true]:border-orange-500 data-[active=true]:bg-blue-50 data-[active=true]:font-semibold data-[active=true]:text-blue-900"
                 tooltip={item.title}
               >
                 <Link

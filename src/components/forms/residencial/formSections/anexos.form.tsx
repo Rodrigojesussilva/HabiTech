@@ -289,6 +289,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         })
         console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
         saveLocalAttachment(currentSelagemId, fieldName, newItem)
+        form.setValue(`families[${familyIndex}].${fieldName}`, undefined)
       } catch (e) {
         console.warn('[Selagem][Anexos][Upload] could not reflect response in UI:', e)
       }
@@ -392,7 +393,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
             <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
             <span className="flex items-center gap-2">
               {!isViewMode && (
-                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>Excluir</button>
               )}
             </span>
           </li>
@@ -517,4 +518,4 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   );
 }
 
-export default AnexosForm; 
+export default AnexosForm;

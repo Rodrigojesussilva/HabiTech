@@ -32,6 +32,9 @@ export default function ArrolamentoList() {
 
   const handleView = (row: any) => {
     if (!row?.id) return
+    localStorage.setItem('arrolamentoId', row.id)
+    localStorage.setItem('arrolamentoCompleted', String(Boolean(row.completed)))
+    localStorage.setItem('arrolamentoCreated_by', row.created_by || '')
     navigate(`/view-arrolamento/${row.id}`)
   }
 
@@ -39,12 +42,21 @@ export default function ArrolamentoList() {
     if (!row?.id) return
     
     // Verificar se o usuário pode editar (apenas o criador)
-    const currentUserEmail = localStorage.getItem('userEmail') || ''
-    if (row.created_by !== currentUserEmail) {
+    const currentUserEmail = (localStorage.getItem('userEmail') || '').trim().toLowerCase()
+    if ((row.created_by || '').trim().toLowerCase() !== currentUserEmail) {
       alert(`❌ Você não tem permissão para editar este arrolamento!\n\nArrolamento: ${row.survey_id}\nCriado por: ${row.created_by}\nNúmero SEI: ${row.survey?.main_metadata?.numero_sei ?? ''}`)
       return
     }
     
+    // Mantém o contexto alinhado ao item clicado antes de montar o formulário.
+    localStorage.setItem('arrolamentoId', row.id)
+    localStorage.setItem('arrolamentoCompleted', String(Boolean(row.completed)))
+    localStorage.setItem('arrolamentoCreated_by', row.created_by || '')
+    console.info('[Arrolamento][List][Edit] selected record', {
+      id: row.id,
+      surveyId: row.survey_id,
+      completed: row.completed,
+    })
     navigate(`/edit-arrolamento/${row.id}`)
   }
 
@@ -136,8 +148,8 @@ export default function ArrolamentoList() {
     if (!row?.id) return
     
     // Verificar se o usuário pode deletar (apenas o criador)
-    const currentUserEmail = localStorage.getItem('userEmail') || ''
-    if (row.created_by !== currentUserEmail) {
+    const currentUserEmail = (localStorage.getItem('userEmail') || '').trim().toLowerCase()
+    if ((row.created_by || '').trim().toLowerCase() !== currentUserEmail) {
       alert(`❌ Você não tem permissão para deletar este arrolamento!\n\nArrolamento: ${row.survey_id}\nCriado por: ${row.created_by}\nNúmero SEI: ${row.survey?.main_metadata?.numero_sei ?? ''}`)
       return
     }
@@ -148,11 +160,15 @@ export default function ArrolamentoList() {
       const token = localStorage.getItem('authToken') || ''
       await survey_resource.DeleteArrolamento({ id: row.id, authorization_token: token }, async (req: any) => {
         const url = `${SURVEY_RESOURCE_URL}${req.path}`
-        const res = await fetch(url, { method: req.method, headers: { 'Content-Type': 'application/json', ...(req.headers || {}) }, body: JSON.stringify(req.body || {}) })
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        const tokenFromReq = (req.headers && (req.headers as any).authorization_token) as string | undefined
+        if (tokenFromReq) headers.Authorization = `Bearer ${tokenFromReq}`
+        const res = await fetch(url, { method: req.method, headers, body: JSON.stringify(req.body || {}) })
         if (!res.ok) throw new Error(await res.text())
-        return res.json()
+        const text = await res.text()
+        return text ? JSON.parse(text) : {}
       })
-      await fetchData()
+      setData(current => current.filter(item => item.id !== row.id))
       alert('Arrolamento removido com sucesso!')
     } catch (e) {
       console.error('Erro ao remover arrolamento:', e)
@@ -218,7 +234,7 @@ export default function ArrolamentoList() {
           created_at: item.created_at,
           completed: item.completed ?? false,
           completed_at: item.completed_at,
-          survey: { main_metadata: { numero_sei: item.survey?.main_metadata?.numero_sei ?? "" } },
+          survey: item.survey ?? { main_metadata: { numero_sei: "" } },
         })) as any
         setData(mapped)
       } else if (response && Object.keys(response).length === 0) {

@@ -98,9 +98,8 @@ export const identEspacoHabitadoDefinition: FormConfig = {
  * This centralizes all conditional field logic specific to IdentResp in one place
  * @param formValues Current form values from IdentResp form
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    console.log(formValues);
     return conditionalFields;
 }
 

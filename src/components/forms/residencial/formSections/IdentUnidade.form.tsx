@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -18,10 +18,11 @@ interface InfoContatoFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
-const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoContatoFormProps) => {
-    const [mostrarContato, setMostrarContato] = useState(false);
+const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex, isOpen, onOpenChange }: InfoContatoFormProps) => {
     const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
     const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
     const [subPrefeituraOptions, setSubPrefeituraOptions] = useState<{ label: string; value: string }[]>([]);
@@ -39,6 +40,10 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
         control,
         name: `families[${familyIndex}].cep`,
     });
+    const cepNaoAplicavel = useWatch({
+        control,
+        name: `families[${familyIndex}].naoAplica`,
+    });
 
     const ufSelecionada = form.watch(`families[${familyIndex}].uf`);
     const selectedSubPrefeitura = watch(`families[${familyIndex}].subPrefeitura`);
@@ -52,6 +57,7 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
     const uf = watch(`families[${familyIndex}].uf`);
 
     const triggeredByBlurRef = useRef(false);
+    const lastCepLookupRef = useRef("");
 
     const prevValuesRef = useRef<Record<string, any>>({
         bairro,
@@ -286,58 +292,65 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
         setDistritoOptionsState(options);
     }, [selectedSubPrefeitura]);
 
-    // Api cep
-    useEffect(() => {
-        const cepLimpo = (cep || '').replace(/\D/g, '');
+    // Mantém o mesmo fluxo de consulta usado na Selagem: busca ao digitar e
+    // também consulta CEP carregado em um rascunho sem endereço.
+    const lookupCepAddress = useCallback(async (value: string, clearOldAddress: boolean) => {
+        const cepLimpo = (value || '').replace(/\D/g, '');
+        const cepPath = `families[${familyIndex}].cep`;
 
-        // Obtém os valores atuais do formulário
-        const logradouroAtual = form.getValues(`families[${familyIndex}].logradouro`);
-        const bairroAtual = form.getValues(`families[${familyIndex}].bairro`);
-        const ufAtual = form.getValues(`families[${familyIndex}].uf`);
-        const cidadeAtual = form.getValues(`families[${familyIndex}].cidade`);
+        if (cepLimpo.length !== 8) {
+            lastCepLookupRef.current = '';
+            return;
+        }
+        if (lastCepLookupRef.current === cepLimpo) return;
+        lastCepLookupRef.current = cepLimpo;
 
-        const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
-                form.setValue(`families[${familyIndex}].logradouro`, '');
-                form.setValue(`families[${familyIndex}].bairro`, '');
-                form.setValue(`families[${familyIndex}].complemento`, '');
-                form.setValue(`families[${familyIndex}].uf`, '');
-                form.setValue(`families[${familyIndex}].cidade`, '');
+        if (clearOldAddress) {
+            for (const field of ['logradouro', 'bairro', 'complemento', 'uf', 'cidade', 'subPrefeitura', 'distrito']) {
+                form.setValue(`families[${familyIndex}].${field}`, '');
             }
-        };
-
-        if (cepLimpo.length === 8) {
-            const buscarEndereco = async () => {
-                try {
-                    const endereco = await buscarEnderecoPorCep(cepLimpo);
-                    console.log('Endereço retornado:', endereco);
-
-                    // ✅ Limpa erro anterior, se houver
-                    form.clearErrors(`families[${familyIndex}].cep`);
-
-                    form.setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '');
-                    form.setValue(`families[${familyIndex}].bairro`, endereco.bairro || '');
-                    form.setValue(`families[${familyIndex}].complemento`, endereco.complemento || '');
-                    form.setValue(`families[${familyIndex}].uf`, endereco.uf || '');
-                    form.setValue(`families[${familyIndex}].cidade`, endereco.cidade || '');
-                } catch (error) {
-                    console.error('Erro ao buscar CEP:', error);
-
-                    limparCamposEndereco();
-
-                    // ❌ Define erro no campo CEP
-                    form.setError(`families[${familyIndex}].cep`, {
-                        type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
-                    });
-                }
-            };
-
-            buscarEndereco();
         }
 
-        // ⚠️ Não faz nada se CEP incompleto
-    }, [cep, familyIndex, form]);
+        try {
+            const endereco = await buscarEnderecoPorCep(cepLimpo);
+            if (form.getValues(cepPath)?.replace(/\D/g, '') !== cepLimpo) return;
+
+            form.clearErrors(cepPath);
+            form.setValue(cepPath, `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5)}`, {
+                shouldDirty: true,
+                shouldValidate: false,
+            });
+            form.setValue(`families[${familyIndex}].logradouro`, endereco.logradouro || '', { shouldDirty: true });
+            form.setValue(`families[${familyIndex}].bairro`, endereco.bairro || '', { shouldDirty: true });
+
+            const complementoPath = `families[${familyIndex}].complemento`;
+            if (!form.getValues(complementoPath)?.trim()) {
+                form.setValue(complementoPath, endereco.complemento || '', { shouldDirty: true });
+            }
+
+            form.setValue(`families[${familyIndex}].uf`, endereco.uf || '', { shouldDirty: true });
+            form.setValue(`families[${familyIndex}].cidade`, endereco.cidade || '', { shouldDirty: true });
+
+            window.requestAnimationFrame(() => {
+                form.setFocus(`families[${familyIndex}].numero`);
+            });
+        } catch (error) {
+            if (form.getValues(cepPath)?.replace(/\D/g, '') !== cepLimpo) return;
+            form.setError(cepPath, {
+                type: 'manual',
+                message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
+            });
+        }
+    }, [familyIndex, form]);
+
+    useEffect(() => {
+        if (!cep) return;
+        const enderecoVazio = !form.getValues(`families[${familyIndex}].logradouro`)
+            && !form.getValues(`families[${familyIndex}].bairro`)
+            && !form.getValues(`families[${familyIndex}].uf`)
+            && !form.getValues(`families[${familyIndex}].cidade`);
+        if (enderecoVazio) void lookupCepAddress(cep, false);
+    }, [cep, familyIndex, form, lookupCepAddress]);
 
     // Torna o SP padrão na UF
     useEffect(() => {
@@ -358,8 +371,6 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
     // Formata o campo Cep
 
     useEffect(() => {
-        const cep = form.watch(`families[${familyIndex}].cep`);
-
         if (cep) {
             // Remove todos os caracteres não numéricos
             let cepMasked = cep.replace(/\D/g, "").slice(0, 8); // Limita a 8 dígitos
@@ -368,20 +379,25 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
             }
 
             // Atualiza o valor do campo no formulário
-            form.setValue(`families[${familyIndex}].cep`, cepMasked);
+            if (cepMasked !== cep) {
+                form.setValue(`families[${familyIndex}].cep`, cepMasked, {
+                    shouldDirty: true,
+                    shouldValidate: false,
+                });
+            }
         }
-    }, [form.watch(`families[${familyIndex}].cep`)]);
+    }, [cep, familyIndex, form]);
 
     // Limpa o campo Cep
     useEffect(() => {
-        if (formValues.naoAplica) {
+        if (cepNaoAplicavel === true) {
             const cepAtual = form.getValues(`families[${familyIndex}].cep`);
 
             if (cepAtual && cepAtual !== '') {
                 form.setValue(`families[${familyIndex}].cep`, "");
             }
         }
-    }, [formValues.naoAplica, form, familyIndex]);
+    }, [cepNaoAplicavel, form, familyIndex]);
 
 
     // Atualiza UF
@@ -478,7 +494,7 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarContato} onOpenChange={setMostrarContato}>
+            <Collapsible open={isOpen} onOpenChange={onOpenChange}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>
@@ -497,6 +513,9 @@ const IdentUnidadeForm = ({ sectionIndex: sectionNumber, familyIndex }: InfoCont
                             formValues={formValues}
                             showSectionLabel={false}
                             familyIndex={familyIndex}
+                            onFieldValueChange={(fieldName, value) => {
+                                if (fieldName === 'cep') void lookupCepAddress(value, true);
+                            }}
                         />
                     ))}
                     {/* 

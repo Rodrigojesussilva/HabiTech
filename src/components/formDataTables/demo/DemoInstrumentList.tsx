@@ -1,63 +1,83 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Eye, FilePlus2, Pencil, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "@/lib/router-compat"
+import { MobileFilters } from "@/components/formDataTables/arrolamento/mobile/mobile-filters"
+import { DesktopFilters } from "@/components/formDataTables/arrolamento/desktop/desktop-filters"
+import { CardList } from "@/components/formDataTables/arrolamento/mobile/card-list"
+import { DesktopDataTable } from "@/components/formDataTables/arrolamento/desktop/data-table"
+import Loader from "@/components/loader/Loader"
+import type { Arrolamento } from "@/components/formDataTables/arrolamento/shared/types"
+import survey_resource from "@/service/survey_resource.api"
+import { SURVEY_RESOURCE_BASE_URL } from "@/service/constants"
 import {
+  createDemoInstrumentVisit,
+  deleteDemoInstrumentRecord,
+  findDemoInstrumentRecord,
   getCreatePath,
+  getDemoUser,
   getEditPath,
   getViewPath,
+  migrateEmptyUserDemoRecords,
   readDemoInstrumentRecords,
   type DemoInstrumentRecord,
   type DemoInstrumentType,
 } from "@/lib/demo-form-records"
+import type { FilterState } from "@/components/formDataTables/arrolamento/shared/types"
 
-type DemoInstrumentListProps = {
-  instrument: DemoInstrumentType
-  title: string
+type DemoInstrumentListProps = { instrument: DemoInstrumentType; title: string }
+type BackendVisitSummary = { id: string; visit_count?: number; completed?: boolean }
+
+function getBackendVisits(response: unknown): BackendVisitSummary[] {
+  if (!response || typeof response !== "object" || !("selagens" in response)) return []
+  const visits = (response as { selagens?: unknown }).selagens
+  if (!Array.isArray(visits)) return []
+  return visits.filter((visit): visit is BackendVisitSummary =>
+    typeof visit === "object" && visit !== null && typeof (visit as { id?: unknown }).id === "string",
+  )
 }
 
-function getNestedText(values: Record<string, unknown>, key: string): string {
-  const direct = values[key]
-  if (typeof direct === "string" || typeof direct === "number") return String(direct)
-
-  const families = values.families
-  if (Array.isArray(families) && families.length > 0) {
-    const firstFamily = families[0]
-    if (typeof firstFamily === "object" && firstFamily !== null) {
-      const familyValue = (firstFamily as Record<string, unknown>)[key]
-      if (typeof familyValue === "string" || typeof familyValue === "number") return String(familyValue)
+function valueText(values: Record<string, unknown>, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = values[key]
+    if (typeof value === "string" || typeof value === "number") {
+      if (String(value).trim()) return String(value)
+    }
+    const families = values.families
+    if (Array.isArray(families) && families.length) {
+      const first = families[0]
+      if (first && typeof first === "object") {
+        const nested = (first as Record<string, unknown>)[key]
+        if (typeof nested === "string" || typeof nested === "number") {
+          if (String(nested).trim()) return String(nested)
+        }
+      }
     }
   }
   return ""
 }
 
-function getRecordName(record: DemoInstrumentRecord): string {
-  return getNestedText(record.values, "nomeEstabelecimento")
-    || getNestedText(record.values, "nomePredio")
-    || getNestedText(record.values, "nomeEspacoHabitado")
-    || getNestedText(record.values, "seiNumber")
-    || getNestedText(record.values, "numeroSei")
+function recordTitle(record: DemoInstrumentRecord): string {
+  return valueText(record.values, "survey_id", "surveyId", "nomeEstabelecimento", "nomePredio", "nomeEspacoHabitado", "questionario", "seiNumber", "numeroSei")
     || `Registro ${record.id.slice(0, 8)}`
 }
 
-function getRecordAddress(record: DemoInstrumentRecord): string {
-  const street = getNestedText(record.values, "logradouro")
-  const number = getNestedText(record.values, "numero")
-  const district = getNestedText(record.values, "bairro")
-  return [street && `${street}${number ? `, ${number}` : ""}`, district].filter(Boolean).join(" · ") || "Endereço não informado"
+function recordSei(record: DemoInstrumentRecord): string {
+  return valueText(record.values, "seiNumber", "numero_sei", "numeroSei") || "999999"
 }
 
-function formatUpdatedAt(value: string): string {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+function recordVisit(record: DemoInstrumentRecord): number {
+  return Number(valueText(record.values, "visitNumber", "visit_count")) || 1
 }
 
 export default function DemoInstrumentList({ instrument, title }: DemoInstrumentListProps) {
   const navigate = useNavigate()
-  const user = localStorage.getItem("userEmail") ?? "anonymous"
+  const user = getDemoUser()
+  const createPath = getCreatePath(instrument)
   const [records, setRecords] = useState<DemoInstrumentRecord[]>([])
-  const [search, setSearch] = useState("")
   const [error, setError] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [filters, setFilters] = useState<FilterState>({ createdBy: "", initialDate: "", endDate: "", searchQuery: "" })
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({ createdBy: "", initialDate: "", endDate: "", searchQuery: "" })
 
   const loadRecords = useCallback(() => {
     try {
@@ -70,10 +90,10 @@ export default function DemoInstrumentList({ instrument, title }: DemoInstrument
   }, [instrument, title, user])
 
   useEffect(() => {
+    migrateEmptyUserDemoRecords()
     loadRecords()
     const handleRecordsUpdated = (event: Event) => {
-      const updatedInstrument = (event as CustomEvent<DemoInstrumentType>).detail
-      if (updatedInstrument === instrument) loadRecords()
+      if ((event as CustomEvent<DemoInstrumentType>).detail === instrument) loadRecords()
     }
     window.addEventListener("habitech-demo-records-updated", handleRecordsUpdated)
     window.addEventListener("storage", loadRecords)
@@ -84,149 +104,209 @@ export default function DemoInstrumentList({ instrument, title }: DemoInstrument
   }, [instrument, loadRecords])
 
   const filteredRecords = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pt-BR")
-    if (!query) return records
+    const query = appliedFilters.searchQuery.trim().toLocaleLowerCase("pt-BR")
+    const creator = appliedFilters.createdBy.trim().toLocaleLowerCase("pt-BR")
     return records.filter((record) =>
-      `${getRecordName(record)} ${getRecordAddress(record)} ${JSON.stringify(record.values)} ${record.status}`
-        .toLocaleLowerCase("pt-BR")
-        .includes(query),
+      (!query || `${recordTitle(record)} ${JSON.stringify(record.values)} ${record.status}`.toLocaleLowerCase("pt-BR").includes(query))
+      && (!creator || user.toLocaleLowerCase("pt-BR").includes(creator))
+      && (!appliedFilters.initialDate || record.createdAt.slice(0, 10) >= appliedFilters.initialDate)
+      && (!appliedFilters.endDate || record.createdAt.slice(0, 10) <= appliedFilters.endDate),
     )
-  }, [records, search])
+  }, [records, appliedFilters, user])
 
-  const createPath = getCreatePath(instrument)
+  // Reutiliza os mesmos cards, status e ações usados pela lista de arrolamento.
+  const cardRecords = useMemo<Arrolamento[]>(() => filteredRecords.map((record) => ({
+    id: record.id,
+    survey_id: recordTitle(record),
+    visit_count: recordVisit(record),
+    completed: record.status === "Concluído",
+    // ActionButtons checks the unnormalized localStorage value, just like the source lists.
+    created_by: localStorage.getItem("userEmail") || "",
+    created_at: record.createdAt,
+    survey: { main_metadata: { numero_sei: recordSei(record) } },
+  })), [filteredRecords])
+
+  const applyFilters = () => setAppliedFilters(filters)
+  const clearFilters = () => {
+    const empty: FilterState = { createdBy: "", initialDate: "", endDate: "", searchQuery: "" }
+    setFilters(empty)
+    setAppliedFilters(empty)
+  }
+
+  const handleView = (item: Arrolamento) => {
+    if (instrument === "residencial") {
+      navigate(`${createPath}?continuar=${encodeURIComponent(item.id)}&visualizar=true`)
+      return
+    }
+    navigate(getViewPath(instrument, item.id))
+  }
+
+  const handleEdit = (item: Arrolamento) => {
+    if (instrument === "residencial") {
+      navigate(`${createPath}?continuar=${encodeURIComponent(item.id)}`)
+      return
+    }
+    navigate(getEditPath(instrument, item.id))
+  }
+
+  const handleNewVisit = async (item: Arrolamento) => {
+    const record = findDemoInstrumentRecord(instrument, user, item.id)
+    if (!record) return
+    if (!item.completed) {
+      window.alert("Apenas formulários concluídos podem receber uma nova visita.")
+      return
+    }
+    setBusy(true)
+    try {
+      let backendId = ""
+      let visitCount = item.visit_count + 1
+      const sei = recordSei(record)
+      if (instrument === "residencial") {
+        const sourceId = valueText(record.values, "backendSelagemId")
+        if (!sourceId) throw new Error("Este residencial não está vinculado a uma selagem no servidor. Não é possível criar uma visita sincronizada.")
+        const token = localStorage.getItem("authToken") || ""
+        const latestResponse = await survey_resource.GetSelagem({ numero_sei: sei === "999999" ? undefined : sei, authorization_token: token }, async (request) => {
+          const params = new URLSearchParams()
+          for (const [key, value] of Object.entries(request.query_parameters ?? {})) {
+            if (value !== undefined && value !== "") params.append(key, String(value))
+          }
+          const result = await fetch(`${SURVEY_RESOURCE_BASE_URL}${request.path}${params.size ? `?${params}` : ""}`, {
+            method: request.method,
+            headers: {
+              "Content-Type": "application/json",
+              ...((request.headers?.authorization_token) ? { Authorization: `Bearer ${request.headers.authorization_token}` } : {}),
+            },
+          })
+          if (!result.ok) throw new Error(await result.text())
+          return result.json()
+        })
+        const sameSeiVisits = getBackendVisits(latestResponse)
+        const latest = sameSeiVisits.reduce<BackendVisitSummary | undefined>((current, next) => !current || Number(next.visit_count) > Number(current.visit_count) ? next : current, undefined)
+        if (latest && latest.id !== sourceId) throw new Error(`Já existe uma visita mais recente (visita ${latest.visit_count}). Selecione a última visita para criar uma nova.`)
+        if (latest && !latest.completed) throw new Error("A visita mais recente ainda não está concluída. Conclua-a antes de criar uma nova visita.")
+        if (latest && Number(latest.visit_count) >= 3) throw new Error("Limite de visitas atingido.")
+      } else {
+        const sameSeiVisits = records.filter((candidate) => sei !== "999999" && recordSei(candidate) === sei)
+        const latest = sameSeiVisits.reduce((current, next) => !current || recordVisit(next) > recordVisit(current) ? next : current, undefined as DemoInstrumentRecord | undefined)
+        if (latest && latest.id !== record.id) throw new Error(`Já existe uma visita mais recente (visita ${recordVisit(latest)}). Selecione a última visita para criar uma nova.`)
+        if (latest && latest.status !== "Concluído") throw new Error("A visita mais recente ainda não está concluída. Conclua-a antes de criar uma nova visita.")
+        if (latest && recordVisit(latest) >= 3) throw new Error("Limite de visitas atingido.")
+      }
+      if (!window.confirm(`Criar nova visita para ${item.survey_id}?\n\nA nova visita será criada com base nos dados da última visita.`)) return
+
+      if (instrument === "residencial") {
+        const sourceId = valueText(record.values, "backendSelagemId")
+        const token = localStorage.getItem("authToken") || ""
+        const response = await survey_resource.CreateFromSelagem({ id: sourceId, created_by: user, authorization_token: token }, async (request) => {
+          const result = await fetch(`${SURVEY_RESOURCE_BASE_URL}${request.path}`, {
+            method: request.method,
+            headers: { "Content-Type": "application/json", ...(request.headers || {}) },
+            body: JSON.stringify(request.body || {}),
+          })
+          if (!result.ok) throw new Error(await result.text())
+          return result.json()
+        })
+        const created = response && typeof response === "object" && "selagem" in response ? response.selagem : undefined
+        if (!created?.id) throw new Error("O servidor não retornou o identificador da nova visita.")
+        backendId = created.id
+        visitCount = Number(created.visit_count) || visitCount
+        const createdBy = localStorage.getItem("userEmail") || user
+        const statusResult = await fetch(`${SURVEY_RESOURCE_BASE_URL}/v1/selagens/${backendId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            created_by: createdBy,
+            status_notas: { status: null, justificativa: "", nome_supervisor: "", observacao: "" },
+          }),
+        })
+        if (!statusResult.ok) throw new Error(await statusResult.text())
+        await statusResult.json()
+        localStorage.setItem("selagemId", backendId)
+        localStorage.setItem("selagemCreated_by", createdBy)
+      }
+      const newId = createDemoInstrumentVisit(instrument, user, item.id, backendId, visitCount)
+      navigate(instrument === "residencial" ? `${createPath}?continuar=${encodeURIComponent(newId)}` : getEditPath(instrument, newId))
+    } catch (visitError) {
+      console.error(`Não foi possível criar visita para ${title}:`, visitError)
+      window.alert(visitError instanceof Error ? visitError.message : "Não foi possível criar uma nova visita.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleDelete = async (item: Arrolamento) => {
+    const record = findDemoInstrumentRecord(instrument, user, item.id)
+    if (!record) return
+    const backendId = instrument === "residencial" ? valueText(record.values, "backendSelagemId") : ""
+    const confirmText = backendId
+      ? `Tem certeza que deseja deletar a selagem ${backendId}?`
+      : `Deseja remover o cadastro ${item.survey_id}?`
+    if (!window.confirm(confirmText)) return
+    try {
+      setBusy(true)
+      if (backendId) {
+        const token = localStorage.getItem("authToken") || ""
+        await survey_resource.DeleteSelagem({ id: backendId, authorization_token: token }, async (request) => {
+          const result = await fetch(`${SURVEY_RESOURCE_BASE_URL}${request.path}`, {
+            method: request.method,
+            headers: {
+              "Content-Type": "application/json",
+              ...((request.headers?.authorization_token) ? { Authorization: `Bearer ${request.headers.authorization_token}` } : {}),
+            },
+            body: JSON.stringify(request.body || {}),
+          })
+          if (!result.ok) throw new Error(await result.text())
+          const responseText = await result.text()
+          return responseText ? JSON.parse(responseText) : {}
+        })
+      }
+      deleteDemoInstrumentRecord(instrument, user, item.id)
+      loadRecords()
+      window.alert(backendId ? "Selagem deletada com sucesso!" : "Cadastro removido com sucesso!")
+    } catch (deleteError) {
+      console.error(`Não foi possível excluir o registro de ${title}:`, deleteError)
+      window.alert(backendId ? "Erro ao deletar selagem. Verifique os logs." : "Erro ao remover o cadastro. Verifique os logs.")
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-5 px-3 py-5 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-blue-700">Formulários cadastrados</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">{title}</h1>
-          <p className="mt-1 text-sm text-slate-600">Registros demonstrativos armazenados neste navegador.</p>
+    <div className="px-3 py-4 sm:px-6 md:px-10 w-full overflow-x-hidden">
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4">{title}</h1>
+        <div className="block md:hidden">
+          <MobileFilters filters={filters} onFiltersChange={setFilters} onFilter={applyFilters} onClear={clearFilters} loading={busy} />
         </div>
-        <Button onClick={() => navigate(createPath)} className="w-full gap-2 sm:w-auto">
-          <FilePlus2 className="size-4" aria-hidden />
-          Novo formulário
-        </Button>
-      </header>
-
-      <div className="relative max-w-xl">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          type="search"
-          placeholder="Buscar por identificação, endereço ou situação"
-          aria-label={`Buscar ${title.toLowerCase()}`}
-          className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-        />
+        <div className="hidden md:block">
+          <DesktopFilters filters={filters} onFiltersChange={setFilters} onFilter={applyFilters} onClear={clearFilters} loading={busy} />
+        </div>
+        <p className="text-sm text-gray-500 mt-4">Visualize ou modifique os dados deste formulário. Use os filtros por criador ou por período de datas.</p>
+        {busy && <div className="flex justify-center mt-4"><Loader /></div>}
       </div>
 
       {error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
-          <p>{error}</p>
-          <Button variant="outline" className="mt-3" onClick={loadRecords}>Tentar novamente</Button>
+          <p>{error}</p><Button variant="outline" className="mt-3" onClick={loadRecords}>Tentar novamente</Button>
         </div>
       ) : filteredRecords.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
-          <h2 className="font-semibold text-slate-900">{search ? "Nenhum registro encontrado" : "Nenhum formulário cadastrado"}</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {search ? "Tente outro termo de busca." : "Os formulários aparecem aqui após o primeiro salvamento automático."}
-          </p>
-          {!search && (
-            <Button className="mt-4 gap-2" onClick={() => navigate(createPath)}>
-              <FilePlus2 className="size-4" aria-hidden />
-              Iniciar formulário
-            </Button>
-          )}
+          <h2 className="font-semibold text-slate-900">{appliedFilters.searchQuery ? "Nenhum registro encontrado" : `Nenhum ${title.toLocaleLowerCase("pt-BR")} encontrado`}</h2>
+          <p className="mt-1 text-sm text-slate-600">Tente ajustar os filtros ou criar um novo formulário.</p>
         </div>
       ) : (
         <>
-          <p className="text-sm text-slate-500" aria-live="polite">
-            {filteredRecords.length} {filteredRecords.length === 1 ? "registro" : "registros"}
-          </p>
-
-          <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th scope="col" className="px-5 py-3">Identificação</th>
-                    <th scope="col" className="px-5 py-3">Endereço</th>
-                    <th scope="col" className="px-5 py-3">Situação</th>
-                    <th scope="col" className="px-5 py-3">Última atualização</th>
-                    <th scope="col" className="px-5 py-3 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-4 font-medium text-slate-900">{getRecordName(record)}</td>
-                      <td className="px-5 py-4 text-slate-600">{getRecordAddress(record)}</td>
-                      <td className="px-5 py-4">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${record.status === "Concluído" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-900"}`}>
-                          {record.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">{formatUpdatedAt(record.updatedAt)}</td>
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-2">
-                          {instrument === "residencial" && record.status === "Rascunho" ? (
-                            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate(getCreatePath(instrument))}>
-                              <Pencil className="size-4" aria-hidden /> Continuar
-                            </Button>
-                          ) : instrument !== "residencial" ? (
-                            <>
-                              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate(getViewPath(instrument, record.id))}>
-                                <Eye className="size-4" aria-hidden /> Ver
-                              </Button>
-                              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate(getEditPath(instrument, record.id))}>
-                                <Pencil className="size-4" aria-hidden /> Editar
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <p className="text-sm text-slate-500" aria-live="polite">{filteredRecords.length} {filteredRecords.length === 1 ? "registro" : "registros"}</p>
+          <div className={busy ? "pointer-events-none opacity-60" : undefined}>
+            <div className="block md:hidden">
+              <CardList data={cardRecords} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} onDelete={handleDelete} />
+            </div>
+            <div className="hidden md:block">
+              <DesktopDataTable data={cardRecords} onView={handleView} onEdit={handleEdit} onNewVisit={handleNewVisit} onDelete={handleDelete} />
             </div>
           </div>
-
-          <ul className="space-y-3 md:hidden">
-            {filteredRecords.map((record) => (
-              <li key={record.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="break-words font-semibold text-slate-900">{getRecordName(record)}</h2>
-                    <p className="mt-1 break-words text-sm text-slate-600">{getRecordAddress(record)}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${record.status === "Concluído" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-900"}`}>
-                    {record.status}
-                  </span>
-                </div>
-                <p className="mt-3 text-xs text-slate-500">Atualizado: {formatUpdatedAt(record.updatedAt)}</p>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {instrument === "residencial" && record.status === "Rascunho" ? (
-                    <Button variant="outline" className="col-span-2 gap-1.5" onClick={() => navigate(getCreatePath(instrument))}>
-                      <Pencil className="size-4" aria-hidden /> Continuar preenchimento
-                    </Button>
-                  ) : instrument !== "residencial" ? (
-                    <>
-                      <Button variant="outline" className="gap-1.5" onClick={() => navigate(getViewPath(instrument, record.id))}>
-                        <Eye className="size-4" aria-hidden /> Visualizar
-                      </Button>
-                      <Button variant="outline" className="gap-1.5" onClick={() => navigate(getEditPath(instrument, record.id))}>
-                        <Pencil className="size-4" aria-hidden /> Editar
-                      </Button>
-                    </>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
         </>
       )}
-    </main>
+    </div>
   )
 }

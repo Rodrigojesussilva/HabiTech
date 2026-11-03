@@ -6,7 +6,7 @@ import { subprefeituras, distritosPorSubprefeitura } from "../subprefeiturasDist
 export const identUnidadeSchema = z.object({
      nomeEspacoHabitado: z.string().optional(),
     cep: z.string().optional(),
-    naoAplica: z.string().optional(),
+    naoAplica: z.boolean().optional(),
     logradouro: z.string().optional(),
     numero: z.string().optional(),
     bairro: z.string().optional(),
@@ -25,7 +25,7 @@ export type FormValues = z.infer<typeof identUnidadeSchema>;
 export const defaultValues: Partial<FormValues> = {
     nomeEspacoHabitado: "",
     cep: "",
-    naoAplica: "",
+    naoAplica: false,
     logradouro: "",
     numero: "",
     bairro: "",
@@ -183,4 +183,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}

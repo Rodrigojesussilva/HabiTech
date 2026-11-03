@@ -24,14 +24,19 @@
     gap: 1rem !important;
     margin: 0 !important;
     border-radius: 0 !important;
-    background: rgb(243 244 246) !important;
+    background: hsl(214 100% 96%) !important;
     padding: 1rem 1.5rem !important;
     text-align: left;
     transition: background-color 150ms ease;
+    color: hsl(222 70% 30%);
   }
 
   .section-header[data-slot="collapsible-trigger"]:hover {
-    background: rgb(229 231 235) !important;
+    background: hsl(190 80% 92%) !important;
+  }
+
+  .section-header[data-slot="collapsible-trigger"] {
+    border-left: 4px solid hsl(24 95% 53%) !important;
   }
 
   .section-header[data-slot="collapsible-trigger"] h4 {
@@ -55,6 +60,16 @@
 
   .section-header[data-slot="collapsible-trigger"][data-state="open"]::after {
     transform: translateY(0.125rem) rotate(225deg);
+  }
+
+  .section-header:not([data-slot="collapsible-trigger"]) {
+    border-left: 4px solid hsl(24 95% 53%) !important;
+    background-color: hsl(214 100% 96%) !important;
+    color: hsl(222 70% 30%);
+  }
+
+  .section-header:not([data-slot="collapsible-trigger"]):hover {
+    background-color: hsl(190 80% 92%) !important;
   }
 }
 
@@ -80,6 +95,8 @@
     input[type="text"],
     input[type="email"],
     input[type="number"],
+    input[type="date"],
+    input[type="tel"],
     textarea,
     select {
       font-size: 16px;
@@ -119,6 +136,7 @@
 
 .app-fixed-header {
   height: 6rem;
+  border-bottom-color: hsl(226 89% 54% / 0.22);
 }
 
 .app-fixed-header-spacer {

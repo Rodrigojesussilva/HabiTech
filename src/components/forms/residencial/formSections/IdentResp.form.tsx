@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getMergedFormSections } from "@/components/forms/residencial/definitions/IdentResp.definition";
 import FormSectionRenderer from "@/components/formController/FormSectionRenderer";
@@ -16,11 +16,11 @@ interface IdentRespFormProps {
     id?: string;
     sectionIndex?: number;
     familyIndex: number;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
-const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFormProps) => {
-
-    const [mostrarSituacaoUso, setMostrarSituacaoUso] = useState(false);
+const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex, isOpen, onOpenChange }: IdentRespFormProps) => {
     const [estadoOptions, setEstadoOptions] = useState<{ label: string; value: string }[]>([]);
     const [cidadeOptions, setCidadeOptions] = useState<{ label: string; value: string }[]>([]);
     const [subPrefeituraOptions, setSubPrefeituraOptions] = useState<{ label: string; value: string }[]>([]);
@@ -34,6 +34,9 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
 
 
     const form = useFormContext();
+    const cepResponsavel = useWatch({ control: form.control, name: `families[${familyIndex}].cep_r` });
+    const cepTrabalho = useWatch({ control: form.control, name: `families[${familyIndex}].cep_t` });
+    const lastCepLookupRef = useRef<Record<'r' | 't', string>>({ r: '', t: '' });
 
     // Observação dos campos
     const formValues = form.watch(`families[${familyIndex}]`) || {};
@@ -413,141 +416,99 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
             });
     }, [ufSelecionada_t]);
 
-    // ----------- CEP PARA _r -----------
-    useEffect(() => {
-        const cep = form.watch(`families[${familyIndex}].cep_r`);
-        const cepLimpo = (cep || '').replace(/\D/g, '');
+    const lookupAddressCep = useCallback(async (value: string, kind: 'r' | 't') => {
+        const cepLimpo = (value || '').replace(/\D/g, '');
+        const cepField = kind === 'r' ? 'cep_r' : 'cep_t';
+        const addressFields = kind === 'r'
+            ? ['logradouro_r', 'bairro_r', 'complemento_r', 'uf_r', 'cidade_r']
+            : ['logradouro_t', 'bairro_t', 'complemento_t', 'uf_t', 'cidade_t'];
+        const numberField = kind === 'r' ? 'numero_r' : 'numero_t';
+        const cepPath = `families[${familyIndex}].${cepField}`;
 
-        if (cepLimpo.length === 8) {
-            const buscarEndereco = async () => {
-                try {
-                    const endereco = await buscarEnderecoPorCep(cepLimpo);
-                    form.clearErrors(`families[${familyIndex}].cep_r`);
-
-                    // Verifica se o CEP pertence ao estado de São Paulo
-                    if (endereco.uf !== 'SP') {
-                        form.setError(`families[${familyIndex}].cep_r`, {
-                            type: 'manual',
-                            message: 'O CEP informado não pertence ao estado de São Paulo.',
-                        });
-
-                        // Limpa os campos de endereço
-                        form.setValue(`families[${familyIndex}].cep_r`, '');
-                        form.setValue(`families[${familyIndex}].logradouro_r`, '');
-                        form.setValue(`families[${familyIndex}].bairro_r`, '');
-                        form.setValue(`families[${familyIndex}].complemento_r`, '');
-                        form.setValue(`families[${familyIndex}].uf_r`, '');
-                        form.setValue(`families[${familyIndex}].cidade_r`, '');
-                        return;
-                    }
-
-                    // Preenche os campos se for SP
-                    form.setValue(`families[${familyIndex}].logradouro_r`, endereco.logradouro || '');
-                    form.setValue(`families[${familyIndex}].bairro_r`, endereco.bairro || '');
-                    form.setValue(`families[${familyIndex}].complemento_r`, endereco.complemento || '');
-                    form.setValue(`families[${familyIndex}].uf_r`, endereco.uf || '');
-                    form.setValue(`families[${familyIndex}].cidade_r`, endereco.cidade || '');
-
-                } catch (error) {
-                    console.error('Erro ao buscar CEP (r):', error);
-                    // Limpa os campos apenas em caso de erro
-                    form.setValue(`families[${familyIndex}].logradouro_r`, '');
-                    form.setValue(`families[${familyIndex}].bairro_r`, '');
-                    form.setValue(`families[${familyIndex}].complemento_r`, '');
-                    form.setValue(`families[${familyIndex}].uf_r`, '');
-                    form.setValue(`families[${familyIndex}].cidade_r`, '');
-
-                    form.setError(`families[${familyIndex}].cep_r`, {
-                        type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
-                    });
-                }
-            };
-
-            buscarEndereco();
+        if (cepLimpo.length !== 8) {
+            lastCepLookupRef.current[kind] = '';
+            return;
         }
-    }, [form.watch(`families[${familyIndex}].cep_r`)]);
+        if (lastCepLookupRef.current[kind] === cepLimpo) return;
+        lastCepLookupRef.current[kind] = cepLimpo;
 
+        try {
+            const endereco = await buscarEnderecoPorCep(cepLimpo);
+            if (form.getValues(cepPath)?.replace(/\D/g, '') !== cepLimpo) return;
+            form.clearErrors(cepPath);
 
-    // ----------- CEP PARA _t -----------
-    useEffect(() => {
-        const cep = form.watch(`families[${familyIndex}].cep_t`);
-        const cepLimpo = (cep || '').replace(/\D/g, '');
-
-        if (cepLimpo.length === 8) {
-            const buscarEndereco = async () => {
-                try {
-                    const endereco = await buscarEnderecoPorCep(cepLimpo);
-                    form.clearErrors(`families[${familyIndex}].cep_t`);
-
-                    // Verifica se o CEP pertence ao estado de São Paulo
-                    if (endereco.uf !== 'SP') {
-                        form.setError(`families[${familyIndex}].cep_t`, {
-                            type: 'manual',
-                            message: 'O CEP informado não pertence ao estado de São Paulo.',
-                        });
-
-                        // Limpa os campos de endereço
-                        form.setValue(`families[${familyIndex}].cep_t`, '');
-                        form.setValue(`families[${familyIndex}].logradouro_t`, '');
-                        form.setValue(`families[${familyIndex}].bairro_t`, '');
-                        form.setValue(`families[${familyIndex}].complemento_t`, '');
-                        form.setValue(`families[${familyIndex}].uf_t`, '');
-                        form.setValue(`families[${familyIndex}].cidade_t`, '');
-                        return;
-                    }
-
-                    // Preenche os campos se for SP
-                    form.setValue(`families[${familyIndex}].logradouro_t`, endereco.logradouro || '');
-                    form.setValue(`families[${familyIndex}].bairro_t`, endereco.bairro || '');
-                    form.setValue(`families[${familyIndex}].complemento_t`, endereco.complemento || '');
-                    form.setValue(`families[${familyIndex}].uf_t`, endereco.uf || '');
-                    form.setValue(`families[${familyIndex}].cidade_t`, endereco.cidade || '');
-
-                } catch (error) {
-                    console.error('Erro ao buscar CEP (t):', error);
-                    // Limpa os campos apenas em caso de erro
-                    form.setValue(`families[${familyIndex}].logradouro_t`, '');
-                    form.setValue(`families[${familyIndex}].bairro_t`, '');
-                    form.setValue(`families[${familyIndex}].complemento_t`, '');
-                    form.setValue(`families[${familyIndex}].uf_t`, '');
-                    form.setValue(`families[${familyIndex}].cidade_t`, '');
-
-                    form.setError(`families[${familyIndex}].cep_t`, {
-                        type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
-                    });
-                }
-            };
-
-            buscarEndereco();
-        }
-    }, [form.watch(`families[${familyIndex}].cep_t`)]);
-
-
-    // ----------- Máscara CEP para _r -----------
-    useEffect(() => {
-        const cep = form.watch(`families[${familyIndex}].cep_r`);
-        if (cep) {
-            let cepMasked = cep.replace(/\D/g, "").slice(0, 8);
-            if (cepMasked.length > 5) {
-                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
+            const cidadeNormalizada = (endereco.cidade || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toLocaleLowerCase('pt-BR');
+            if (endereco.uf !== 'SP' || cidadeNormalizada !== 'sao paulo') {
+                form.setError(cepPath, {
+                    type: 'manual',
+                    message: 'Informe um CEP válido de um endereço no município de São Paulo (capital).',
+                });
+                form.setValue(cepPath, '');
+                addressFields.forEach((field) => form.setValue(`families[${familyIndex}].${field}`, ''));
+                return;
             }
-            form.setValue(`families[${familyIndex}].cep_r`, cepMasked);
-        }
-    }, [form.watch(`families[${familyIndex}].cep_r`)]);
 
-    // ----------- Máscara CEP para _t -----------
-    useEffect(() => {
-        const cep = form.watch(`families[${familyIndex}].cep_t`);
-        if (cep) {
-            let cepMasked = cep.replace(/\D/g, "").slice(0, 8);
-            if (cepMasked.length > 5) {
-                cepMasked = `${cepMasked.slice(0, 5)}-${cepMasked.slice(5)}`;
-            }
-            form.setValue(`families[${familyIndex}].cep_t`, cepMasked);
+            form.setValue(cepPath, `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5)}`, {
+                shouldDirty: true,
+                shouldValidate: false,
+            });
+            addressFields.forEach((field, index) => {
+                const values = [endereco.logradouro, endereco.bairro, endereco.complemento, endereco.uf, endereco.cidade];
+                form.setValue(`families[${familyIndex}].${field}`, values[index] || '', { shouldDirty: true });
+            });
+
+            window.requestAnimationFrame(() => {
+                form.setFocus(`families[${familyIndex}].${numberField}`);
+            });
+        } catch (error) {
+            if (form.getValues(cepPath)?.replace(/\D/g, '') !== cepLimpo) return;
+            addressFields.forEach((field) => form.setValue(`families[${familyIndex}].${field}`, ''));
+            form.setError(cepPath, {
+                type: 'manual',
+                message: error instanceof Error && error.message.startsWith('CEP inválido ou não encontrado')
+                    ? 'CEP inválido ou não encontrado. Confira os 8 dígitos e informe um endereço da cidade de São Paulo (capital).'
+                    : error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
+            });
         }
-    }, [form.watch(`families[${familyIndex}].cep_t`)]);
+    }, [familyIndex, form]);
+
+    // Consulta CEPs digitados e também CEPs carregados em dados existentes.
+    useEffect(() => {
+        if (!cepResponsavel) return;
+        const enderecoVazio = !form.getValues(`families[${familyIndex}].logradouro_r`)
+            && !form.getValues(`families[${familyIndex}].bairro_r`)
+            && !form.getValues(`families[${familyIndex}].uf_r`)
+            && !form.getValues(`families[${familyIndex}].cidade_r`);
+        if (enderecoVazio) void lookupAddressCep(cepResponsavel, 'r');
+    }, [cepResponsavel, familyIndex, form, lookupAddressCep]);
+
+    useEffect(() => {
+        if (!cepTrabalho) return;
+        const enderecoVazio = !form.getValues(`families[${familyIndex}].logradouro_t`)
+            && !form.getValues(`families[${familyIndex}].bairro_t`)
+            && !form.getValues(`families[${familyIndex}].uf_t`)
+            && !form.getValues(`families[${familyIndex}].cidade_t`);
+        if (enderecoVazio) void lookupAddressCep(cepTrabalho, 't');
+    }, [cepTrabalho, familyIndex, form, lookupAddressCep]);
+
+    // Formata os CEPs sem regravar valores que já estão no formato correto.
+    useEffect(() => {
+        for (const [kind, cep] of [['r', cepResponsavel], ['t', cepTrabalho]] as const) {
+            if (!cep) continue;
+            const digits = cep.replace(/\D/g, '').slice(0, 8);
+            const masked = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+            if (masked !== cep) {
+                form.setValue(`families[${familyIndex}].cep_${kind}`, masked, {
+                    shouldDirty: true,
+                    shouldValidate: false,
+                });
+            }
+        }
+    }, [cepResponsavel, cepTrabalho, familyIndex, form]);
 
     // ----------- Limpa campo CEP se nao aplica (r) -----------
     useEffect(() => {
@@ -656,7 +617,7 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
 
     return (
         <div className="text-left">
-            <Collapsible open={mostrarSituacaoUso} onOpenChange={setMostrarSituacaoUso}>
+            <Collapsible open={isOpen} onOpenChange={onOpenChange}>
                 <CollapsibleTrigger asChild>
                     <div className="section-header cursor-pointer bg-gray-100 p-2.5 mb-2.5 rounded-2xl">
                         <h4 className="text-xl font-semibold mb-4" data-secao={formSections[0].title}>
@@ -677,6 +638,10 @@ const IdentRespForm = ({ sectionIndex: sectionNumber, familyIndex }: IdentRespFo
                             formValues={formValues}
                             showSectionLabel={false}
                             familyIndex={familyIndex}
+                            onFieldValueChange={(fieldName, value) => {
+                                if (fieldName === 'cep_r') void lookupAddressCep(value, 'r');
+                                if (fieldName === 'cep_t') void lookupAddressCep(value, 't');
+                            }}
                         />
                     ))}
                 </CollapsibleContent>

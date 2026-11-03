@@ -31,6 +31,7 @@ export interface LoadSelagemDataParams {
     reset: (data: any) => void
   }
   interviewerNameFromStorage: string
+  isCurrent?: () => boolean
 }
 
 // Mock de dados para teste quando a API não estiver disponível
@@ -59,7 +60,7 @@ export const getMockSelagemData = (id: string): { selagens: SelagemApiData[] } =
         identificacao_unidade: {
           cep: "05422-001",
           logradouro: "Rua das Flores, 123",
-          numero: "123",
+          numero: "",
           bairro: "Butantã",
           complemento: "Apto 45",
           uf: "SP",
@@ -154,7 +155,7 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
   }
 
   return {
-    questionario: selagemData.survey_id || "DEMO-123",
+    questionario: selagemData.survey_id || "",
     seiNumber: mainMetadata.numero_sei || "",
     naoAplica: Boolean(mainMetadata.numero_sei_nao_aplicavel),
     interviewerName: selagemData.created_by || interviewerNameFromStorage,
@@ -268,111 +269,81 @@ export const mapSelagemToFormData = (selagemData: SelagemApiData, interviewerNam
 
 // Função para buscar dados da selagem na API
 export const loadSelagemData = async (params: LoadSelagemDataParams): Promise<void> => {
-  const { selagemId, setIsLoadingData, setLoadedSelagemData, form, interviewerNameFromStorage } = params
-
+  const { selagemId, setIsLoadingData, setLoadedSelagemData, form, interviewerNameFromStorage, isCurrent = () => true } = params
   if (!selagemId) return
 
   setIsLoadingData(true)
   try {
-    console.log("🔍 Buscando dados da selagem:", selagemId)
-    
-    const response = await survey_resource.GetSelagem(
-      { id: selagemId },
-      async (req) => {
-        const searchParams = new URLSearchParams()
-        for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
-          if (value !== undefined && value !== "") {
-            searchParams.append(key, String(value))
-          }
-        }
+    let selagemData: any = null
+    let source: 'api' | 'local' = 'api'
+    const token = localStorage.getItem('authToken') || ''
 
-        const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
-        const res = await fetch(url, {
-          method: req.method,
-          headers: {
-            "Content-Type": "application/json",
-            ...(req.headers || {}),
-          },
-        })
-
-        if (!res.ok) {
-          const text = await res.text()
-          throw new Error(`HTTP ${res.status}: ${text}`)
-        }
-
-        return res.json()
-      }
-    )
-
-    console.log("📊 Dados recebidos da API:", response)
-    
-    // Type guard para validar se o response é válido
-    if (response && 'selagens' in response && Array.isArray(response.selagens) && response.selagens.length > 0) {
-      const selagemData = response.selagens[0]
-      setLoadedSelagemData(selagemData)
-      
-      // Sync global pointers for section saves
-      localStorage.setItem('selagemId', selagemData.id)
-      localStorage.setItem('selagemCreated_by', selagemData.created_by || '')
-      try { const sei = selagemData?.survey?.main_metadata?.numero_sei ?? ''; localStorage.setItem('seiNumberS', String(sei ?? '')) } catch {}
-      
-      // Mapear os dados para o formato do formulário (TODOS os 8 schemas)
-      const mappedData = mapSelagemToFormData(selagemData, interviewerNameFromStorage)
-      console.log("🗂️ Dados mapeados para o formulário (8/8 schemas):", mappedData)
-      
-      // Preencher o formulário com os dados carregados
-      form.reset(mappedData)
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Dados Carregados!',
-        text: `Selagem ${selagemData.survey_id ?? selagemId} carregada com sucesso`,
-        timer: 2000,
-        showConfirmButton: false
-      })
-    } else {
-      throw new Error("Selagem não encontrada")
-    }
-  } catch (error) {
-    console.error("❌ Erro ao carregar selagem da API, tentando mock:", error)
-    
-    // Usar dados mockados como fallback
     try {
-      console.log("🎭 Usando dados mockados para teste...")
-      const mockResponse = getMockSelagemData(selagemId)
-      
-      if (mockResponse && mockResponse.selagens && mockResponse.selagens.length > 0) {
-        const selagemData = mockResponse.selagens[0]
-        setLoadedSelagemData(selagemData)
-        
-        // Sync global pointers for section saves (mock path)
-        localStorage.setItem('selagemId', selagemData.id)
-        localStorage.setItem('selagemCreated_by', selagemData.created_by || '')
-        try { const sei = selagemData?.survey?.main_metadata?.numero_sei ?? ''; localStorage.setItem('seiNumberS', String(sei ?? '')) } catch {}
-        
-        const mappedData = mapSelagemToFormData(selagemData, interviewerNameFromStorage)
-        console.log("🗂️ Dados mockados mapeados (8/8 schemas):", mappedData)
-        
-        form.reset(mappedData)
-        
-        Swal.fire({
-          icon: 'info',
-          title: 'Dados Mock Carregados!',
-          text: `Selagem ${selagemData.survey_id ?? selagemId} carregada com dados de teste (API indisponível)`,
-          timer: 3000,
-          showConfirmButton: false
-        })
-      }
-    } catch (mockError) {
-      console.error("❌ Erro ao usar dados mockados:", mockError)
+      const response = await survey_resource.GetSelagem(
+        { id: selagemId, authorization_token: token },
+        async (req) => {
+          const searchParams = new URLSearchParams()
+          for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
+            if (value !== undefined && value !== '') searchParams.append(key, String(value))
+          }
+          const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+          const tokenFromReq = (req.headers as any)?.authorization_token as string | undefined
+          if (tokenFromReq) headers.Authorization = `Bearer ${tokenFromReq}`
+          const res = await fetch(url, { method: req.method, headers })
+          const body = await res.text()
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${body}`)
+          return body ? JSON.parse(body) : null
+        },
+      )
+      const records = (response as any)?.selagens
+      selagemData = Array.isArray(records)
+        ? records.find((record: any) => String(record?.id) === String(selagemId))
+        : undefined
+      if (!selagemData) throw new Error(`A API não retornou a Selagem ${selagemId}.`)
+    } catch (apiError) {
+      console.warn('[Selagem][Load] API indisponível para o registro selecionado; procurando o mesmo ID localmente.', apiError)
+      const localRecords = JSON.parse(localStorage.getItem('habitech-mock-records:v1:selagens') || '[]')
+      selagemData = Array.isArray(localRecords)
+        ? localRecords.find((record: any) => String(record?.id) === String(selagemId))
+        : undefined
+      source = 'local'
+      if (!selagemData) throw apiError
+    }
+
+    if (!isCurrent()) return
+    setLoadedSelagemData(selagemData)
+    localStorage.setItem('selagemId', selagemData.id)
+    localStorage.setItem('selagemCreated_by', selagemData.created_by || '')
+    localStorage.setItem('seiNumberS', String(selagemData?.survey?.main_metadata?.numero_sei ?? ''))
+
+    const mappedData = mapSelagemToFormData(selagemData, interviewerNameFromStorage)
+    form.reset(mappedData)
+    console.info('[Selagem][Load] dados do registro selecionado carregados', {
+      requestedId: selagemId,
+      loadedId: selagemData.id,
+      surveyId: selagemData.survey_id,
+      source,
+      familyCount: mappedData.families?.length ?? 0,
+    })
+    Swal.fire({
+      icon: 'success',
+      title: 'Dados carregados',
+      text: `Todos os dados da Selagem ${selagemData.survey_id ?? selagemId} foram carregados${source === 'local' ? ' do armazenamento local' : ''}.`,
+      timer: 2200,
+      showConfirmButton: false,
+    })
+  } catch (error) {
+    if (isCurrent()) {
+      console.error('[Selagem][Load] falha ao carregar o registro selecionado:', error)
       Swal.fire({
         icon: 'error',
-        title: 'Erro ao Carregar',
-        text: `Não foi possível carregar a selagem nem usar dados de teste`,
-        confirmButtonText: 'OK'
+        title: 'Não foi possível carregar os dados',
+        text: `A Selagem ${selagemId} não foi encontrada na API nem no armazenamento local.`,
+        confirmButtonText: 'OK',
       })
     }
   } finally {
-    setIsLoadingData(false)
+    if (isCurrent()) setIsLoadingData(false)
   }
 }

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:api": "dotnet run --project backend/HabiTech.Api",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

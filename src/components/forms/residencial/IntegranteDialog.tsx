@@ -258,7 +258,7 @@ const IntegranteDialog = ({
     const cidade = getValues(`families[${familyIndex}].cidadeI.${key}`);
 
     const limparCampos = () => {
-      if (!logradouro && !bairro && !uf && !cidade) {
+      if (logradouro || bairro || uf || cidade) {
         setValue(`families[${familyIndex}].logradouroI.${key}`, "");
         setValue(`families[${familyIndex}].bairroI.${key}`, "");
         setValue(`families[${familyIndex}].complementoI.${key}`, "");
@@ -282,7 +282,7 @@ const IntegranteDialog = ({
         limparCampos();
         setError(`families[${familyIndex}].cepI.${key}`, {
           type: "manual",
-          message: "CEP inválido ou não encontrado.",
+          message: error instanceof Error ? error.message : "Não foi possível consultar o CEP.",
         });
       }
     };
@@ -299,7 +299,7 @@ const IntegranteDialog = ({
     const cidade = getValues(`families[${familyIndex}].cidadeTrabalho.${key}`);
 
     const limparCampos = () => {
-      if (!logradouro && !bairro && !uf && !cidade) {
+      if (logradouro || bairro || uf || cidade) {
         setValue(`families[${familyIndex}].logradouroTrabalho.${key}`, "");
         setValue(`families[${familyIndex}].bairroTrabalho.${key}`, "");
         setValue(`families[${familyIndex}].complementoTrabalho.${key}`, "");
@@ -323,7 +323,7 @@ const IntegranteDialog = ({
         limparCampos();
         setError(`families[${familyIndex}].cepTrabalho.${key}`, {
           type: "manual",
-          message: "CEP inválido ou não encontrado.",
+          message: error instanceof Error ? error.message : "Não foi possível consultar o CEP.",
         });
       }
     };

@@ -1,90 +1,70 @@
-# HabiTech API
+# Backend HabiTech
 
-ASP.NET Core 10 API foundation for the demonstration application. The API is configured to use Azure SQL through Entity Framework Core; it does not create or delete database objects automatically.
+API REST do HabiTech, implementada em C# com ASP.NET Core 10, Entity Framework Core e SQL Server. Ela autentica usuários de demonstração, sincroniza os cinco instrumentos, consulta CEP e informa a disponibilidade da API e do banco.
 
-> Independent study/portfolio project. Accounts and sample data are fictional.
+Para instalar o projeto desde o início, incluindo frontend, SQL Server e comandos de execução, siga o [README principal](../README.md#executar-em-um-computador-novo).
 
-## Local development
+## Responsabilidades
 
-Set the connection string in user secrets or an environment variable. Do not commit credentials.
+- Emitir tokens JWT para as contas de demonstração configuradas.
+- Vincular registros sincronizados ao e-mail autenticado.
+- Ler e gravar Selagem, Arrolamento, Residencial, Não Residencial e Ocupação Predial.
+- Sincronizar anexos de Selagem e Arrolamento.
+- Consultar endereços por CEP usando BrasilAPI e ViaCEP como provedores alternativos.
+- Expor health checks da API e da conexão SQL Server.
 
-```powershell
-dotnet user-secrets init --project backend\HabiTech.Api
-dotnet user-secrets set "ConnectionStrings:AzureSql" "<Azure SQL connection string>" --project backend\HabiTech.Api
-dotnet user-secrets set "Jwt:SigningKey" "<random secret of at least 32 characters>" --project backend\HabiTech.Api
-dotnet user-secrets set "DemoAccounts:0:Email" "<demo account email>" --project backend\HabiTech.Api
-dotnet user-secrets set "DemoAccounts:0:Password" "<unique demo account password>" --project backend\HabiTech.Api
-dotnet user-secrets set "Cors:AllowedOrigins:0" "http://localhost:5173" --project backend\HabiTech.Api
-dotnet run --project backend\HabiTech.Api
-```
+## Executar localmente
 
-Configure additional accounts with `DemoAccounts:1:Email`, `DemoAccounts:1:Password`, and so on. Keep all passwords and the JWT signing key in user secrets locally and in Azure App Service application settings after deployment. Configure each allowed frontend origin explicitly; never use a wildcard.
+Pré-requisitos: .NET 10 SDK, SQL Server ativo, banco `HabiTechLocal` criado pelo script `../database/sqlserver/create-database.sql` e connection string salva em .NET User Secrets. Consulte as instruções detalhadas de instalação no README principal.
 
-The login endpoint is `POST /api/auth/login` with a JSON body containing `email` and `password`. It issues an eight-hour bearer token. Login attempts are rate limited. `GET /api/v1/session` is protected and can be used to verify a token.
-
-Run the API integration tests with:
+Na raiz do repositório, configure a connection string com a senha que você escolheu ao criar o banco (não existe uma senha SQL padrão compartilhada):
 
 ```powershell
-dotnet test backend\HabiTech.Api.Tests\HabiTech.Api.Tests.csproj
+dotnet user-secrets set "ConnectionStrings:LocalSqlServer" "Server=localhost;Database=HabiTechLocal;User Id=habitech_app;Password=SUA_SENHA_LOCAL;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True" --project backend/HabiTech.Api
 ```
 
-## Database schema
-
-The API does not modify the database schema automatically at startup. Install the EF tool and apply the checked-in migration explicitly:
+Depois inicie o backend:
 
 ```powershell
-dotnet tool install --global dotnet-ef --version 10.0.14
-dotnet ef database update --project backend\HabiTech.Api --startup-project backend\HabiTech.Api
+npm run dev:api
 ```
 
-The migration creates the user-scoped synchronization table and indexes. It does not delete data.
+A API fica em `http://localhost:5205`. O frontend Vite encaminha `/api` e `/health` para essa URL. Em Development, migrations pendentes são aplicadas durante a inicialização. Se o banco estiver indisponível, veja `/health/ready`; `/health/live` confirma apenas que o processo da API está ativo.
 
-## Offline record synchronization
+## Contas locais — são diferentes
 
-When `VITE_API_BASE_URL` is configured in the frontend build, successful API login starts synchronization for the browser-local Residencial, Não Residencial, and Ocupação Predial records. Local autosave remains the first write; loss of internet or API availability does not clear local records. The client retries on reconnect and periodically after transient server errors. Other instruments and attachments are not yet part of this synchronization contract.
+| Conta | Uso | Credencial local |
+| --- | --- | --- |
+| Login da aplicação | Entrar na tela do HabiTech | `demo@example.test` / `demo2025` |
+| Usuário SQL | A API conectar ao banco | Login `habitech_app`; a senha é definida localmente por quem instala. |
 
-- `GET /api/v1/sync/records` downloads the authenticated user's synchronized records.
-- `POST /api/v1/sync/records` accepts batches of up to 25 records.
-- Records are isolated by the authenticated account. A later `updatedAt` timestamp wins; use UTC timestamps and expect the device clock to influence conflict resolution.
-- The client merges server data with local records without deleting records. A successful response means the server stored the record; keep a local copy for offline use.
+A conta da aplicação é demonstrativa e fica em `appsettings.Development.json`. Ela não autentica no SQL Server. Nunca use essas credenciais ou a configuração de desenvolvimento em produção.
 
-For local development, set `VITE_API_BASE_URL` to the API's HTTPS launch URL before starting Vite. When it is unset, the frontend remains in standalone MSW demonstration mode and does not call this API.
+## Endpoints
 
-## Health endpoints
+| Método | Rota | Autenticação | Finalidade |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/login` | Pública, com limite de tentativas | Validar uma conta de demonstração e emitir JWT. |
+| `GET` | `/api/v1/session` | Bearer JWT | Confirmar identidade da sessão. |
+| `GET` | `/api/v1/sync/records` | Bearer JWT (ou token offline de demonstração em Development) | Buscar registros da conta autenticada. |
+| `POST` | `/api/v1/sync/records` | Bearer JWT (ou token offline de demonstração em Development) | Criar ou atualizar registros em lote. |
+| `GET` | `/api/v1/lookup/cep/{cep}` | Pública | Consultar endereço; recebe oito dígitos. |
+| `GET` | `/health/live` | Pública | Verificar se a API está ativa. |
+| `GET` | `/health/ready` | Pública | Verificar se o SQL Server está acessível. |
+| `GET` | `/openapi/v1.json` | Development | Documento OpenAPI. |
 
-- `GET /health/live` checks whether the process is running.
-- `GET /health/ready` checks whether Azure SQL is configured and reachable. It returns `503` until a connection is configured and available.
+## Sincronização e banco
 
-## Deploying the API to Render
+Os registros ficam em `dbo.SyncedInstrumentRecords`. A combinação de `UserEmail` e `RecordId` identifica cada item; `ValuesJson` guarda os campos específicos do instrumento. O servidor não substitui uma versão mais recente por uma atualização de cliente mais antiga.
 
-The repository includes a `render.yaml` Blueprint and a Dockerfile dedicated to the API. In Render, choose **New > Blueprint**, connect this repository, and select the branch to deploy. The Blueprint creates a free web service in Ohio and deploys the API from `backend/HabiTech.Api`; the existing root Dockerfile continues to be used for the frontend deployment.
+A API aceita lotes de até 25 registros; cada item precisa de ID, instrumento, situação, JSON de valores e datas válidas. O payload JSON tem limite de 20 MB por registro. As operações em lote usam transação; o resultado informa `stored` ou `server-newer` para cada ID.
 
-When Render prompts for values, configure:
+O script SQL cria o banco e o usuário com permissões de leitura e gravação. As migrations pendentes são aplicadas pela API em Development. A senha do usuário SQL é guardada em .NET User Secrets, fora deste repositório.
 
-- `ConnectionStrings__AzureSql`: the Azure SQL ADO.NET connection string, with `Encrypt=True;TrustServerCertificate=False`.
-- `DemoAccounts__0__Email` and `DemoAccounts__0__Password`: credentials for the demo login.
-- `Cors__AllowedOrigins__0`: the exact HTTPS origin of the deployed frontend, without a trailing slash.
-- `Jwt__SigningKey`: generated by the Blueprint. Keep the generated value secret.
+## Compilar
 
-For Azure SQL, add the Render service's outbound IP ranges to the SQL server firewall. Find them in the Render service's **Connect > Outbound** panel. Do not enable broad database access just to make the connection work. Then apply the checked-in EF migration using the database connection string and the database update command from the schema section above.
+Na raiz do repositório:
 
-After the API deploys, verify `https://<render-service>.onrender.com/health/ready` returns `200`. Set `VITE_API_BASE_URL` to `https://<render-service>.onrender.com` in the frontend host's build environment and redeploy the frontend. Free Render web services sleep after 15 minutes without inbound traffic, so the first request after a quiet period can take about a minute.
-
-## Azure App Service configuration
-
-Set these application settings in App Service:
-
-- `ConnectionStrings__AzureSql`: Azure SQL connection string, stored as a secret in App Service configuration.
-- `Jwt__SigningKey`: random signing secret with at least 32 characters, stored as a secret.
-- `DemoAccounts__0__Email` and `DemoAccounts__0__Password`: server-side demo account credentials. Repeat with the next index for additional accounts.
-- `Cors__AllowedOrigins__0`: exact HTTPS URL of the deployed frontend.
-
-Use a dedicated database principal with the minimum permissions required. Never place connection strings or credentials in source control or frontend environment variables.
-
-Use the ADO.NET connection string provided for the Azure SQL database, with encryption enabled and certificate validation enabled (`Encrypt=True;TrustServerCertificate=False`). The App Service must be allowed to reach the database: prefer private networking where available, or narrowly allow the App Service's outbound addresses in the SQL firewall. Do not enable broad public access just to make the health check pass.
-
-After configuration, verify `GET /health/ready` returns `200`. A `503` means the connection is missing or the API cannot reach Azure SQL; check the App Service settings, database firewall/network rules, database name, and principal permissions. The API does not automatically apply migrations: run the documented migration step explicitly before using record synchronization.
-
-## Current scope
-
-The API includes a server-configured demo login, health checks, the initial user-scoped synchronization schema, and record synchronization endpoints. Integration tests cover authentication requirements, timestamp conflict handling, and user isolation. Azure SQL connectivity and Azure capacity/cost alerts still require deployment-specific configuration. Automatic record deletion is intentionally not configured.
+```powershell
+dotnet build backend/HabiTech.Api/HabiTech.Api.csproj
+```

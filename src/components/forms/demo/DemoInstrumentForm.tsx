@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState, type Ref } from "react"
-import { useForm, type FieldErrors, type Resolver, type UseFormRegister } from "react-hook-form"
+import { useCallback, useEffect, useMemo, useState, type Ref } from "react"
+import { useForm, type FieldErrors, type Resolver, type UseFormClearErrors, type UseFormRegister, type UseFormSetError, type UseFormSetValue } from "react-hook-form"
 import { useNavigate, useParams } from "@/lib/router-compat"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Form } from "@/components/ui/form"
 import FormPageHeader from "@/components/forms/FormPageHeader"
@@ -10,10 +11,17 @@ import {
   clearDemoInstrumentDraft,
   completeDemoInstrumentRecord,
   findDemoInstrumentRecord,
+  getDemoUser,
   getOrCreateActiveDemoRecordId,
+  resumeDemoInstrumentDraft,
+  saveAutosavedDemoRecord,
   type DemoInstrumentRecord,
 } from "@/lib/demo-form-records"
 import type { DemoInstrumentDefinition, DemoInstrumentField } from "./instruments"
+import { buscarEnderecoPorCep } from "@/service/cep.api"
+import { formatarTelefoneAuto } from "@/components/forms/residencial/helpers/infContato.helper"
+import { estados } from "@/components/cidades_estados/estados"
+import { cidadesLocais } from "@/components/cidades_estados/cidade"
 
 type FormValues = Record<string, string>
 type InstrumentSection = DemoInstrumentDefinition["sections"][number]
@@ -22,6 +30,8 @@ type DemoInstrumentFormProps = {
   definition: DemoInstrumentDefinition
   ref?: Ref<HTMLDivElement>
   viewMode?: boolean
+  isMetadataModalOpen: boolean
+  setIsMetadataModalOpen: (open: boolean) => void
 }
 
 function getDefaultValues(definition: DemoInstrumentDefinition, record?: DemoInstrumentRecord): FormValues {
@@ -38,16 +48,39 @@ function getDefaultValues(definition: DemoInstrumentDefinition, record?: DemoIns
 function InstrumentField({
   field,
   register,
+  setValue,
+  setError,
+  clearErrors,
   error,
   disabled,
+  options = [],
 }: {
   field: DemoInstrumentField
   register: UseFormRegister<FormValues>
+  setValue: UseFormSetValue<FormValues>
+  setError: UseFormSetError<FormValues>
+  clearErrors: UseFormClearErrors<FormValues>
   error?: string
   disabled: boolean
+  options?: Array<{ label: string; value: string }>
 }) {
   const className = "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-100"
   const registration = register(field.name, { required: field.required ? `${field.label} é obrigatório.` : false })
+  const lookupAddress = async (input: string) => {
+    if (field.name !== "cep") return
+    const cep = input.replace(/\D/g, "")
+    if (cep.length !== 8) return
+    try {
+      const address = await buscarEnderecoPorCep(cep)
+      clearErrors("cep")
+      setValue("logradouro", address.logradouro, { shouldDirty: true, shouldValidate: true })
+      setValue("bairro", address.bairro, { shouldDirty: true, shouldValidate: true })
+      setValue("cidade", address.cidade, { shouldDirty: true, shouldValidate: true })
+      setValue("uf", address.uf, { shouldDirty: true, shouldValidate: true })
+    } catch (lookupError) {
+      setError("cep", { type: "validate", message: lookupError instanceof Error ? lookupError.message : "Não foi possível consultar o CEP." })
+    }
+  }
 
   return (
     <label className="block space-y-1.5">
@@ -62,6 +95,20 @@ function InstrumentField({
           disabled={disabled}
           aria-required={field.required || undefined}
         />
+      ) : field.type === "uf" || field.type === "city" ? (
+        <select
+          {...registration}
+          onChange={(event) => {
+            void registration.onChange(event)
+            if (field.type === "uf") setValue("cidade", "", { shouldDirty: true })
+          }}
+          className={className}
+          disabled={disabled}
+          aria-required={field.required || undefined}
+        >
+          <option value="">Selecione</option>
+          {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
       ) : field.type === "select" ? (
         <select
           {...registration}
@@ -75,8 +122,24 @@ function InstrumentField({
       ) : (
         <input
           {...registration}
-          type={field.type ?? "text"}
+          onChange={(event) => {
+            void registration.onChange(event)
+            if (field.name === "telefone") {
+              setValue(field.name, formatarTelefoneAuto(event.currentTarget.value), { shouldDirty: true })
+            } else if (field.name === "cep") {
+              const digits = event.currentTarget.value.replace(/\D/g, "").slice(0, 8)
+              setValue(field.name, digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits, { shouldDirty: true })
+            }
+          }}
+          onBlur={(event) => {
+            void registration.onBlur(event)
+            void lookupAddress(event.currentTarget.value)
+          }}
+          type={field.name === "telefone" ? "tel" : field.type ?? "text"}
+          inputMode={field.name === "cep" || field.name === "telefone" ? "numeric" : undefined}
+          maxLength={field.name === "cep" ? 9 : field.name === "telefone" ? 15 : undefined}
           min={field.type === "number" ? 0 : undefined}
+          step={field.type === "number" && field.name.toLowerCase().includes("area") ? "any" : undefined}
           className={className}
           disabled={disabled}
           aria-required={field.required || undefined}
@@ -95,14 +158,19 @@ export default function DemoInstrumentForm({
   definition,
   ref,
   viewMode = false,
+  isMetadataModalOpen,
+  setIsMetadataModalOpen,
 }: DemoInstrumentFormProps) {
   const { id: routeId } = useParams<{ id?: string }>()
   const navigate = useNavigate()
-  const user = localStorage.getItem("userEmail") ?? "anonymous"
+  const user = getDemoUser()
+  const continuingDraftId = new URLSearchParams(window.location.search).get("continuar")
   const [expandedSections, setExpandedSections] = useState<string[]>([])
   const [recordState] = useState(() => {
     try {
-      const id = routeId ?? getOrCreateActiveDemoRecordId(definition.id, user)
+      const id = routeId ?? (continuingDraftId
+        ? resumeDemoInstrumentDraft(definition.id, user, continuingDraftId)
+        : getOrCreateActiveDemoRecordId(definition.id, user))
       return { id, record: findDemoInstrumentRecord(definition.id, user, id), error: "" }
     } catch (error) {
       return {
@@ -113,6 +181,7 @@ export default function DemoInstrumentForm({
     }
   })
   const isViewMode = viewMode
+  const isEditingExistingRecord = Boolean(routeId)
   const resolver = useCallback<Resolver<FormValues>>(async (values) => {
     const errors: FieldErrors<FormValues> = {}
     for (const section of definition.sections) {
@@ -129,6 +198,17 @@ export default function DemoInstrumentForm({
     resolver,
   })
   const values = form.watch()
+  useEffect(() => {
+    if (isViewMode) return
+    const subscription = form.watch((formValues) => {
+      saveAutosavedDemoRecord(window.location.pathname, user, formValues as FormValues)
+    })
+    return () => subscription.unsubscribe()
+  }, [form, isViewMode, user])
+  const stateOptions = estados
+  const cityOptions = values.uf
+    ? cidadesLocais[values.uf.toUpperCase() as keyof typeof cidadesLocais] ?? []
+    : []
   const completion = useMemo(() => {
     const allFields = definition.sections.flatMap((section) => section.fields)
     if (allFields.length === 0) return 0
@@ -155,6 +235,27 @@ export default function DemoInstrumentForm({
     }
   })
 
+  const handleMetadataContinue = async () => {
+    const requiredFields = definition.sections[0]?.fields
+      .filter((field) => field.required)
+      .map((field) => field.name) ?? []
+    const valid = await form.trigger(requiredFields as Array<keyof FormValues>)
+    if (valid) setIsMetadataModalOpen(false)
+  }
+
+  const handleMetadataModalOpenChange = (open: boolean) => {
+    if (open) {
+      setIsMetadataModalOpen(true)
+      return
+    }
+    if (isEditingExistingRecord || isViewMode) {
+      setIsMetadataModalOpen(false)
+      return
+    }
+    setIsMetadataModalOpen(false)
+    navigate(definition.listPath)
+  }
+
   if (recordState.error) {
     return <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">{recordState.error}</p>
   }
@@ -177,7 +278,34 @@ export default function DemoInstrumentForm({
             <ProgressMeter completion={completion} />
           </FormPageHeader>
 
-          {definition.sections.map((section, index) => {
+          <Dialog open={isMetadataModalOpen} onOpenChange={handleMetadataModalOpenChange}>
+            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+              <DialogHeader className="text-center">
+                <DialogTitle>Novo {definition.title}</DialogTitle>
+                <DialogDescription>Preencha os campos abaixo para abrir o formulário.</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
+                {(definition.sections[0]?.fields ?? []).map((field) => (
+                  <InstrumentField
+                    key={field.name}
+                    field={field}
+                    register={form.register}
+                    setValue={form.setValue}
+                    setError={form.setError}
+                    clearErrors={form.clearErrors}
+                    error={form.formState.errors[field.name]?.message}
+                    disabled={isViewMode}
+                    options={field.type === "uf" ? stateOptions : field.type === "city" ? cityOptions : undefined}
+                  />
+                ))}
+              </div>
+              <Button type="button" className="w-full" onClick={() => void handleMetadataContinue()}>
+                Abrir formulário
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          {!isMetadataModalOpen && definition.sections.map((section, index) => {
             const isExpanded = expandedSections.includes(section.id)
             const requiredCount = section.fields.filter((field) => field.required).length
             return (
@@ -216,8 +344,12 @@ export default function DemoInstrumentForm({
                       <InstrumentField
                         field={field}
                         register={form.register}
+                        setValue={form.setValue}
+                        setError={form.setError}
+                        clearErrors={form.clearErrors}
                         error={form.formState.errors[field.name]?.message}
                         disabled={isViewMode}
+                        options={field.type === "uf" ? stateOptions : field.type === "city" ? cityOptions : undefined}
                       />
                     </div>
                   ))}
@@ -226,16 +358,16 @@ export default function DemoInstrumentForm({
             )
           })}
 
-          <footer className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          {!isMetadataModalOpen && <footer className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => navigate(definition.listPath)}>
               Voltar para a lista
             </Button>
             {!isViewMode && (
-              <Button type="submit" className="bg-green-700 hover:bg-green-800">
+              <Button type="submit" className="bg-primary text-primary-foreground shadow-md shadow-blue-900/15 hover:bg-blue-800">
                 Finalizar formulário
               </Button>
             )}
-          </footer>
+          </footer>}
         </form>
       </Form>
     </div>

@@ -59,8 +59,8 @@ export const identUnidadeDefinition: FormConfig = {
                     label: "Cep",
                     type: "text" as const,
                     required: false,
-                    mask: "9999-999",
-                    placeholder: "0000-000",
+                    mask: "99999-999",
+                    placeholder: "00000-000",
                 },
                 {
                     name: "naoAplica",
@@ -147,10 +147,9 @@ export const identUnidadeDefinition: FormConfig = {
  * This centralizes all conditional field logic specific to InfoContato in one place
  * @param formValues Current form values from InfoContato form
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
 
-    console.log(formValues);
     return conditionalFields;
 }
 
@@ -174,4 +173,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}

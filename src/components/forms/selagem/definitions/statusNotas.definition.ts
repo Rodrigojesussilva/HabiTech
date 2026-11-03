@@ -68,9 +68,8 @@ export const statusNotasDefinition: FormConfig = {
  * Get additional conditional fields based on form values for PessoaDef form
  * @param formValues Current form values from PessoaDef form
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = [];
-    console.log(formValues);
     // Add fields that appear when a person in the family has disabilities
    
     
@@ -107,4 +106,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}

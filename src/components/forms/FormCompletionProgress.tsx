@@ -106,7 +106,7 @@ export function ProgressMeter({ completion }: { completion: number }) {
         aria-valuetext={`${completion}% preenchido`}
       >
         <div
-          className="h-full rounded-full bg-blue-600 transition-[width]"
+          className="h-full rounded-full bg-gradient-to-r from-orange-500 via-blue-700 to-cyan-500 transition-[width]"
           style={{ width: `${completion}%` }}
         />
       </div>

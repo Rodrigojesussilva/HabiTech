@@ -8,12 +8,15 @@ using HabiTech.Api.Health;
 using HabiTech.Api.Sync;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
-var connectionString = builder.Configuration.GetConnectionString("AzureSql");
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+var connectionString = builder.Configuration.GetConnectionString("LocalSqlServer")
+    ?? throw new InvalidOperationException("Configure ConnectionStrings:LocalSqlServer para iniciar a API.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "HabiTech.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "HabiTech.Web";
 var configuredSigningKey = builder.Configuration["Jwt:SigningKey"];
@@ -83,29 +86,13 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-builder.Services.AddDbContext<HabiTechDbContext>(options =>
-{
-    if (!string.IsNullOrWhiteSpace(connectionString))
-    {
-        options.UseSqlServer(connectionString);
-    }
-});
+builder.Services.AddDbContext<HabiTechDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddHttpClient("cep-provider", client => client.Timeout = TimeSpan.FromSeconds(8));
 
 builder.Services
     .AddHealthChecks()
     .AddCheck("live", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy())
-    .AddCheck<AzureSqlHealthCheck>("azure-sql", tags: ["ready"]);
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-    {
-        if (allowedOrigins.Length > 0)
-        {
-            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
-        }
-    });
-});
+    .AddCheck<LocalDatabaseHealthCheck>("local-database", tags: ["ready"]);
 
 builder.Services.AddOpenApi();
 
@@ -113,11 +100,34 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    await using var scope = app.Services.CreateAsyncScope();
+    var database = scope.ServiceProvider.GetRequiredService<HabiTechDbContext>().Database;
+    try
+    {
+        if (database.IsRelational())
+        {
+            await database.MigrateAsync();
+        }
+        else
+        {
+            await database.EnsureCreatedAsync();
+        }
+    }
+    catch (Exception error)
+    {
+        app.Logger.LogError(error, "A API iniciará sem acesso ao SQL Server. Recursos que usam o banco ficarão indisponíveis.");
+    }
+}
+
+if (app.Environment.IsDevelopment())
+{
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-app.UseCors("Frontend");
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -156,24 +166,123 @@ app.MapGet("/api/v1/session", (System.Security.Claims.ClaimsPrincipal user) =>
     Results.Ok(new { email = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value }))
     .RequireAuthorization();
 
+app.MapGet("/api/v1/lookup/cep/{cep}", async (
+    string cep,
+    IHttpClientFactory httpClientFactory,
+    CancellationToken cancellationToken) =>
+{
+    var normalizedCep = new string(cep.Where(char.IsDigit).ToArray());
+    if (normalizedCep.Length != 8)
+    {
+        return Results.BadRequest(new { message = "Informe um CEP com 8 dígitos." });
+    }
+
+    var client = httpClientFactory.CreateClient("cep-provider");
+    var providerFailed = false;
+    var providerReportedNotFound = false;
+    var providers = new (string Url, bool ViaCep)[]
+    {
+        ($"https://brasilapi.com.br/api/cep/v1/{normalizedCep}", false),
+        ($"https://viacep.com.br/ws/{normalizedCep}/json/", true),
+    };
+
+    foreach (var provider in providers)
+    {
+        try
+        {
+            using var response = await client.GetAsync(provider.Url, cancellationToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                providerReportedNotFound = true;
+                continue;
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                providerFailed = true;
+                continue;
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+            var data = document.RootElement;
+            if (provider.ViaCep
+                && data.TryGetProperty("erro", out var notFound)
+                && notFound.ValueKind == JsonValueKind.True)
+            {
+                providerReportedNotFound = true;
+                continue;
+            }
+
+            var street = ReadJsonString(data, provider.ViaCep ? "logradouro" : "street");
+            var neighborhood = ReadJsonString(data, provider.ViaCep ? "bairro" : "neighborhood");
+            var city = ReadJsonString(data, provider.ViaCep ? "localidade" : "city");
+            var state = ReadJsonString(data, provider.ViaCep ? "uf" : "state");
+            if (string.IsNullOrWhiteSpace(city) || string.IsNullOrWhiteSpace(state))
+            {
+                providerFailed = true;
+                continue;
+            }
+
+            return Results.Ok(new
+            {
+                cep = ReadJsonString(data, "cep") ?? normalizedCep,
+                logradouro = street ?? string.Empty,
+                complemento = ReadJsonString(data, "complemento") ?? string.Empty,
+                bairro = neighborhood ?? string.Empty,
+                cidade = city,
+                uf = state,
+            });
+        }
+        catch (HttpRequestException)
+        {
+            providerFailed = true;
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            providerFailed = true;
+        }
+        catch (JsonException)
+        {
+            providerFailed = true;
+        }
+    }
+
+    if (providerReportedNotFound && !providerFailed)
+    {
+        return Results.NotFound(new { message = "CEP não encontrado." });
+    }
+
+    return Results.Problem(
+        title: "Consulta de CEP indisponível",
+        detail: "Não foi possível acessar os serviços de CEP. Verifique a conexão do computador que está executando a API.",
+        statusCode: StatusCodes.Status503ServiceUnavailable);
+})
+    .WithName("LookupCep");
+
 app.MapPost("/api/v1/sync/records", async (
     HttpContext context,
     SyncBatchRequest request,
     HabiTechDbContext dbContext,
+    IReadOnlyList<DemoAccount> accounts,
     CancellationToken cancellationToken) =>
 {
     const int maximumBatchSize = 25;
-    const int maximumValuesJsonLength = 512 * 1024;
+    const int maximumValuesJsonLength = 20 * 1024 * 1024;
     var supportedInstruments = new HashSet<string>(StringComparer.Ordinal)
     {
         "residencial",
         "nao-residencial",
         "ocupacao-predial",
+        "selagem",
+        "arrolamento",
+        "selagem-anexo",
+        "arrolamento-anexo",
     };
     var supportedStatuses = new HashSet<string>(StringComparer.Ordinal)
     {
         "Rascunho",
         "Concluído",
+        "ConcluÃ­do",
     };
 
     if (request.Records is null || request.Records.Count is 0 or > maximumBatchSize)
@@ -201,7 +310,7 @@ app.MapPost("/api/v1/sync/records", async (
         }
     }
 
-    var userEmail = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var userEmail = ResolveSyncUserEmail(context, accounts, app.Environment.IsDevelopment());
     if (string.IsNullOrWhiteSpace(userEmail))
     {
         return Results.Unauthorized();
@@ -251,15 +360,15 @@ app.MapPost("/api/v1/sync/records", async (
 
     return Results.Ok(new SyncBatchResponse(responseRecords));
 })
-    .RequireAuthorization()
     .WithName("SyncInstrumentRecords");
 
 app.MapGet("/api/v1/sync/records", async (
-    System.Security.Claims.ClaimsPrincipal user,
+    HttpContext context,
     HabiTechDbContext dbContext,
+    IReadOnlyList<DemoAccount> accounts,
     CancellationToken cancellationToken) =>
 {
-    var userEmail = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var userEmail = ResolveSyncUserEmail(context, accounts, app.Environment.IsDevelopment());
     if (string.IsNullOrWhiteSpace(userEmail))
     {
         return Results.Unauthorized();
@@ -290,7 +399,6 @@ app.MapGet("/api/v1/sync/records", async (
 
     return Results.Ok(records);
 })
-    .RequireAuthorization()
     .WithName("GetSyncedInstrumentRecords");
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
@@ -304,5 +412,33 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.Run();
+
+static string? ResolveSyncUserEmail(
+    HttpContext context,
+    IReadOnlyList<DemoAccount> accounts,
+    bool allowOfflineDemoToken)
+{
+    var authenticatedEmail = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    if (!string.IsNullOrWhiteSpace(authenticatedEmail)) return authenticatedEmail;
+
+    if (!allowOfflineDemoToken
+        || !string.Equals(context.Request.Headers["Authorization"].ToString(), "Bearer demo-token", StringComparison.Ordinal))
+    {
+        return null;
+    }
+
+    var offlineEmail = context.Request.Headers["X-Offline-User"].ToString().Trim();
+    return accounts.FirstOrDefault(account =>
+        string.Equals(account.Email, offlineEmail, StringComparison.OrdinalIgnoreCase))?.Email;
+}
+
+static string? ReadJsonString(JsonElement element, string propertyName)
+{
+    return element.ValueKind == JsonValueKind.Object
+        && element.TryGetProperty(propertyName, out var property)
+        && property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+}
 
 public partial class Program;

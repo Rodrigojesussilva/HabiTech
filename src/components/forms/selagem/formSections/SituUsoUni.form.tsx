@@ -270,7 +270,6 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
 
     useEffect(() => {
         const handleBlur = async () => {
-            console.log("Acessando User efect")
             const activeFieldName = document.activeElement?.getAttribute("name");
 
             const fields = {
@@ -457,4 +456,4 @@ const SituUsoUniForm = ({ sectionIndex: sectionNumber, familyIndex }: SituUsoUni
     );
 };
 
-export default SituUsoUniForm; 
+export default SituUsoUniForm;

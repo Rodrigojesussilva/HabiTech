@@ -20,7 +20,19 @@ initializeTheme()
 
 async function startApplication() {
   const { worker } = await import("./mocks/browser")
-  await worker.start({ onUnhandledRequest: "error" })
+  await worker.start({
+    onUnhandledRequest(request, print) {
+      // A consulta de CEP sai diretamente do navegador e não usa a API local.
+      const url = new URL(request.url)
+      if (
+        (url.hostname === "brasilapi.com.br" && url.pathname.startsWith("/api/cep/v1/"))
+        || (url.hostname === "viacep.com.br" && url.pathname.endsWith("/json/"))
+        || (url.origin === window.location.origin
+          && (url.pathname === "/api/auth/login" || url.pathname === "/api/v1/sync/records"))
+      ) return
+      print.error()
+    },
+  })
 
   createRoot(document.getElementById("root")!).render(
     <StrictMode>

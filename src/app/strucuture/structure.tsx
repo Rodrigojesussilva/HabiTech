@@ -14,10 +14,10 @@ export default function ContentController({ children }: ContentControllerProps) 
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="min-w-0">
-        <div className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-2 border-b border-slate-200 bg-white/95 px-3 backdrop-blur">
+        <div className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-2 border-b border-blue-100 bg-white/95 px-3 backdrop-blur">
           <SidebarTrigger
             aria-label="Abrir ou fechar os formulários cadastrados"
-            className="size-9 rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-blue-50 hover:text-blue-800"
+            className="size-9 rounded-lg border border-blue-100 bg-white text-blue-800 shadow-sm hover:bg-blue-50 hover:text-blue-900"
           />
           <span className="text-sm font-semibold text-slate-700">Formulários cadastrados</span>
         </div>

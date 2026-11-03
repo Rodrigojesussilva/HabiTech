@@ -1,3 +1,5 @@
+import { saveDemoRecordTombstone } from "@/service/demo-record-tombstones"
+
 export type DemoInstrumentType = "residencial" | "nao-residencial" | "ocupacao-predial"
 export type DemoRecordStatus = "Rascunho" | "Concluído"
 
@@ -39,6 +41,40 @@ function isDemoInstrumentRecord(value: unknown): value is DemoInstrumentRecord {
     && typeof record.values === "object"
     && record.values !== null
     && !Array.isArray(record.values)
+}
+
+export function getDemoUser(): string {
+  const user = localStorage.getItem("userEmail")?.trim()
+  return user || "anonymous"
+}
+
+export function migrateEmptyUserDemoRecords(): void {
+  if (localStorage.getItem("userEmail")?.trim()) return
+  // Move records created while userEmail was an empty string into the same
+  // anonymous account used by form completion.
+  for (const instrument of demoInstrumentTypes) {
+    const anonymousKey = recordsStorageKey(instrument, "anonymous")
+    const emptyUserKey = recordsStorageKey(instrument, "")
+    const emptyUserRaw = localStorage.getItem(emptyUserKey)
+    if (!emptyUserRaw) continue
+
+    try {
+      const emptyUserRecords: unknown = JSON.parse(emptyUserRaw)
+      const anonymousRecords: unknown = JSON.parse(localStorage.getItem(anonymousKey) || "[]")
+      if (!Array.isArray(emptyUserRecords) || !emptyUserRecords.every(isDemoInstrumentRecord)) continue
+      if (!Array.isArray(anonymousRecords) || !anonymousRecords.every(isDemoInstrumentRecord)) continue
+
+      const merged = new Map<string, DemoInstrumentRecord>()
+      for (const record of [...emptyUserRecords, ...anonymousRecords]) {
+        const current = merged.get(record.id)
+        if (!current || record.updatedAt > current.updatedAt) merged.set(record.id, record)
+      }
+      localStorage.setItem(anonymousKey, JSON.stringify([...merged.values()]))
+      localStorage.removeItem(emptyUserKey)
+    } catch (error) {
+      console.error("Não foi possível migrar os registros demonstrativos anônimos:", error)
+    }
+  }
 }
 
 export function readDemoInstrumentRecords(instrument: DemoInstrumentType, user: string): DemoInstrumentRecord[] {
@@ -104,6 +140,75 @@ export function getOrCreateActiveDemoRecordId(instrument: DemoInstrumentType, us
   return id
 }
 
+export function resumeDemoInstrumentDraft(instrument: DemoInstrumentType, user: string, id: string): string {
+  localStorage.setItem(activeRecordStorageKey(instrument, user), id)
+  return id
+}
+
+export function startNewDemoInstrumentDraft(instrument: DemoInstrumentType, user: string): string {
+  const id = makeRecordId()
+  localStorage.setItem(activeRecordStorageKey(instrument, user), id)
+  clearDemoInstrumentDraft(user, getCreatePath(instrument))
+  return id
+}
+
+export function deleteDemoInstrumentRecord(
+  instrument: DemoInstrumentType,
+  user: string,
+  id: string,
+): void {
+  const records = readDemoInstrumentRecords(instrument, user)
+  const record = records.find((item) => item.id === id)
+  if (!record) return
+
+  writeDemoInstrumentRecords(instrument, user, records.filter((item) => item.id !== id), false)
+  saveDemoRecordTombstone(instrument, id, record.createdAt)
+  const wasActiveRecord = localStorage.getItem(activeRecordStorageKey(instrument, user)) === id
+  if (wasActiveRecord) {
+    localStorage.removeItem(activeRecordStorageKey(instrument, user))
+    clearDemoInstrumentDraft(user, getCreatePath(instrument))
+  }
+  clearDemoInstrumentDraft(user, `${getCreatePath(instrument)}?continuar=${encodeURIComponent(id)}`)
+  clearDemoInstrumentDraft(user, getEditPath(instrument, id))
+  window.dispatchEvent(new CustomEvent("habitech-demo-records-updated", { detail: instrument }))
+}
+
+export function createDemoInstrumentVisit(
+  instrument: DemoInstrumentType,
+  user: string,
+  sourceRecordId: string,
+  backendRecordId: string,
+  visitCount: number,
+): string {
+  const source = findDemoInstrumentRecord(instrument, user, sourceRecordId)
+  if (!source) throw new Error("O cadastro de origem não foi encontrado nesta lista.")
+
+  const id = startNewDemoInstrumentDraft(instrument, user)
+  const now = new Date()
+  const timestamp = now.toISOString()
+  const values = {
+    ...source.values,
+    backendSelagemId: backendRecordId,
+    visitNumber: String(visitCount),
+    firstVisitStart: now.toLocaleString("pt-BR", {
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+    }).replace(",", " -"),
+    firstVisitEnd: "",
+    endTime: "",
+  }
+  const records = readDemoInstrumentRecords(instrument, user)
+  const record: DemoInstrumentRecord = {
+    id,
+    instrument,
+    values,
+    status: "Rascunho",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }
+  writeDemoInstrumentRecords(instrument, user, [record, ...records])
+  return id
+}
+
 export function saveAutosavedDemoRecord(
   pathname: string,
   user: string,
@@ -162,8 +267,10 @@ export function clearDemoInstrumentDraft(
   user: string,
   pathname: string,
 ): void {
-  const draftKey = `sehab-form-draft:v1:${user}:${pathname}`
-  localStorage.removeItem(draftKey)
+  const draftPrefix = `sehab-form-draft:v1:${user}:${pathname}`
+  for (const key of Object.keys(localStorage)) {
+    if (key === draftPrefix || key.startsWith(`${draftPrefix}?`)) localStorage.removeItem(key)
+  }
 }
 
 export function getCreatePath(instrument: DemoInstrumentType): string {

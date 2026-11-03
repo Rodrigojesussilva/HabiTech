@@ -14,7 +14,7 @@ const ThemeEditor: React.FC = () => {
   // Apply theme when component mounts
   useEffect(() => {
     applyThemeColors(selectedTheme);
-  }, []);
+  }, [selectedTheme]);
 
   const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const theme = e.target.value as keyof typeof themeConfig;
@@ -36,9 +36,6 @@ const ThemeEditor: React.FC = () => {
 
     // Update the theme color in the DOM
     updateThemeColor(selectedTheme, key as keyof typeof colorValues, value);
-    
-    // Also apply CSS variable directly for immediate feedback
-    document.documentElement.style.setProperty(`--${key}`, value);
   };
 
   // Format a color key to a display name (camelCase to Title Case with spaces)
@@ -114,4 +111,4 @@ const ThemeEditor: React.FC = () => {
   );
 };
 
-export default ThemeEditor; 
+export default ThemeEditor;

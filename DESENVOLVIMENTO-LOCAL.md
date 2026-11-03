@@ -1,31 +1,29 @@
 # Desenvolvimento local
 
-Este projeto oferece um frontend demonstrativo com dados fictícios e uma API .NET opcional. O modo padrão não requer Docker, banco de dados ou serviços externos.
+Para clonar e configurar o projeto pela primeira vez em Windows, siga o passo a passo completo do [README principal](./README.md#executar-em-um-computador-novo). Este arquivo resume os comandos usados no dia a dia depois que Node.js, .NET 10, SQL Server, o banco e a connection string já estiverem configurados.
 
-## Pré-requisitos
+## Iniciar
 
-- Node.js compatível com a versão definida no projeto
-- .NET 10 SDK somente para executar a API e seus testes
+Abra dois terminais PowerShell na raiz do repositório. No primeiro, inicie a API:
 
-## Executar o frontend
+```powershell
+npm run dev:api
+```
+
+No segundo, instale as dependências (somente na primeira execução ou quando elas mudarem) e inicie o frontend:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Sem `VITE_API_BASE_URL`, o frontend usa respostas locais do MSW. Acesso demonstrativo: `demo@example.test` / `demo2025`.
+Abra a URL informada pelo Vite, normalmente `http://localhost:5173`. A API fica em `http://localhost:5205`.
 
-## Executar a API opcional
+## Verificar
 
-Configure Azure SQL, JWT, conta demonstrativa e CORS usando .NET User Secrets. Os comandos e os passos para validar a conexão estão em [`backend/README.md`](./backend/README.md).
+- `http://localhost:5205/health/live` confirma que a API está ativa.
+- `http://localhost:5205/health/ready` confirma que o banco SQL Server está acessível.
+- O banco local criado pelo script é `HabiTechLocal` e o usuário SQL técnico é `habitech_app`.
+- A conta de demonstração da tela é `demo@example.test` / `demo2025`; ela não é a conta SQL.
 
-Quando a API estiver disponível, defina `VITE_API_BASE_URL` para a URL HTTPS da API antes de iniciar o frontend. Sem essa variável, a aplicação permanece no modo local.
-
-## Testes
-
-```powershell
-npm run build
-npm run lint
-dotnet test backend\HabiTech.Api.Tests\HabiTech.Api.Tests.csproj
-```
+Não há senha SQL padrão: defina uma senha local no script `database/sqlserver/create-database.sql` e salve o mesmo valor em .NET User Secrets conforme o [guia completo](./README.md#3-preparar-o-sql-server-e-criar-o-banco). Não salve segredos no Git.

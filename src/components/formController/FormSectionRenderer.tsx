@@ -22,6 +22,7 @@ interface FormSectionRendererProps {
     handleModalFields?: boolean;
     showSectionLabel?: boolean;
     familyIndex?: number | null;
+    onFieldValueChange?: (fieldName: string, value: string) => void;
 }
 
 export const FormSectionRenderer = ({
@@ -33,6 +34,7 @@ export const FormSectionRenderer = ({
     handleModalFields = false,
     showSectionLabel = true,
     familyIndex = null,
+    onFieldValueChange,
 }: FormSectionRendererProps) => {
     // Detecta automaticamente se estamos numa rota de visualização
     const isViewMode = useViewMode();
@@ -126,7 +128,7 @@ export const FormSectionRenderer = ({
                                             {renderFormField(field, {
                                                 ...JSONformField,
                                                 disabled: isDisabled
-                                            }, formValues)}
+                                            }, formValues, onFieldValueChange)}
                                         </div>
                                     </FormControl>
                                     <FormMessage />
@@ -141,7 +143,12 @@ export const FormSectionRenderer = ({
 };
 
 // Helper function to render different field types
-function renderFormField(field: FormFieldType, formField: any, formValues: Record<string, any>) {
+function renderFormField(
+    field: FormFieldType,
+    formField: any,
+    formValues: Record<string, any>,
+    onFieldValueChange?: (fieldName: string, value: string) => void,
+) {
     switch (field.type) {
 
         case "label":
@@ -225,17 +232,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
             );
 
         case "file":
-            return (
-                <Input
-                    type="file"
-                    disabled={formField.disabled}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const file = e.target.files?.[0];
-                        formField.onChange(file);
-                    }}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                />
-            );
+            return <FileFieldInput formField={formField} />;
 
         case "text":
             if (field.mask) {
@@ -253,6 +250,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                                 return;
                             }
                             formField.onChange(e.target.value);
+                            onFieldValueChange?.(field.name, e.target.value);
                         }}
                     />
                 );
@@ -265,6 +263,7 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     value={(field.name === 'seiNumber' && (formValues['naoAplica'] || formField.value === '999999' || formField.value === 'N/A')) ? 'N/A' : (formField.value ?? '')}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         formField.onChange(e.target.value);
+                        onFieldValueChange?.(field.name, e.target.value);
                     }}
                 />
             );
@@ -337,9 +336,9 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
                     placeholder={field.placeholder}
                     disabled={formField.disabled}
                     min={field.min}
-                    value={formField.value || field.min || ""}
+                    value={formField.value ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const value = e.target.value ? parseInt(e.target.value, 10) : field.min || "";
+                        const value = e.target.value === "" ? "" : parseInt(e.target.value, 10);
                         formField.onChange(value);
                     }}
                     className="w-32"
@@ -443,5 +442,52 @@ function renderFormField(field: FormFieldType, formField: any, formValues: Recor
     }
 }
 
+function FileFieldInput({ formField }: { formField: any }) {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const selectedFile = typeof File !== "undefined" && formField.value instanceof File
+        ? formField.value as File
+        : undefined;
 
-export default FormSectionRenderer; 
+    React.useEffect(() => {
+        if (!selectedFile && inputRef.current) inputRef.current.value = "";
+    }, [selectedFile]);
+
+    const removeFile = () => {
+        if (inputRef.current) inputRef.current.value = "";
+        formField.onChange(undefined);
+    };
+
+    return (
+        <div className="space-y-2">
+            <Input
+                ref={inputRef}
+                type="file"
+                disabled={formField.disabled}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    formField.onChange(e.target.files?.[0] ?? undefined);
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+            {selectedFile && (
+                <ul aria-label="Arquivos selecionados" className="space-y-1">
+                    <li className="flex min-w-0 items-center justify-between gap-3 rounded border bg-background px-3 py-2 text-sm">
+                        <span className="truncate" title={selectedFile.name}>{selectedFile.name}</span>
+                        {!formField.disabled && (
+                            <button
+                                type="button"
+                                onClick={removeFile}
+                                aria-label={`Excluir ${selectedFile.name}`}
+                                className="shrink-0 text-red-600 hover:text-red-700"
+                            >
+                                Excluir
+                            </button>
+                        )}
+                    </li>
+                </ul>
+            )}
+        </div>
+    );
+}
+
+
+export default FormSectionRenderer;

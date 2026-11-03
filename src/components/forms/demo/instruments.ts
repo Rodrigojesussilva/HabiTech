@@ -3,7 +3,7 @@ import type { DemoInstrumentType } from "@/lib/demo-form-records"
 export type DemoInstrumentField = {
   name: string
   label: string
-  type?: "text" | "number" | "date" | "select" | "textarea"
+  type?: "text" | "number" | "date" | "select" | "textarea" | "uf" | "city"
   required?: boolean
   options?: string[]
 }
@@ -50,6 +50,8 @@ export const naoResidencialInstrument: DemoInstrumentDefinition = {
         { name: "numero", label: "Número", required: true },
         { name: "complemento", label: "Complemento" },
         { name: "bairro", label: "Bairro", required: true },
+        { name: "cidade", label: "Cidade", type: "city" },
+        { name: "uf", label: "UF", type: "uf" },
         { name: "distrito", label: "Distrito" },
         { name: "subprefeitura", label: "Subprefeitura" },
       ],
@@ -126,6 +128,8 @@ export const ocupacaoPredialInstrument: DemoInstrumentDefinition = {
         { name: "numero", label: "Número", required: true },
         { name: "complemento", label: "Complemento" },
         { name: "bairro", label: "Bairro", required: true },
+        { name: "cidade", label: "Cidade", type: "city" },
+        { name: "uf", label: "UF", type: "uf" },
         { name: "distrito", label: "Distrito" },
         { name: "subprefeitura", label: "Subprefeitura" },
       ],

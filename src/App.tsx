@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react'
 import { DEMO_AUTH_TOKEN } from './service/demo.api'
 import { isBackendApiConfigured } from './service/backend.api'
 import { startDemoRecordSync } from './service/demo-record-sync'
+import { getDemoUser } from './lib/demo-form-records'
 
 function App() {
   const [isLoginDone, setIsLoginDone] = useState(() => {
@@ -16,7 +17,6 @@ function App() {
     if (isBackendApiConfigured) {
       return isAuthenticated
         && Boolean(authToken)
-        && authToken !== DEMO_AUTH_TOKEN
         && Boolean(localStorage.getItem('userEmail'))
     }
     if (isAuthenticated && !authToken) {
@@ -47,10 +47,11 @@ function App() {
   useEffect(() => {
     if (!isLoginDone || !isBackendApiConfigured) return
 
-    const user = localStorage.getItem('userEmail')
+    const user = getDemoUser()
     const token = localStorage.getItem('authToken')
     const expiresAt = Date.parse(localStorage.getItem('authTokenExpiresAt') ?? '')
-    if (!user || !token || token === DEMO_AUTH_TOKEN || expiresAt <= Date.now()) return
+    if (!user || !token) return
+    if (token !== DEMO_AUTH_TOKEN && expiresAt <= Date.now()) return
 
     return startDemoRecordSync(user, token)
   }, [isLoginDone])

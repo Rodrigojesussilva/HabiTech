@@ -13,7 +13,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
-import { saveAutosavedDemoRecord } from "@/lib/demo-form-records"
+import { getDemoUser, saveAutosavedDemoRecord } from "@/lib/demo-form-records"
 
 type AutoSaveDraft<TFieldValues extends FieldValues> = {
   version: 1
@@ -29,8 +29,12 @@ function AutoSaveFormBridge() {
   const draft = React.useRef<AutoSaveDraft<FieldValues> | null>(null)
   const restoring = React.useRef(false)
   const storageKey = React.useMemo(() => {
-    const user = localStorage.getItem("userEmail") ?? "anonymous"
-    return `sehab-form-draft:v1:${user}:${window.location.pathname}`
+    const user = getDemoUser()
+    const continuationId = new URLSearchParams(window.location.search).get("continuar")
+    const draftPath = continuationId
+      ? `${window.location.pathname}?continuar=${encodeURIComponent(continuationId)}`
+      : window.location.pathname
+    return `sehab-form-draft:v1:${user}:${draftPath}`
   }, [])
 
   React.useEffect(() => {
@@ -87,7 +91,7 @@ function AutoSaveFormBridge() {
           values: JSON.parse(serialized) as FieldValues,
         }
         localStorage.setItem(storageKey, JSON.stringify(nextDraft))
-        saveAutosavedDemoRecord(window.location.pathname, localStorage.getItem("userEmail") ?? "anonymous", nextDraft.values)
+        saveAutosavedDemoRecord(window.location.pathname, getDemoUser(), nextDraft.values)
         draft.current = nextDraft
         setSaveError(false)
         setSaved(true)

@@ -6,3 +6,6 @@ backend-services*
 **/bin/
 **/obj/
 .vercel
+build.log
+backend/HabiTech.Api/backend-startup.log
+backend/HabiTech.Api/backend-startup-error.log

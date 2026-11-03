@@ -9,6 +9,7 @@ import survey_resource from "@/service/survey_resource.api"
 import { SURVEY_RESOURCE_BASE_URL, SURVEY_RESOURCE_URL } from "@/service/constants"
 import useViewMode from '@/hooks/useViewMode'
 import { DEMO_AUTH_TOKEN } from "@/service/demo.api"
+import { readLocalAttachmentData, removeLocalAttachmentData, saveLocalAttachmentData } from "@/service/local-attachment-data"
 
 interface AnexosFormProps {
   id?: string;
@@ -57,12 +58,28 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
 
   const localKey = (sid: string) => `selagem_attachments_${sid}`
 
-  const saveLocalAttachment = (sid: string, field: string, attachment: AttachmentItem) => {
+  const getAttachmentStorageIds = (sid: string): string[] => {
+    const ids = new Set([sid, localStorage.getItem('selagemId') || ''].filter(Boolean))
+    try {
+      const savedRecords = JSON.parse(localStorage.getItem('habitech-mock-records:v1:selagens') || '[]') as Array<{ id?: string; survey_id?: string }>
+      const record = savedRecords.find(item => item.id === sid || item.survey_id === sid)
+      if (record?.id) ids.add(record.id)
+      if (record?.survey_id) ids.add(record.survey_id)
+    } catch (error) {
+      console.warn('[Selagem][Anexos][Local] could not resolve saved record attachment IDs:', error)
+    }
+    return [...ids]
+  }
+
+  const saveLocalAttachment = async (sid: string, field: string, attachment: AttachmentItem) => {
     try {
       const key = localKey(sid)
       const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
-      current[field] = [...(current[field] || []), attachment]
+      const { dataUrl, ...metadata } = attachment
+      current[field] = [...(current[field] || []).filter(item => item.id !== attachment.id), metadata]
       localStorage.setItem(key, JSON.stringify(current))
+      window.dispatchEvent(new CustomEvent('habitech-demo-records-updated', { detail: 'mock-records' }))
+      if (dataUrl) await saveLocalAttachmentData(attachment.id, dataUrl)
     } catch (error) {
       console.error('[Selagem][Anexos][Local][Save] failed:', error)
     }
@@ -75,6 +92,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       if (current[field]) {
         current[field] = (current[field] || []).filter(a => a.id !== id)
         localStorage.setItem(key, JSON.stringify(current))
+        window.dispatchEvent(new CustomEvent('habitech-demo-records-updated', { detail: 'mock-records' }))
         console.log('[Selagem][Anexos][Local][Remove] key:', key, 'field:', field, 'id:', id)
       }
     } catch (e) {
@@ -82,13 +100,30 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     }
   }
 
-  const loadFromLocal = (sid: string) => {
+  const loadFromLocal = async (sid: string) => {
     try {
-      const key = localKey(sid)
-      const parsed = JSON.parse(localStorage.getItem(key) || '{}')
-      if (parsed && typeof parsed === 'object') {
-        setAttachmentsByField(parsed)
-        console.log('[Selagem][Anexos][Local][Load] key:', key, 'parsed:', parsed)
+      const ids = getAttachmentStorageIds(sid)
+      const parsed: Record<string, AttachmentItem[]> = {}
+      for (const id of ids) {
+        const value = JSON.parse(localStorage.getItem(localKey(id)) || '{}') as Record<string, AttachmentItem[]>
+        for (const [field, items] of Object.entries(value)) {
+          const existing = parsed[field] || []
+          parsed[field] = [...existing, ...(Array.isArray(items) ? items : []).filter(item => !existing.some(saved => saved.id === item.id))]
+        }
+      }
+      if (Object.keys(parsed).length > 0) {
+        const hydrated = await Promise.all(Object.entries(parsed).map(async ([field, items]) => [
+          field,
+          await Promise.all(items.map(async item => ({
+            ...item,
+            dataUrl: item.dataUrl || await readLocalAttachmentData(item.id).catch(() => undefined),
+          }))),
+        ] as const))
+        setAttachmentsByField(Object.fromEntries(hydrated))
+        console.log('[Selagem][Anexos][Local][Load] ids:', ids, 'parsed:', parsed)
+      } else {
+        setAttachmentsByField({})
+        console.log('[Selagem][Anexos][Local][Load] no saved files for IDs:', ids)
       }
     } catch (e) {
       console.warn('[Selagem][Anexos][Local][Load] failed:', e)
@@ -102,6 +137,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.warn('[Selagem][Anexos][Load] selagemId missing; skipping')
       return
     }
+    // Exibe primeiro os arquivos offline; a consulta remota pode estar indisponível.
+    await loadFromLocal(currentSelagemId)
     /*if (!token) {
       console.warn('[Selagem][Anexos][Load] token missing; using local fallback')
       loadFromLocal(currentSelagemId)
@@ -132,7 +169,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       console.log('[Selagem][Anexos][Load] signed_url attachments raw length:', list.length)
       if (!Array.isArray(list)) throw new Error('Resposta de anexos demonstrativos inválida.')
       if (list.length === 0) {
-        loadFromLocal(currentSelagemId)
+        await loadFromLocal(currentSelagemId)
         return
       }
       const grouped: Record<string, AttachmentItem[]> = {}
@@ -170,7 +207,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         const { currentSelagemId, token } = ensureIds()
         if (!token) {
           console.log('[Selagem][Anexos][Load] token still missing; local fallback')
-          loadFromLocal(currentSelagemId)
+          await loadFromLocal(currentSelagemId)
         } else {
           const response2 = await survey_resource.GetSelagemAttachments({ id: currentSelagemId, authorization_token: token, download_mode: 'metadata_only' as any }, async (req: any) => {
             const url = `${SURVEY_RESOURCE_BASE_URL}${req.path}`
@@ -191,6 +228,10 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           })
           const list2 = (response2 as any)?.attachments || []
           console.log('[Selagem][Anexos][Load] metadata_only attachments raw length:', list2.length)
+          if (!Array.isArray(list2) || list2.length === 0) {
+            await loadFromLocal(currentSelagemId)
+            return
+          }
           const grouped2: Record<string, AttachmentItem[]> = {}
           for (const f of list2) {
             const meta = f.metadata || f.metadado || {}
@@ -215,8 +256,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         }
       } catch (e2) {
         console.error('[Selagem][Anexos][Load] metadata/local fallback failed:', e2)
-        // const { currentSelagemId } = ensureIds()
-        //loadFromLocal(currentSelagemId)
+        const { currentSelagemId } = ensureIds()
+        await loadFromLocal(currentSelagemId)
       }
     } finally {
       setLoading(false)
@@ -288,7 +329,8 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
           return next
         })
         console.log('[Selagem][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
-        saveLocalAttachment(currentSelagemId, fieldName, newItem)
+        await saveLocalAttachment(currentSelagemId, fieldName, newItem)
+        form.setValue(`families[${familyIndex}].${fieldName}`, undefined)
       } catch (e) {
         console.warn('[Selagem][Anexos][Upload] could not reflect response in UI:', e)
       }
@@ -313,6 +355,14 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
     try {
       const { currentSelagemId, token } = ensureIds()
       console.log('[Selagem][Anexos][Remove] id:', attachmentId, 'field:', fieldName, 'selagemId:', currentSelagemId, 'tokenPresent:', Boolean(token))
+      if (attachmentId.startsWith('saved-form:')) {
+        form.setValue(`families[${familyIndex}].${fieldName}`, '', { shouldDirty: true })
+        setAttachmentsByField(prev => ({
+          ...prev,
+          [fieldName]: (prev[fieldName] || []).filter(item => item.id !== attachmentId),
+        }))
+        return
+      }
       if (!currentSelagemId) return
       //if (token) {
       await survey_resource.RemoveSelagemAttachment({ id: currentSelagemId, attachments: [attachmentId], authorization_token: token }, async (req: any) => {
@@ -338,6 +388,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         return next
       })
       removeLocalAttachment(currentSelagemId, fieldName, attachmentId)
+      await removeLocalAttachmentData(attachmentId).catch(error => console.warn('[Selagem][Anexos][Local][Remove] file cleanup failed:', error))
       console.log('[Selagem][Anexos][Remove] removed locally:', attachmentId)
     } catch (e) {
       console.error('[Selagem][Anexos][Remove] error:', e)
@@ -382,17 +433,27 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   }
 
   const renderAttachmentList = (fieldName: string) => {
-    const items = attachmentsByField[fieldName] || []
+    const items = [...(attachmentsByField[fieldName] || [])]
+    const savedValue = form.getValues(`families[${familyIndex}].${fieldName}`)
+    const savedNames = (Array.isArray(savedValue) ? savedValue : [savedValue])
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    for (const filename of savedNames) {
+      if (!items.some(item => item.filename === filename)) {
+        items.push({ id: `saved-form:${fieldName}:${filename}`, filename })
+      }
+    }
     console.log('[Selagem][Anexos][RenderList] field:', fieldName, 'count:', items.length)
     if (!items.length) return null
     return (
       <ul className="mt-2 space-y-1">
         {items.map((a) => (
           <li key={a.id} className="flex items-center justify-between rounded border px-2 py-1 text-xs">
-            <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
+            {a.url || a.dataUrl
+              ? <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
+              : <span className="truncate mr-2" title={a.filename}>{a.filename}</span>}
             <span className="flex items-center gap-2">
               {!isViewMode && (
-                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>Excluir</button>
               )}
             </span>
           </li>
@@ -489,4 +550,4 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   );
 }
 
-export default AnexosForm; 
+export default AnexosForm;

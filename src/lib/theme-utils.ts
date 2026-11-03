@@ -29,7 +29,8 @@ export const applyThemeColors = (theme: ThemeType = 'lightTheme'): void => {
 
   // Apply CSS variables
   Object.entries(colors).forEach(([key, value]) => {
-    root.style.setProperty(`--${key}`, value as string);
+    const cssVariable = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+    root.style.setProperty(`--${cssVariable}`, value as string);
   });
 };
 
@@ -49,10 +50,12 @@ export const updateThemeColor = (
     
 
     // Directly update the CSS variable
-    document.documentElement.style.setProperty(`--${colorKey}`, colorValue);
+    const cssVariable = String(colorKey).replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+    document.documentElement.style.setProperty(`--${cssVariable}`, colorValue);
 
     // This is a runtime modification to the theme config (won't persist after reload)
-    (themeConfig[theme] as any)[colorKey] = colorValue;
+    const activeTheme = themeConfig[theme] as ThemeColors
+    activeTheme[colorKey] = colorValue;
   }
 };
 
@@ -71,4 +74,4 @@ export const initializeTheme = (): void => {
   // Remove all theme classes then add the active one
   document.documentElement.classList.remove(...availableThemes);
   document.documentElement.classList.add(defaultTheme);
-}; 
+};

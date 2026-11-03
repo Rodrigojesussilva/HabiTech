@@ -1106,7 +1106,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI1`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroI1`, '');
                 form.setValue(`families[${familyIndex}].bairroI1`, '');
                 form.setValue(`families[${familyIndex}].complementoI1`, '');
@@ -1143,7 +1143,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepI1`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };
@@ -1164,7 +1164,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI2`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroI2`, '');
                 form.setValue(`families[${familyIndex}].bairroI2`, '');
                 form.setValue(`families[${familyIndex}].complementoI2`, '');
@@ -1200,7 +1200,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepI2`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };
@@ -1220,7 +1220,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeI3`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroI3`, '');
                 form.setValue(`families[${familyIndex}].bairroI3`, '');
                 form.setValue(`families[${familyIndex}].complementoI3`, '');
@@ -1256,7 +1256,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepI3`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };
@@ -1277,7 +1277,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho1`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroTrabalho1`, '');
                 form.setValue(`families[${familyIndex}].bairroTrabalho1`, '');
                 form.setValue(`families[${familyIndex}].complementoTrabalho1`, '');
@@ -1313,7 +1313,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepTrabalho1`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };
@@ -1334,7 +1334,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho2`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroTrabalho2`, '');
                 form.setValue(`families[${familyIndex}].bairroTrabalho2`, '');
                 form.setValue(`families[${familyIndex}].complementoTrabalho2`, '');
@@ -1370,7 +1370,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepTrabalho2`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };
@@ -1391,7 +1391,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
         const cidadeAtual = form.getValues(`families[${familyIndex}].cidadeTrabalho3`);
 
         const limparCamposEndereco = () => {
-            if (!logradouroAtual && !bairroAtual && !ufAtual && !cidadeAtual) {
+            if (logradouroAtual || bairroAtual || ufAtual || cidadeAtual) {
                 form.setValue(`families[${familyIndex}].logradouroTrabalho3`, '');
                 form.setValue(`families[${familyIndex}].bairroTrabalho3`, '');
                 form.setValue(`families[${familyIndex}].complementoTrabalho3`, '');
@@ -1427,7 +1427,7 @@ const IntegrantesFamiliaForm = ({ sectionIndex: sectionNumber, familyIndex }: In
                     limparCamposEndereco();
                     form.setError(`families[${familyIndex}].cepTrabalho3`, {
                         type: 'manual',
-                        message: 'CEP inválido ou não encontrado.',
+                        message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP.',
                     });
                 }
             };

@@ -51,6 +51,7 @@ import { SURVEY_RESOURCE_URL } from "../../../service/constants";
 import survey_resource from "../../../service/survey_resource.api"
 import Swal from 'sweetalert2'
 import { mapArrolamentoToFormData } from './helpers/apiMapper'
+import { createArrolamentoSurveyId } from '@/service/demo-record-id'
 import { useRef } from 'react'
 import { formatarSelo } from "./helpers/selo.helper";
 import FormCompletionProgress from "@/components/forms/FormCompletionProgress";
@@ -81,7 +82,7 @@ const formSchema = z.object({
 	timeElapsed: z.string(),
 	visitDurationHours: z.string(),
 	sealNumber: z.string(),
-	numberFamilies: z.number().min(0),
+	numberFamilies: z.number().int().min(1, { message: 'Informe ao menos uma família.' }),
 	firstVisitStart: z.string(),
 	firstVisitEnd: z.string(),
 	secondVisit: z.string(),
@@ -118,6 +119,7 @@ const FormArrolamento = ({
 }: FormArrolamentoProps) => {
  	const navigate = useNavigate();
  	const params = useParams();
+	const [newArrolamentoSurveyId] = useState(() => params.id ? '' : createArrolamentoSurveyId());
  		const baseViewMode = useViewMode();
 	const isEditMode = Boolean(params.id);
 	const [isLoadingData, setIsLoadingData] = useState(false);
@@ -132,38 +134,35 @@ const FormArrolamento = ({
 	}, [baseViewMode, isEditMode, loadedArrolamentoData?.created_by]);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [finalizing, setFinalizing] = useState(false);
-	const serverMainMetadataRef = useRef<any>(null);
-   const ignoreNextCloseRef = useRef(false);
-	console.log(isMobile);
-	const interviewerNameFromStorage = 'Piloto Instrumentos';
+	const serverMainMetadataRef = useRef<any>(null);	console.log(isMobile);
+	const interviewerNameFromStorage = localStorage.getItem('userName') || (localStorage.getItem('userEmail') || '')
+		.split('@')[0]
+		.replace(/[._-]+/g, ' ')
+		.replace(/\b\w/g, (letter) => letter.toLocaleUpperCase('pt-BR'));
+	const createDefaults: Partial<FormValues> = {
+		questionario: newArrolamentoSurveyId,
+		seiNumber: '',
+		naoAplica: false,
+		interviewerName: interviewerNameFromStorage,
+		interviewDate: '',
+		startTime: '',
+		endTime: '',
+		timeElapsed: '',
+		visitDurationHours: '',
+		sealNumber: '',
+		firstVisitStart: new Date().toLocaleString('pt-BR', {
+			day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+		}).replace(',', ' -'),
+		firstVisitEnd: '',
+		secondVisit: '',
+		thirdVisit: '',
+		visitNumber: '',
+		families: [],
+	};
 	// Initialize the form with react-hook-form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
-		defaultValues: defaultValues || {
-			questionario: "DEMO-123",
-			seiNumber: "",
-			naoAplica: false,
-			interviewerName: interviewerNameFromStorage,
-			interviewDate: "",
-			startTime: "",
-			endTime: "",
-			timeElapsed: "",
-			visitDurationHours: "",
-			sealNumber: "",
-			numberFamilies: 1,
-			firstVisitStart: isEditMode ? "" : new Date().toLocaleString('pt-BR', {
-				day: '2-digit',
-				month: '2-digit',
-				year: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit'
-			}).replace(',', ' -'),
-			firstVisitEnd: "",
-			secondVisit: "",
-			thirdVisit: "",
- 			visitNumber: "",
-			families: [{}],
-		},
+		defaultValues: isEditMode ? defaultValues : createDefaults,
 	});
 	const progressValues = useWatch({ control: form.control });
 
@@ -182,10 +181,12 @@ const FormArrolamento = ({
 			localStorage.removeItem('seiNumber')
 			localStorage.removeItem('sealNumber')
 			localStorage.removeItem('numberFamilies')
+			localStorage.removeItem('questionario')
 			localStorage.setItem('arrolamentoCompleted', 'false')
 			setLoadedArrolamentoData(null)
+			form.reset(createDefaults)
 		}
-	}, [params.id])
+	}, [params.id, form, newArrolamentoSurveyId, interviewerNameFromStorage])
 
 	// Share the form and metadata once on mount
 	useEffect(() => {
@@ -298,13 +299,17 @@ const FormArrolamento = ({
 
  	// Load record by id to show survey_id and visit_count
  	useEffect(() => {
+		let cancelled = false
  		const load = async () => {
  			if (!params.id) return;
  			setIsLoadingData(true);
+			setLoadedArrolamentoData(null)
  			try {
  				const token = localStorage.getItem('authToken') || ''
- 				console.log('[Arrolamento][Load] starting GET by id', { id: params.id, tokenPresent: !!token })
- 				const response = await survey_resource.GetArrolamento({ id: params.id, authorization_token: token }, async (req: any) => {
+				let item: any = null
+				console.log('[Arrolamento][Load] fetching selected record by route id', { id: params.id, tokenPresent: !!token })
+				try {
+					const response = await survey_resource.GetArrolamento({ id: params.id, authorization_token: token }, async (req: any) => {
  					const searchParams = new URLSearchParams()
  					for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
  						if (value !== undefined && value !== "") {
@@ -322,9 +327,29 @@ const FormArrolamento = ({
  					console.log('[Arrolamento][Load] GET response', { status: res.status, ok: res.ok, body: json ?? text })
  					if (!res.ok) throw new Error(text)
  					return json
- 				})
- 				const arrs = (response as any)?.arrolamentos || []
- 				const item = arrs[0]
+					})
+					const arrs = (response as any)?.arrolamentos || []
+					item = arrs.find((record: any) => String(record?.id) === String(params.id))
+					console.log('[Arrolamento][Load] record matched by ID', {
+						requestedId: params.id,
+						returnedIds: arrs.map((record: any) => record?.id),
+						matchedId: item?.id,
+						matchedSurveyId: item?.survey_id,
+						completed: item?.completed,
+					})
+				} catch (requestError) {
+					console.warn('[Arrolamento][Load] API request failed; checking the local record with the same ID:', requestError)
+				}
+				if (cancelled) return
+				if (!item) {
+					try {
+						const stored = JSON.parse(localStorage.getItem('habitech-mock-records:v1:arrolamentos') || '[]')
+						item = Array.isArray(stored) ? stored.find((record: any) => record?.id === params.id) : undefined
+					} catch (storageError) {
+						console.warn('[Arrolamento][Load] local record fallback failed:', storageError)
+					}
+				}
+				if (cancelled) return
  								if (item) {
 					console.log('[Arrolamento][Load] GET success:', item)
 					const mapped = mapArrolamentoToFormData(item, interviewerNameFromStorage)
@@ -361,16 +386,20 @@ const FormArrolamento = ({
  					setLoadedArrolamentoData(item)
  					localStorage.setItem('arrolamentoId', item.id)
  					localStorage.setItem('arrolamentoCreated_by', item.created_by || '')
+					localStorage.setItem('arrolamentoCompleted', String(Boolean(item.completed)))
  					form.setValue('visitNumber', item.visit_count != null ? String(item.visit_count) : '')
  					Swal.fire({ icon: 'success', title: 'Dados carregados', text: `Arrolamento: ${item.survey_id}`, timer: 1400, showConfirmButton: false })
- 				}
+				} else {
+					throw new Error(`O registro ${params.id} não foi encontrado; nenhum outro Arrolamento será carregado.`)
+				}
  			} catch (e) {
  				console.warn('Falha ao carregar arrolamento para exibição do cabeçalho:', e)
  			} finally {
- 				setIsLoadingData(false);
+				if (!cancelled) setIsLoadingData(false);
  			}
  		}
  		load()
+		return () => { cancelled = true }
  	}, [params.id, interviewerNameFromStorage])
 
 	// Handle form submission for FormArrolamento
@@ -469,6 +498,7 @@ const FormArrolamento = ({
  				id: String(effectiveId),
  				created_by: createdBy,
  				authorization_token: token,
+                completed: true,
  			}
 
  			await survey_resource.UpdateArrolamento(payload as any, async (req: any) => {
@@ -483,6 +513,8 @@ const FormArrolamento = ({
 
  			setIsFinalizeModalOpen(false)
  			Swal.fire({ icon: 'success', title: 'Visita finalizada!', timer: 1400, showConfirmButton: false })
+localStorage.setItem('arrolamentoCompleted', 'true')
+setLoadedArrolamentoData((prev: any) => ({ ...(prev || {}), id: effectiveId, completed: true, readonly: true }))
  			navigate('/lista-arrolamentos')
  		} catch (error) {
  			console.error('Erro ao finalizar visita:', error)
@@ -493,90 +525,18 @@ const FormArrolamento = ({
  	}
 
 	// Modal de metadados: handler simples
-	const handleMetadataModalOpenChange = async (isOpen: boolean) => {
-        console.log('[Arrolamento][Meta] onOpenChange triggered', { isOpen })
-        if (isOpen) {
-            setIsMetadataModalOpen(true);
-            console.log('[Arrolamento][Meta] Modal opening; leaving open=true')
-            return;
-        }
-
-        if (ignoreNextCloseRef.current) {
-            console.log('[Arrolamento][Meta] ignoreNextCloseRef=true; closing without prompt')
-            ignoreNextCloseRef.current = false;
-            setIsMetadataModalOpen(false);
-            return;
-        }
-
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-
-        try {
-			// Prioriza ID já salvo e casos de "não se aplica"
-			const idLS = localStorage.getItem('arrolamentoId');
-			if (idLS) {
-				console.log('[Arrolamento][Meta] ID presente no localStorage; fechando modal sem GET por SEI')
-				setIsMetadataModalOpen(false);
-				return;
-			}
-			const naoAplica = form.getValues('naoAplica');
-			if (naoAplica) {
-				console.log('[Arrolamento][Meta] naoAplica=true; pulando GET por SEI ao fechar')
-				setIsMetadataModalOpen(false);
-				return;
-			}
-
-			const seiFromStorageRaw = localStorage.getItem('seiNumber') || '';
-			const request = { numero_sei: seiFromStorageRaw, authorization_token: localStorage.getItem('authToken') || '' } as any;
-			console.log('[Arrolamento][Meta] Attempting to close; checking existing record via GET', { request })
-
-			const response = await survey_resource.GetArrolamento(request, async (req: any) => {
-				const searchParams = new URLSearchParams();
-				for (const [key, value] of Object.entries(req.query_parameters ?? {})) {
-					if (value !== undefined && value !== "") searchParams.append(key, String(value));
-				}
-				const url = `${SURVEY_RESOURCE_URL}${req.path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-				const headers: Record<string, string> = { "Content-Type": "application/json", ...(req.headers || {}) };
-				const res = await fetch(url, { method: req.method, headers });
-				if (!res.ok) throw new Error(await res.text());
-				return res.json();
-			});
-
-			const arrolamento = (response as any)?.arrolamentos?.[0] || null;
-			if (arrolamento) {
-				console.log('[Arrolamento][Meta] Existing record found; saving id & created_by to localStorage and closing')
-				localStorage.setItem('arrolamentoId', arrolamento.id || '');
-				localStorage.setItem('arrolamentoCreated_by', arrolamento.created_by || '');
-				setIsMetadataModalOpen(false);
-				return;
-			}
-		} catch (error) {
-			// loga e segue para alerta
-			console.warn('[Arrolamento][Meta] Falha ao verificar arrolamento ao fechar modal:', error);
+	const handleMetadataModalOpenChange = (isOpen: boolean) => {
+		if (isOpen) {
+			setIsMetadataModalOpen(true);
+			return;
 		}
-
-        setIsMetadataModalOpen(false);
-        console.log('[Arrolamento][Meta] No existing record; showing confirm prompt to enforce fill')
-        Swal.fire({
-            position: 'top-end',
-            title: 'Deseja realmente sair?',
-            text: 'Os dados preenchidos serão perdidos.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, sair',
-            cancelButtonText: 'Não, continuar preenchendo',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                console.log('[Arrolamento][Meta] User confirmed exit; redirecting and suppressing next close')
-                ignoreNextCloseRef.current = true;
-                window.location.href = '/home';
-            } else {
-                console.log('[Arrolamento][Meta] User canceled exit; re-opening modal')
-                setIsMetadataModalOpen(true);
-            }
-        });
-	}
+		if (isEditMode || isViewMode) {
+			setIsMetadataModalOpen(false);
+			return;
+		}
+		setIsMetadataModalOpen(false);
+		navigate('/lista-arrolamentos');
+	};
 
 // Define the form structure using FormFieldType for each field
 const metaDataSections: FormSection[] = [
@@ -821,6 +781,16 @@ return (
 									form.clearErrors("questionario");
 								}
 
+				if (!values.interviewerName?.trim()) {
+					form.setError("interviewerName", {
+						type: "manual",
+						message: "O nome do entrevistador é obrigatório.",
+					});
+					hasError = true;
+				} else {
+					form.clearErrors("interviewerName");
+				}
+
 								if (!values.naoAplica && !values.seiNumber) {
 									form.setError("seiNumber", {
 										type: "manual",
@@ -841,7 +811,7 @@ return (
 									form.clearErrors("sealNumber");
 								}
 
-								if (!values.numberFamilies) {
+				if (!Number.isInteger(values.numberFamilies) || values.numberFamilies < 1) {
 									form.setError("numberFamilies", {
 										type: "manual",
 										message: "O campo Número de Famílias é obrigatório.",
@@ -881,6 +851,7 @@ return (
 								console.log("numberFamilies:", localStorage.getItem("numberFamilies"));
 
 								const dataToSend = {
+					survey_id: questionario,
 									created_by: (localStorage.getItem('userEmail') || questionario),
 																															main_metadata: {
 												numero_sei: values.naoAplica ? "999999" : seiNumber,

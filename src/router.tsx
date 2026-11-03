@@ -51,19 +51,22 @@ const createSelagemRoute = createRoute({
 const createResidencialRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "create-residencial",
-  component: () => <FormularioContainer FormComponent={FormResidencial} />,
+  component: () => {
+    const viewMode = new URLSearchParams(window.location.search).get("visualizar") === "true"
+    return <FormularioContainer FormComponent={FormResidencial} openModalOnMount={!viewMode} viewMode={viewMode} />
+  },
 })
 
 const createNaoResidencialRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "create-nao-residencial",
-  component: () => <FormularioContainer FormComponent={(props) => <DemoInstrumentForm {...props} definition={naoResidencialInstrument} />} openModalOnMount={false} />,
+  component: () => <FormularioContainer FormComponent={(props) => <DemoInstrumentForm {...props} definition={naoResidencialInstrument} />} />,
 })
 
 const createOcupacaoPredialRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "create-ocupacao-predial",
-  component: () => <FormularioContainer FormComponent={(props) => <DemoInstrumentForm {...props} definition={ocupacaoPredialInstrument} />} openModalOnMount={false} />,
+  component: () => <FormularioContainer FormComponent={(props) => <DemoInstrumentForm {...props} definition={ocupacaoPredialInstrument} />} />,
 })
 
 const editNaoResidencialRoute = createRoute({

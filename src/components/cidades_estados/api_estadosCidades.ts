@@ -1,3 +1,5 @@
+import { estados as estadosLocais } from "@/components/cidades_estados/estados"
+import { cidadesLocais } from "@/components/cidades_estados/cidade"
 import { demoApi } from "@/service/demo.api"
 
 export type OpcaoEstado = { nome: string; sigla: string }
@@ -9,13 +11,11 @@ export async function paises(): Promise<{ nome: string; sigla: string }[]> {
 }
 
 export async function estados(): Promise<OpcaoEstado[]> {
-  const { data } = await demoApi.get<OpcaoEstado[]>("/lookup/states")
-  return data
+  return estadosLocais.map(({ label, value }) => ({ nome: label, sigla: value }))
 }
 
 export async function getCidadesOptions(uf: string): Promise<OpcaoCidade[]> {
   if (!uf) return []
 
-  const { data } = await demoApi.get<OpcaoCidade[]>(`/lookup/cities/${encodeURIComponent(uf)}`)
-  return data
+  return cidadesLocais[uf.toUpperCase() as keyof typeof cidadesLocais] ?? []
 }

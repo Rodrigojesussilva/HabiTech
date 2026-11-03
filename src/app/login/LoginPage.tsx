@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from "react"
-import { Building2 } from "lucide-react"
 
 import { LoginForm } from "@/app/login/LoginForm"
 
@@ -17,12 +16,7 @@ const LoginPage = ({ setIsLoginDone }: LoginPageProps) => (
         <div className="w-full max-w-md">
           <div className="mb-8 flex flex-col items-center text-center">
             <div className="mb-5 flex items-center justify-center gap-2.5">
-              <span
-                className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"
-                aria-hidden="true"
-              >
-                <Building2 className="size-6" />
-              </span>
+              <img src="/habitech.svg" alt="" className="size-11 shrink-0 rounded-xl" />
               <span className="text-left leading-none">
                 <span className="block text-sm font-extrabold uppercase tracking-[0.14em] text-slate-900">
                   HabiTech

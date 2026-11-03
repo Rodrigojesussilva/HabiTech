@@ -71,9 +71,8 @@ export const anexosDefinition: FormConfig = {
  * Note: The nationality selection and country-specific fields would ideally be handled
  * by a custom field component that can render the autocomplete and dynamic fields
  */
-export function getConditionalFields(formValues: Partial<FormValues>): FormField[] {
+export function getConditionalFields(_formValues: Partial<FormValues>): FormField[] {
     const conditionalFields: FormField[] = []; 
-    console.log(formValues);
     return conditionalFields;
 }
 
@@ -85,7 +84,6 @@ export function getConditionalFields(formValues: Partial<FormValues>): FormField
 export function getMergedFormSections(formValues: Partial<FormValues>) {
     // Get conditional fields based on current form values
     const conditionalFields = getConditionalFields(formValues);
-    console.log(formValues);
     // Create and return a merged form structure with base fields and conditional fields
     return [
         {
@@ -96,4 +94,4 @@ export function getMergedFormSections(formValues: Partial<FormValues>) {
             ]
         }
     ];
-} 
+}

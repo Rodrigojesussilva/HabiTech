@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import type { ChangeEvent, FormEvent, ReactNode } from "react"
 import { useNavigate } from "@/lib/router-compat"
+import { getDemoUser, startNewDemoInstrumentDraft, type DemoInstrumentType } from "@/lib/demo-form-records"
 import { useQuery } from "@tanstack/react-query"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Building2, Check, CirclePlus, ImagePlus, LogOut } from "lucide-react"
+import { Check, CirclePlus, ImagePlus, LogOut } from "lucide-react"
+import Swal from "sweetalert2"
 import { demoApi } from "@/service/demo.api"
 import { isBackendApiConfigured } from "@/service/backend.api"
 
@@ -95,12 +97,50 @@ export default function Header({ children }: HeaderProps) {
     }
     const handleOffline = () => setSyncStatus("offline")
     const handleOnline = () => setSyncStatus("syncing")
+    const syncNotice = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+    })
+    const handleSyncNotice = (event: Event) => {
+      const { kind, count } = (event as CustomEvent<{
+        kind: "server-detected" | "sync-complete"
+        count: number
+      }>).detail
+
+      if (kind === "server-detected") {
+        if (count > 0) {
+          void syncNotice.fire({
+            icon: "info",
+            title: "Servidor encontrado",
+            text: `Transferindo ${count} ${count === 1 ? "registro salvo" : "registros salvos"} neste dispositivo.`,
+          })
+        }
+        return
+      }
+
+      void syncNotice.fire(count > 0
+        ? {
+            icon: "success",
+            title: "Sincronização concluída",
+            text: `${count} ${count === 1 ? "registro transferido" : "registros transferidos"} para o servidor.`,
+          }
+        : {
+            icon: "success",
+            title: "Servidor encontrado",
+            text: "Os dados locais já estão atualizados; não há registros pendentes.",
+          })
+    }
 
     window.addEventListener("habitech-sync-status", handleSyncStatus)
+    window.addEventListener("habitech-sync-notice", handleSyncNotice)
     window.addEventListener("offline", handleOffline)
     window.addEventListener("online", handleOnline)
     return () => {
       window.removeEventListener("habitech-sync-status", handleSyncStatus)
+      window.removeEventListener("habitech-sync-notice", handleSyncNotice)
       window.removeEventListener("offline", handleOffline)
       window.removeEventListener("online", handleOnline)
     }
@@ -115,6 +155,15 @@ export default function Header({ children }: HeaderProps) {
   ]
 
   const navigateToForm = (formPath: string) => {
+    const instrumentByPath: Record<string, DemoInstrumentType> = {
+      "/create-residencial": "residencial",
+      "/create-nao-residencial": "nao-residencial",
+      "/create-ocupacao-predial": "ocupacao-predial",
+    }
+    const instrument = instrumentByPath[formPath]
+    if (instrument) {
+      startNewDemoInstrumentDraft(instrument, getDemoUser())
+    }
     navigate(formPath)
     setIsMenuOpen(false)
   }
@@ -193,8 +242,8 @@ export default function Header({ children }: HeaderProps) {
               className="flex shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
               title="Ir para página inicial"
             >
-              <Building2 className="size-5 shrink-0 text-blue-700 sm:size-6" aria-hidden="true" />
-              <span className="truncate text-xs font-bold text-slate-900 sm:text-sm">HabiTech</span>
+              <img src="/habitech.svg" alt="" className="size-8 shrink-0 sm:size-9" />
+              <span className="truncate text-xs font-extrabold tracking-tight text-slate-900 sm:text-sm">HabiTech</span>
             </button>
           </div>
 

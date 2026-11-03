@@ -72,6 +72,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       const current = JSON.parse(localStorage.getItem(key) || '{}') as Record<string, AttachmentItem[]>
       current[field] = [...(current[field] || []), attachment]
       localStorage.setItem(key, JSON.stringify(current))
+      window.dispatchEvent(new CustomEvent('habitech-demo-records-updated', { detail: 'mock-records' }))
     } catch (error) {
       console.error('[Arrolamento][Anexos][Local][Save] failed:', error)
     }
@@ -84,6 +85,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
       if (current[field]) {
         current[field] = current[field].filter((attachment) => attachment.id !== id)
         localStorage.setItem(key, JSON.stringify(current))
+        window.dispatchEvent(new CustomEvent('habitech-demo-records-updated', { detail: 'mock-records' }))
       }
     } catch (error) {
       console.error('[Arrolamento][Anexos][Local][Remove] failed:', error)
@@ -275,6 +277,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
         })
         console.log('[Arrolamento][Anexos][Upload] UI updated for field:', fieldName, 'id:', id, 'hasUrl:', Boolean(url))
         saveLocalAttachment(currentId, fieldName, newItem)
+        form.setValue(`families[${familyIndex}].${fieldName}`, undefined)
       } catch (e) {
         console.warn('[Arrolamento][Anexos][Upload] could not reflect response in UI:', e)
       }
@@ -367,7 +370,7 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
             <button type="button" className="truncate mr-2 text-blue-700 hover:underline text-left" onClick={() => openAttachment(fieldName, a.id)} title={a.filename}>{a.filename}</button>
             <span className="flex items-center gap-2">
               {!isViewMode && !isCompletedNow() && (
-                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>remover</button>
+                <button type="button" className="text-red-600" onClick={() => handleRemove(a.id, fieldName)}>Excluir</button>
               )}
             </span>
           </li>
@@ -464,4 +467,4 @@ const AnexosForm = ({ sectionIndex: sectionNumber, familyIndex }: AnexosFormProp
   );
 }
 
-export default AnexosForm; 
+export default AnexosForm;

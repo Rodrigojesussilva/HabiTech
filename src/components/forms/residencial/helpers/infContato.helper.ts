@@ -2,7 +2,7 @@
 export function formatarTelefoneAuto(value: string): string {
     if (!value) return "";
 
-    const cleaned = value.replace(/\D/g, '');
+    const cleaned = value.replace(/\D/g, '').slice(0, 11);
 
     if (cleaned.length === 11) {
         // Celular
