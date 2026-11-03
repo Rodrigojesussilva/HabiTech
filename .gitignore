@@ -5,3 +5,4 @@ protobuf-workspace
 backend-services*
 **/bin/
 **/obj/
+.vercel

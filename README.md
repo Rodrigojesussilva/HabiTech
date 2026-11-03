@@ -48,6 +48,13 @@ Sem `VITE_API_BASE_URL`, a aplicação usa o modo demonstrativo local com MSW. A
 
 Para configurar a API e sincronizar registros, consulte [`backend/README.md`](./backend/README.md). O armazenamento local permite continuar trabalhando offline; a sincronização com a API é opcional. Atualmente, somente Residencial, Não Residencial e Ocupação Predial sincronizam; Selagem, Arrolamento e anexos ainda não fazem parte dessa integração.
 
+## Publicar o frontend na Vercel
+
+1. Importe este repositório na Vercel e mantenha a raiz do projeto como diretório raiz.
+2. A configuração em [`vercel.json`](./vercel.json) define `npm run build`, a pasta `dist` e o fallback de rotas do TanStack Router.
+3. Faça o deploy. Sem variáveis adicionais, o frontend usa o modo demonstrativo local com MSW.
+4. Para conectar uma API publicada separadamente, configure `VITE_API_BASE_URL` nas variáveis de ambiente do projeto Vercel e faça um novo deploy. A API deve permitir requisições CORS vindas do domínio do frontend.
+
 ## Verificações
 
 ```powershell
