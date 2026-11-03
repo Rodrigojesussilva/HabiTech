@@ -55,6 +55,16 @@ Para configurar a API e sincronizar registros, consulte [`backend/README.md`](./
 3. Faça o deploy. Sem variáveis adicionais, o frontend usa o modo demonstrativo local com MSW.
 4. Para conectar uma API publicada separadamente, configure `VITE_API_BASE_URL` nas variáveis de ambiente do projeto Vercel e faça um novo deploy. A API deve permitir requisições CORS vindas do domínio do frontend.
 
+## Publicar o frontend no Render
+
+1. No Render, escolha **New > Static Site** e conecte este repositório na branch `main`.
+2. Deixe **Root Directory** vazio, use `npm ci && npm run build` como comando de build e `dist` como diretório publicado.
+3. O build de produção já usa `https://habitech-0wh8.onrender.com` como API. Se publicar outra API, defina `VITE_API_BASE_URL` nas variáveis do Static Site e faça novo deploy.
+4. Em **Redirects/Rewrites**, crie uma regra **Rewrite** de `/*` para `/index.html` para permitir navegação direta nas rotas do app.
+5. Copie a URL HTTPS que o Render atribuir ao frontend. No serviço `habitech-api`, configure `Cors__AllowedOrigins__0` com essa URL exata, sem `/` no final; depois redeploye a API.
+
+O backend publicado fornece login e sincronização de registros Residencial, Não Residencial e Ocupação Predial. Selagem, Arrolamento e anexos ainda usam o modo demonstrativo local.
+
 ## Verificações
 
 ```powershell
