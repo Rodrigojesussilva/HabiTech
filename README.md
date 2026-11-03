@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/habitech-wordmark.svg" alt="HabiTech — Pesquisa de Campo" width="320">
+</p>
+
 # Sistema de Gestão Habitacional (Projeto de Estudo)
 
 Desenvolvimento full-stack de uma demo inspirada em sistemas públicos de habitação. Frontend focado em usabilidade e backend construído do zero. Utilização de dados fictícios para simulação de fluxos de trabalho.
@@ -23,14 +27,13 @@ Desenvolvimento full-stack de uma demo inspirada em sistemas públicos de habita
 - C# e ASP.NET Core 10
 - Entity Framework Core 10 e migrations
 - Azure SQL como banco de dados configurável
-- JWT Bearer para autenticação
+- JWT (JSON Web Token) para autenticação
 - OpenAPI para documentação da API
 - ASP.NET Core Health Checks e Rate Limiting
 
 ### Testes e qualidade
 
-- MSTest
-- ASP.NET Core TestServer
+- MSTest e ASP.NET Core TestServer
 - Entity Framework Core InMemory para testes
 - ESLint e TypeScript
 
@@ -55,6 +58,6 @@ dotnet test backend\HabiTech.Api.Tests\HabiTech.Api.Tests.csproj
 
 ## Observações
 
-- Azure SQL e sincronização com o backend exigem configuração própria; alertas de capacidade e custo no Azure ainda não estão configurados.
+- Azure SQL e sincronização com o backend exigem configuração própria; alertas de capacidade e custo ainda não estão configurados.
 - O sistema não apaga registros automaticamente.
 - Nenhuma licença de redistribuição foi definida neste repositório.
