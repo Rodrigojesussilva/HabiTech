@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/habitech-wordmark.svg" alt="HabiTech — Instrumentos de Pesquisa" width="320">
+  <img src="./public/habitech-wordmark.svg" alt="Sistema de Pesquisa Habitacional" width="360">
 </p>
 
 <h1 align="center">HabiTech — Sistema de Pesquisa Habitacional</h1>

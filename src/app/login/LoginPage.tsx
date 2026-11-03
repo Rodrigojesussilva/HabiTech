@@ -18,13 +18,13 @@ const LoginPage = ({ setIsLoginDone }: LoginPageProps) => (
             <div className="mb-5 flex items-center justify-center gap-2.5">
               <img src="/habitech.svg" alt="" className="size-11 shrink-0 rounded-xl" />
               <span className="text-left leading-none">
-                <span className="block text-sm font-extrabold uppercase tracking-[0.14em] text-slate-900">
-                  HabiTech
+                <span className="block text-xs font-extrabold uppercase tracking-[0.08em] text-slate-900">
+                  Sistema de Pesquisa
                 </span>
                 <span className="mt-1 flex items-center gap-2">
                   <span className="block h-px w-5 shrink-0 bg-orange-500" />
                   <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">
-                    Pesquisa de campo
+                    Habitacional
                   </span>
                 </span>
               </span>

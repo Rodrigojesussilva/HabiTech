@@ -37,9 +37,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto px-3 py-5 group-data-[collapsible=icon]:hidden">
-        <div className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-800">
+        <div className="flex items-center justify-center gap-2 text-center text-[10px] font-semibold leading-tight text-slate-800">
           <img src="/habitech.svg" alt="" className="size-6" />
-          <span>HabiTech</span>
+          <span className="max-w-28">Sistema de Pesquisa Habitacional</span>
         </div>
       </SidebarFooter>
 

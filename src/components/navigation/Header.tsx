@@ -243,7 +243,9 @@ export default function Header({ children }: HeaderProps) {
               title="Ir para página inicial"
             >
               <img src="/habitech.svg" alt="" className="size-8 shrink-0 sm:size-9" />
-              <span className="truncate text-xs font-extrabold tracking-tight text-slate-900 sm:text-sm">HabiTech</span>
+              <span className="max-w-24 text-[9px] font-extrabold uppercase leading-tight tracking-tight text-slate-900 sm:max-w-32 sm:text-[10px]">
+                Sistema de Pesquisa Habitacional
+              </span>
             </button>
           </div>
 
@@ -256,13 +258,13 @@ export default function Header({ children }: HeaderProps) {
               <span className="h-2.5 w-0.5 rounded-sm bg-cyan-500 sm:h-3 sm:w-1.5" />
             </span>
             <span className="min-w-0 leading-none">
-              <span className="block truncate text-[9px] font-extrabold uppercase tracking-[0.04em] text-slate-900 sm:text-sm sm:tracking-[0.14em]">
-                  Instrumentos
+              <span className="block truncate text-[8px] font-extrabold uppercase tracking-[0.04em] text-slate-900 sm:text-[10px] sm:tracking-[0.08em]">
+                  Sistema de Pesquisa
               </span>
               <span className="mt-1 flex items-center gap-1.5">
                 <span className="block h-px w-2 shrink-0 bg-orange-500 sm:w-5" />
                 <span className="truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-blue-700 sm:text-[10px] sm:tracking-[0.2em]">
-                    Pesquisa
+                    Habitacional
                 </span>
               </span>
             </span>
