@@ -10,6 +10,12 @@ export type DemoInstrumentRecord = {
   updatedAt: string
 }
 
+export const demoInstrumentTypes: DemoInstrumentType[] = [
+  "residencial",
+  "nao-residencial",
+  "ocupacao-predial",
+]
+
 const recordsStorageKey = (instrument: DemoInstrumentType, user: string) =>
   `sehab-demo-records:v1:${user}:${instrument}`
 
@@ -44,6 +50,18 @@ export function readDemoInstrumentRecords(instrument: DemoInstrumentType, user: 
     throw new Error("Os registros demonstrativos estão em um formato inválido.")
   }
   return parsed.filter((record) => record.instrument === instrument)
+}
+
+export function writeDemoInstrumentRecords(
+  instrument: DemoInstrumentType,
+  user: string,
+  records: DemoInstrumentRecord[],
+  notify = true,
+): void {
+  localStorage.setItem(recordsStorageKey(instrument, user), JSON.stringify(records))
+  if (notify) {
+    window.dispatchEvent(new CustomEvent("habitech-demo-records-updated", { detail: instrument }))
+  }
 }
 
 export function findDemoInstrumentRecord(
@@ -112,7 +130,7 @@ export function saveAutosavedDemoRecord(
     ? records.map((record) => record.id === id ? nextRecord : record)
     : [nextRecord, ...records]
   localStorage.setItem(recordsStorageKey(route.instrument, user), JSON.stringify(nextRecords))
-  window.dispatchEvent(new CustomEvent("sehab-demo-records-updated", { detail: route.instrument }))
+  window.dispatchEvent(new CustomEvent("habitech-demo-records-updated", { detail: route.instrument }))
 }
 
 export function completeDemoInstrumentRecord(
@@ -137,7 +155,7 @@ export function completeDemoInstrumentRecord(
     : [completedRecord, ...records]
   localStorage.setItem(recordsStorageKey(instrument, user), JSON.stringify(nextRecords))
   localStorage.removeItem(activeRecordStorageKey(instrument, user))
-  window.dispatchEvent(new CustomEvent("sehab-demo-records-updated", { detail: instrument }))
+  window.dispatchEvent(new CustomEvent("habitech-demo-records-updated", { detail: instrument }))
 }
 
 export function clearDemoInstrumentDraft(

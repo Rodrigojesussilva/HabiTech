@@ -204,11 +204,11 @@ export default function Home() {
     }
 
     window.addEventListener("keydown", handleKey)
-    window.addEventListener("sehab-demo-records-updated", handleRecordsUpdated)
+    window.addEventListener("habitech-demo-records-updated", handleRecordsUpdated)
     window.addEventListener("storage", handleStorage)
     return () => {
       window.removeEventListener("keydown", handleKey)
-      window.removeEventListener("sehab-demo-records-updated", handleRecordsUpdated)
+      window.removeEventListener("habitech-demo-records-updated", handleRecordsUpdated)
       window.removeEventListener("storage", handleStorage)
     }
   }, [loadDashboard])
@@ -263,7 +263,7 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Painel de acompanhamento</p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Visão geral dos instrumentos</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-blue-100 sm:text-base">
-              Acompanhe os cadastros e o andamento das pesquisas habitacionais em um só lugar.
+              Acompanhe os registros e o andamento das pesquisas em um só lugar.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -282,6 +282,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <p className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-950">
+        Projeto de estudo e portfólio. As contas e os registros de demonstração são fictícios.
+      </p>
 
       <section aria-labelledby="instrumentos-heading">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

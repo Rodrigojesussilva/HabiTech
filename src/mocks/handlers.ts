@@ -14,7 +14,7 @@ type DemoRecord = {
   attachments: string[]
 }
 
-const demoUser = "piloto@sehab.gov.br"
+const demoUser = "demo@example.test"
 
 let selagens: DemoRecord[] = [
   {
@@ -28,17 +28,17 @@ let selagens: DemoRecord[] = [
     updated_at: "2026-10-28T14:30:00.000Z",
     deleted_at: "",
     survey: {
-      main_metadata: { numero_sei: "6014.2026/0001001-0" },
+      main_metadata: { numero_sei: "DEMO-2026-001" },
       identificacao_espaco_habitado: {
-        nome_espaco_habitado: "Vila Esperança",
+        nome_espaco_habitado: "Comunidade Exemplo",
         numero_selo: "SEL-001",
       },
       identificacao_unidade: {
-        cep: "01234-567",
-        logradouro: "Rua da Habitação",
-        numero: "120",
-        bairro: "Centro",
-        cidade: "São Paulo",
+        cep: "00000-001",
+        logradouro: "Rua Exemplo",
+        numero: "100",
+        bairro: "Bairro Exemplo",
+        cidade: "Cidade Exemplo",
         uf: "SP",
       },
       situacao_uso_unidade: { situacao: "Ocupada", uso: "Residencial" },
@@ -56,7 +56,7 @@ let selagens: DemoRecord[] = [
     updated_at: "2026-10-30T10:00:00.000Z",
     deleted_at: "",
     survey: {
-      main_metadata: { numero_sei: "6014.2026/0001002-8" },
+      main_metadata: { numero_sei: "DEMO-2026-002" },
       identificacao_espaco_habitado: {
         nome_espaco_habitado: "Jardim Novo",
         numero_selo: "SEL-002",
@@ -66,7 +66,7 @@ let selagens: DemoRecord[] = [
         logradouro: "Avenida do Progresso",
         numero: "45",
         bairro: "Jardim Novo",
-        cidade: "São Paulo",
+        cidade: "Cidade Exemplo",
         uf: "SP",
       },
       situacao_uso_unidade: { situacao: "Ocupada", uso: "Residencial" },
@@ -89,7 +89,7 @@ let arrolamentos: DemoRecord[] = [
     deleted_at: "",
     survey: {
       main_metadata: {
-        numero_sei: "6014.2026/0002001-8",
+        numero_sei: "DEMO-2026-003",
         numero_selo: "SEL-001",
         quantidade_familias: 1,
       },

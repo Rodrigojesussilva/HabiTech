@@ -1,3 +1,5 @@
+import axios from "axios";
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -5,6 +7,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from '@/lib/router-compat';
 import { DEMO_AUTH_TOKEN } from '@/service/demo.api';
+import { backendApi, isBackendApiConfigured } from "@/service/backend.api";
 
 
 import {
@@ -27,6 +30,8 @@ type LoginFormProps = {
 
 export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProps) {
   const navigate = useNavigate();
+  const [loginError, setLoginError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -38,30 +43,79 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
   });
 
   async function onSubmit(data: z.infer<typeof LoginSchema>) {
+    setLoginError("");
+    setIsSubmitting(true);
     try {
-      const validUsers = [
-        { email: "piloto@sehab.gov.br", password: "sehab2025" },
-        { email: "urbhis@sehab.sp.gov.br", password: "sehab2025" },
-        { email: "diagonal@sehab.sp.gov.br", password: "sehab2025" },
-        { email: "cobrape@sehab.sp.gov.br", password: "sehab2025" }
-      ];
-      
-      const isValidUser = validUsers.some(user => 
-        user.email === data.email && user.password === data.password
-      );
-      
-      if (!isValidUser) {
-        throw new Error("Email ou senha inválidos");
+      const email = data.email.trim().toLocaleLowerCase("pt-BR");
+      let accessToken: string;
+      let expiresAt: string | null = null;
+
+      if (isBackendApiConfigured) {
+        try {
+          const response = await backendApi.post<{
+            email: string;
+            accessToken: string;
+            expiresAtUtc: string;
+          }>("/api/auth/login", data, {
+            headers: { "X-Login-Email": email },
+          });
+          accessToken = response.data.accessToken;
+          expiresAt = response.data.expiresAtUtc;
+          localStorage.setItem("userEmail", response.data.email);
+        } catch (error) {
+          const cachedEmail = localStorage.getItem("userEmail")?.toLocaleLowerCase("pt-BR");
+          const cachedToken = localStorage.getItem("authToken");
+          const cachedExpiry = Date.parse(localStorage.getItem("authTokenExpiresAt") ?? "");
+          const isNetworkFailure = axios.isAxiosError(error)
+            && (!error.response || error.response.status >= 500);
+
+          if (cachedEmail !== email
+            || !cachedToken
+            || cachedToken === DEMO_AUTH_TOKEN
+            || cachedExpiry <= Date.now()
+            || !isNetworkFailure) {
+            throw error;
+          }
+
+          accessToken = cachedToken;
+          expiresAt = new Date(cachedExpiry).toISOString();
+        }
+      } else {
+        const validUsers = [
+          { email: "demo@example.test", password: "demo2025" },
+          { email: "teste1@example.test", password: "demo2025" },
+          { email: "teste2@example.test", password: "demo2025" },
+          { email: "teste3@example.test", password: "demo2025" },
+        ];
+
+        const isValidUser = validUsers.some(user =>
+          user.email === email && user.password === data.password
+        );
+        if (!isValidUser) throw new Error("E-mail ou senha inválidos.");
+        accessToken = DEMO_AUTH_TOKEN;
       }
 
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userEmail', data.email); 
-      localStorage.setItem('authToken', DEMO_AUTH_TOKEN);
+      localStorage.setItem("isAuthenticated", "true");
+      if (!isBackendApiConfigured) localStorage.setItem("userEmail", email);
+      localStorage.setItem("authToken", accessToken);
+      if (expiresAt) localStorage.setItem("authTokenExpiresAt", expiresAt);
+      else localStorage.removeItem("authTokenExpiresAt");
       setIsLoginDone(true);
       navigate("/home");
     } catch (error) {
-      console.error("Erro no login demonstrativo:", error);
-      alert("Email ou senha inválidos");
+      const message = axios.isAxiosError(error)
+        ? error.response?.status === 401
+          ? "E-mail ou senha inválidos."
+          : "Não foi possível acessar a API. Verifique a conexão e tente novamente."
+        : error instanceof Error
+          ? error.message
+          : "Não foi possível entrar no sistema.";
+      setLoginError(message);
+      if (!axios.isAxiosError(error) && !(error instanceof Error)) {
+        console.error("Erro inesperado no login:", error);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -73,7 +127,9 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
             Entrar na sua conta
           </h2>
           <p className="text-balance text-sm leading-relaxed text-slate-600">
-            Acesse com piloto@sehab.gov.br e senha sehab2025
+            {isBackendApiConfigured
+              ? "Entre com uma conta demonstrativa configurada no servidor."
+              : "Demonstração local: demo@example.test · senha demo2025"}
           </p>
         </div>
         <div className="grid gap-5">
@@ -87,7 +143,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
                   <FormControl>
                     <Input
                       className="h-12 rounded-xl bg-slate-50 px-4 focus-visible:bg-white"
-                      placeholder="seu.email@sehab.gov.br"
+                      placeholder="seu.email@example.test"
                       type="email"
                       {...field} 
                     />
@@ -117,10 +173,12 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
           </div>
           <Button 
             type="submit" 
+            disabled={isSubmitting}
             className="h-12 w-full rounded-xl bg-blue-700 text-base font-semibold shadow-md shadow-blue-900/15 transition hover:bg-blue-800"
           >
-            Acessar sistema
+            {isSubmitting ? "Entrando..." : "Acessar sistema"}
           </Button>
+          {loginError && <p className="text-sm text-red-700" role="alert">{loginError}</p>}
         </div>
       </form>
     </FormProvider>

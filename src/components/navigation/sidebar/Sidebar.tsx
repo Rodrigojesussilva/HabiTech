@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Stamp, House, Factory, Building } from "lucide-react";
+import { Stamp, House, Factory, Building, Building2 } from "lucide-react";
 import { FaPeopleRoof } from "react-icons/fa6";
 import { NavMain } from "@/components/navigation/sidebar/NavMain";
 import {
@@ -37,13 +37,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="mt-auto px-3 py-5 group-data-[collapsible=icon]:hidden">
-        <div className="flex justify-center">
-          <img
-            src="/psp.png"
-            alt="Prefeitura de São Paulo — Habitação"
-            className="h-auto w-full max-w-[180px] shrink-0 select-none object-contain"
-            loading="eager"
-          />
+        <div className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-700">
+          <Building2 className="size-5 text-blue-700" aria-hidden="true" />
+          <span>HabiTech</span>
         </div>
       </SidebarFooter>
 

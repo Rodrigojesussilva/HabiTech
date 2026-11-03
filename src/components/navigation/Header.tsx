@@ -1,10 +1,11 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { ChangeEvent, FormEvent, ReactNode } from "react"
 import { useNavigate } from "@/lib/router-compat"
 import { useQuery } from "@tanstack/react-query"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Check, CirclePlus, ImagePlus, LogOut } from "lucide-react"
+import { Building2, Check, CirclePlus, ImagePlus, LogOut } from "lucide-react"
 import { demoApi } from "@/service/demo.api"
+import { isBackendApiConfigured } from "@/service/backend.api"
 
 interface HeaderProps {
   children?: ReactNode
@@ -73,6 +74,9 @@ export default function Header({ children }: HeaderProps) {
   const [draftAvatar, setDraftAvatar] = useState(profile.avatar)
   const [profileError, setProfileError] = useState("")
   const [isReadingAvatar, setIsReadingAvatar] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<"syncing" | "synced" | "offline" | "error">(
+    () => navigator.onLine ? "syncing" : "offline",
+  )
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const demoStatus = useQuery({
     queryKey: ["demo-status"],
@@ -81,6 +85,26 @@ export default function Header({ children }: HeaderProps) {
       return data
     },
   })
+
+  useEffect(() => {
+    if (!isBackendApiConfigured) return
+
+    const handleSyncStatus = (event: Event) => {
+      const status = (event as CustomEvent<{ status: typeof syncStatus }>).detail.status
+      setSyncStatus(status)
+    }
+    const handleOffline = () => setSyncStatus("offline")
+    const handleOnline = () => setSyncStatus("syncing")
+
+    window.addEventListener("habitech-sync-status", handleSyncStatus)
+    window.addEventListener("offline", handleOffline)
+    window.addEventListener("online", handleOnline)
+    return () => {
+      window.removeEventListener("habitech-sync-status", handleSyncStatus)
+      window.removeEventListener("offline", handleOffline)
+      window.removeEventListener("online", handleOnline)
+    }
+  }, [])
 
   const formOptions = [
     { name: "Selagem", path: "/create-selagem" },
@@ -154,6 +178,7 @@ export default function Header({ children }: HeaderProps) {
     localStorage.removeItem("isAuthenticated")
     localStorage.removeItem("userEmail")
     localStorage.removeItem("authToken")
+    localStorage.removeItem("authTokenExpiresAt")
     window.location.href = "/login"
   }
 
@@ -168,11 +193,8 @@ export default function Header({ children }: HeaderProps) {
               className="flex shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
               title="Ir para página inicial"
             >
-              <img
-                src="/logo-habitasampa.png"
-                alt="Logo HabitaSampa"
-                className="app-header-logo select-none object-contain"
-              />
+              <Building2 className="size-5 shrink-0 text-blue-700 sm:size-6" aria-hidden="true" />
+              <span className="truncate text-xs font-bold text-slate-900 sm:text-sm">HabiTech</span>
             </button>
           </div>
 
@@ -199,11 +221,35 @@ export default function Header({ children }: HeaderProps) {
 
           <div className="app-header-actions flex min-w-0 items-center justify-end gap-1.5 md:gap-3">
             <span
-              className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 lg:inline-flex"
+              className={`hidden rounded-full border px-2.5 py-1 text-xs font-medium lg:inline-flex ${
+                !isBackendApiConfigured || syncStatus === "synced"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  : syncStatus === "error"
+                    ? "border-amber-200 bg-amber-50 text-amber-900"
+                    : "border-slate-200 bg-slate-50 text-slate-700"
+              }`}
               role="status"
-              title={demoStatus.isError ? "Não foi possível verificar o modo de demonstração" : "Dados locais demonstrativos"}
+              title={isBackendApiConfigured
+                ? syncStatus === "offline"
+                  ? "Sem internet; alterações continuam salvas neste dispositivo."
+                  : syncStatus === "error"
+                    ? "Falha na sincronização; os registros continuam salvos neste dispositivo."
+                    : syncStatus === "syncing"
+                      ? "Sincronizando registros com o servidor."
+                      : "Registros sincronizados com o servidor."
+                : demoStatus.isError
+                  ? "Não foi possível verificar o modo de demonstração"
+                  : "Dados locais demonstrativos"}
             >
-              {demoStatus.isError ? "Modo indisponível" : "Demonstração"}
+              {!isBackendApiConfigured
+                ? demoStatus.isError ? "Modo indisponível" : "Demonstração"
+                : syncStatus === "offline"
+                  ? "Offline • local"
+                  : syncStatus === "error"
+                    ? "Sincronização pendente"
+                    : syncStatus === "syncing"
+                      ? "Sincronizando"
+                      : "Sincronizado"}
             </span>
 
             <div className="relative">
@@ -255,7 +301,7 @@ export default function Header({ children }: HeaderProps) {
                 className="flex items-center gap-2 rounded-full p-1 pr-1.5 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
               >
                 <Avatar className="size-8 border border-slate-200">
-                  <AvatarImage src={profile.avatar || "/avatar1.jpg"} alt="" />
+                  <AvatarImage src={profile.avatar || undefined} alt="" />
                   <AvatarFallback>{getInitials(profile.name)}</AvatarFallback>
                 </Avatar>
                 <span className="hidden max-w-20 truncate text-[11px] font-medium text-slate-700 min-[360px]:inline sm:max-w-28 sm:text-xs lg:max-w-36 lg:text-sm">
@@ -270,7 +316,7 @@ export default function Header({ children }: HeaderProps) {
                 >
                   <div className="mb-4 flex items-center gap-3">
                     <Avatar className="size-12 border border-slate-200">
-                      <AvatarImage src={draftAvatar || "/avatar1.jpg"} alt="" />
+                      <AvatarImage src={draftAvatar || undefined} alt="" />
                       <AvatarFallback>{getInitials(draftName || profile.name)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">

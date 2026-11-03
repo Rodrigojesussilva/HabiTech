@@ -1,0 +1,75 @@
+# HabiTech API
+
+ASP.NET Core 10 API foundation for the demonstration application. The API is configured to use Azure SQL through Entity Framework Core; it does not create or delete database objects automatically.
+
+> Independent study/portfolio project. Accounts and sample data are fictional.
+
+## Local development
+
+Set the connection string in user secrets or an environment variable. Do not commit credentials.
+
+```powershell
+dotnet user-secrets init --project backend\HabiTech.Api
+dotnet user-secrets set "ConnectionStrings:AzureSql" "<Azure SQL connection string>" --project backend\HabiTech.Api
+dotnet user-secrets set "Jwt:SigningKey" "<random secret of at least 32 characters>" --project backend\HabiTech.Api
+dotnet user-secrets set "DemoAccounts:0:Email" "<demo account email>" --project backend\HabiTech.Api
+dotnet user-secrets set "DemoAccounts:0:Password" "<unique demo account password>" --project backend\HabiTech.Api
+dotnet user-secrets set "Cors:AllowedOrigins:0" "http://localhost:5173" --project backend\HabiTech.Api
+dotnet run --project backend\HabiTech.Api
+```
+
+Configure additional accounts with `DemoAccounts:1:Email`, `DemoAccounts:1:Password`, and so on. Keep all passwords and the JWT signing key in user secrets locally and in Azure App Service application settings after deployment. Configure each allowed frontend origin explicitly; never use a wildcard.
+
+The login endpoint is `POST /api/auth/login` with a JSON body containing `email` and `password`. It issues an eight-hour bearer token. Login attempts are rate limited. `GET /api/v1/session` is protected and can be used to verify a token.
+
+Run the API integration tests with:
+
+```powershell
+dotnet test backend\HabiTech.Api.Tests\HabiTech.Api.Tests.csproj
+```
+
+## Database schema
+
+The API does not modify the database schema automatically at startup. Install the EF tool and apply the checked-in migration explicitly:
+
+```powershell
+dotnet tool install --global dotnet-ef --version 10.0.14
+dotnet ef database update --project backend\HabiTech.Api --startup-project backend\HabiTech.Api
+```
+
+The migration creates the user-scoped synchronization table and indexes. It does not delete data.
+
+## Offline record synchronization
+
+When `VITE_API_BASE_URL` is configured in the frontend build, successful API login starts synchronization for the browser-local Residencial, Não Residencial, and Ocupação Predial records. Local autosave remains the first write; loss of internet or API availability does not clear local records. The client retries on reconnect and periodically after transient server errors. Other instruments and attachments are not yet part of this synchronization contract.
+
+- `GET /api/v1/sync/records` downloads the authenticated user's synchronized records.
+- `POST /api/v1/sync/records` accepts batches of up to 25 records.
+- Records are isolated by the authenticated account. A later `updatedAt` timestamp wins; use UTC timestamps and expect the device clock to influence conflict resolution.
+- The client merges server data with local records without deleting records. A successful response means the server stored the record; keep a local copy for offline use.
+
+For local development, set `VITE_API_BASE_URL` to the API's HTTPS launch URL before starting Vite. When it is unset, the frontend remains in standalone MSW demonstration mode and does not call this API.
+
+## Health endpoints
+
+- `GET /health/live` checks whether the process is running.
+- `GET /health/ready` checks whether Azure SQL is configured and reachable. It returns `503` until a connection is configured and available.
+
+## Azure App Service configuration
+
+Set these application settings in App Service:
+
+- `ConnectionStrings__AzureSql`: Azure SQL connection string, stored as a secret in App Service configuration.
+- `Jwt__SigningKey`: random signing secret with at least 32 characters, stored as a secret.
+- `DemoAccounts__0__Email` and `DemoAccounts__0__Password`: server-side demo account credentials. Repeat with the next index for additional accounts.
+- `Cors__AllowedOrigins__0`: exact HTTPS URL of the deployed frontend.
+
+Use a dedicated database principal with the minimum permissions required. Never place connection strings or credentials in source control or frontend environment variables.
+
+Use the ADO.NET connection string provided for the Azure SQL database, with encryption enabled and certificate validation enabled (`Encrypt=True;TrustServerCertificate=False`). The App Service must be allowed to reach the database: prefer private networking where available, or narrowly allow the App Service's outbound addresses in the SQL firewall. Do not enable broad public access just to make the health check pass.
+
+After configuration, verify `GET /health/ready` returns `200`. A `503` means the connection is missing or the API cannot reach Azure SQL; check the App Service settings, database firewall/network rules, database name, and principal permissions. The API does not automatically apply migrations: run the documented migration step explicitly before using record synchronization.
+
+## Current scope
+
+The API includes a server-configured demo login, health checks, the initial user-scoped synchronization schema, and record synchronization endpoints. Integration tests cover authentication requirements, timestamp conflict handling, and user isolation. Azure SQL connectivity and Azure capacity/cost alerts still require deployment-specific configuration. Automatic record deletion is intentionally not configured.

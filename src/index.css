@@ -136,11 +136,6 @@
   grid-row: 1;
 }
 
-.app-header-logo {
-  width: 5rem;
-  height: 2rem;
-}
-
 .app-header-brand {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -172,8 +167,4 @@
     grid-row: 1;
   }
 
-  .app-header-logo {
-    width: 7rem;
-    height: 3rem;
-  }
 }

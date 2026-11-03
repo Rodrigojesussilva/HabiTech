@@ -75,10 +75,10 @@ export default function DemoInstrumentList({ instrument, title }: DemoInstrument
       const updatedInstrument = (event as CustomEvent<DemoInstrumentType>).detail
       if (updatedInstrument === instrument) loadRecords()
     }
-    window.addEventListener("sehab-demo-records-updated", handleRecordsUpdated)
+    window.addEventListener("habitech-demo-records-updated", handleRecordsUpdated)
     window.addEventListener("storage", loadRecords)
     return () => {
-      window.removeEventListener("sehab-demo-records-updated", handleRecordsUpdated)
+      window.removeEventListener("habitech-demo-records-updated", handleRecordsUpdated)
       window.removeEventListener("storage", loadRecords)
     }
   }, [instrument, loadRecords])

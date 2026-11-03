@@ -259,7 +259,7 @@ export function mapArrolamentoToFormData(api: ArrolamentoApiData, interviewerNam
   }
 
   return {
-    questionario: api?.survey_id || 'SEHAB-123',
+    questionario: api?.survey_id || 'DEMO-123',
     seiNumber: (survey?.main_metadata?.numero_sei === '999999' || survey?.main_metadata?.numero_sei_nao_aplicavel)
       ? '999999'
       : (survey?.main_metadata?.numero_sei || ''),
