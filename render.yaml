@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: habitech-api
+    runtime: docker
+    plan: free
+    region: ohio
+    dockerfilePath: ./backend/HabiTech.Api/Dockerfile
+    dockerContext: ./backend/HabiTech.Api
+    healthCheckPath: /health/live
+    autoDeploy: true
+    envVars:
+      - key: ConnectionStrings__AzureSql
+        sync: false
+      - key: Jwt__SigningKey
+        generateValue: true
+      - key: DemoAccounts__0__Email
+        sync: false
+      - key: DemoAccounts__0__Password
+        sync: false
+      - key: Cors__AllowedOrigins__0
+        sync: false
