@@ -39,9 +39,14 @@ function App() {
         setShowThemeEditor(prev => !prev);
       }
     };
+    const handleLogout = () => setIsLoginDone(false);
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('habitech-logout', handleLogout);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('habitech-logout', handleLogout);
+    };
   }, [isLoginDone]);
 
   useEffect(() => {

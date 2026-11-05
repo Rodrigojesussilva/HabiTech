@@ -228,7 +228,8 @@ export default function Header({ children }: HeaderProps) {
     localStorage.removeItem("userEmail")
     localStorage.removeItem("authToken")
     localStorage.removeItem("authTokenExpiresAt")
-    window.location.href = "/login"
+    window.dispatchEvent(new Event("habitech-logout"))
+    navigate("/login")
   }
 
   return (
