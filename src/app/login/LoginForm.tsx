@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +6,6 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from '@/lib/router-compat';
 import { DEMO_AUTH_TOKEN } from '@/service/demo.api';
-import { backendApi, isBackendApiConfigured } from "@/service/backend.api";
 
 
 import {
@@ -47,69 +45,21 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
     setIsSubmitting(true);
     try {
       const email = data.email.trim().toLocaleLowerCase("pt-BR");
-      let accessToken: string;
-      let expiresAt: string | null = null;
-
-      if (isBackendApiConfigured) {
-        try {
-          const response = await backendApi.post<{
-            email: string;
-            accessToken: string;
-            expiresAtUtc: string;
-          }>("/api/auth/login", data, {
-            headers: { "X-Login-Email": email },
-          });
-          accessToken = response.data.accessToken;
-          expiresAt = response.data.expiresAtUtc;
-          localStorage.setItem("userEmail", response.data.email);
-        } catch (error) {
-          const cachedEmail = localStorage.getItem("userEmail")?.toLocaleLowerCase("pt-BR");
-          const cachedToken = localStorage.getItem("authToken");
-          const cachedExpiry = Date.parse(localStorage.getItem("authTokenExpiresAt") ?? "");
-          const isNetworkFailure = axios.isAxiosError(error)
-            && (!error.response || error.response.status >= 500);
-
-          if (!isNetworkFailure) {
-            throw error;
-          }
-
-          if (cachedEmail === email
-            && cachedToken
-            && cachedToken !== DEMO_AUTH_TOKEN
-            && cachedExpiry > Date.now()) {
-            accessToken = cachedToken;
-            expiresAt = new Date(cachedExpiry).toISOString();
-          } else {
-            const validOfflineLogin = email === "demo@example.test" && data.password === "demo2025";
-            if (!validOfflineLogin) throw error;
-            accessToken = DEMO_AUTH_TOKEN;
-          }
-        }
-      } else {
-        const isValidUser = email === "demo@example.test" && data.password === "demo2025";
-        if (!isValidUser) throw new Error("E-mail ou senha inválidos.");
-        accessToken = DEMO_AUTH_TOKEN;
-      }
+      const isValidUser = email === "demo@example.test" && data.password === "demo2025";
+      if (!isValidUser) throw new Error("E-mail ou senha inválidos.");
 
       localStorage.setItem("isAuthenticated", "true");
-      if (!isBackendApiConfigured || accessToken === DEMO_AUTH_TOKEN) {
-        localStorage.setItem("userEmail", email);
-      }
-      localStorage.setItem("authToken", accessToken);
-      if (expiresAt) localStorage.setItem("authTokenExpiresAt", expiresAt);
-      else localStorage.removeItem("authTokenExpiresAt");
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("authToken", DEMO_AUTH_TOKEN);
+      localStorage.removeItem("authTokenExpiresAt");
       setIsLoginDone(true);
       navigate("/home");
     } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? error.response?.status === 401
-          ? "E-mail ou senha inválidos."
-          : "Não foi possível acessar a API. Verifique a conexão e tente novamente."
-        : error instanceof Error
-          ? error.message
-          : "Não foi possível entrar no sistema.";
+      const message = error instanceof Error
+        ? error.message
+        : "Não foi possível entrar no sistema.";
       setLoginError(message);
-      if (!axios.isAxiosError(error) && !(error instanceof Error)) {
+      if (!(error instanceof Error)) {
         console.error("Erro inesperado no login:", error);
       }
     } finally {
@@ -125,9 +75,7 @@ export function LoginForm({ className, setIsLoginDone, ...props }: LoginFormProp
             Entrar na sua conta
           </h2>
           <p className="text-balance text-sm leading-relaxed text-slate-600">
-            {isBackendApiConfigured
-              ? "Acesso demonstrativo: demo@example.test · senha demo2025. Rascunhos ficam salvos localmente e sincronizam quando a API estiver disponível."
-              : "Demonstração local: demo@example.test · senha demo2025"}
+            Acesso demonstrativo: demo@example.test · senha demo2025. Rascunhos ficam salvos localmente e sincronizam quando a API estiver disponível.
           </p>
         </div>
         <div className="grid gap-5">
